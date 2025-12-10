@@ -1,0 +1,24 @@
+# --- NODE MODULES ---
+node_modules/
+
+# --- VITE BUILD OUTPUT ---
+dist/
+
+# --- LOG FILES ---
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# --- ENV VARIABLES ---
+.env
+.env.local
+.env.development
+.env.production
+.env.test
+
+# --- SYSTEM FILES ---
+.DS_Store
+Thumbs.db
+
+# --- VSCODE SETTINGS (opcjonalnie) ---
+.vscode/

@@ -1,0 +1,951 @@
+/* =========================================
+   1. GLOBAL / BAZA
+========================================= */
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+
+  background:
+    radial-gradient(circle at 20% 25%, rgba(0, 140, 255, 0.20), transparent 80%),
+    radial-gradient(circle at 60% 30%, rgba(0, 90, 220, 0.20), transparent 75%),
+    radial-gradient(circle at 50% 85%, rgba(0, 120, 255, 0.15), transparent 45%),
+    #020308;
+
+    min-height: 100vh;
+}
+
+/* =========================================
+   2. EKRAN LOGOWANIA – GLASS + WYŚRODKOWANY BOX
+========================================= */
+
+/* TŁO STRONY LOGOWANIA (jeśli używasz .login-page jako kontenera) */
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 40px;   /* padding po bokach na małych ekranach */
+}
+
+/* SZKLANY BOX LOGOWANIA NA ŚRODKU */
+.login-card {
+  width: 100%;
+  max-width: 420px;
+  align-items: center;
+
+  padding: 32px 26px 26px;
+  border-radius: 16px;
+  
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  box-shadow:
+    0 24px 60px rgba(0, 0, 0, 0.75),
+    0 0 34px rgba(0, 89, 201, 0.45);
+
+  backdrop-filter: blur(18px) saturate(160%);
+
+
+  text-align: center;
+  color: #f4f6ff;
+}
+
+/* Formularz logowania wewnątrz karty */
+.login-card form {
+  width: 100%;
+  max-width: 360px;      /* szerokość inputów i przycisku */
+  margin: 0 auto;        /* WYŚRODKOWANIE CAŁOŚCI */
+  display: block;
+}
+
+/* Pojedyncze pole input w formularzu logowania */
+.login-card input {
+  display: block;
+  margin: auto;
+  width: 90%;
+  height: 22px;
+  text-align: center;
+
+  padding: 10px 14px;
+  margin-bottom: 12px;
+
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(12, 12, 20, 0.55);
+
+  color: #f7f9ff;
+  font-size: 14px;
+
+  box-shadow:
+    inset 0 0 12px rgba(0, 0, 0, 0.45),
+    0 0 14px rgba(0, 89, 201, 0.26);
+}
+
+.login-card input::placeholder {
+  color: rgba(235, 238, 255, 0.7);
+}
+
+.login-card input:focus {
+  outline: none;
+  border-color: rgba(0, 180, 255, 0.65);
+  box-shadow:
+    inset 0 0 12px rgba(0, 0, 0, 0.55),
+    0 0 18px rgba(0, 180, 255, 0.25);
+}
+
+/* Przycisk logowania – pełna szerokość w obrębie formy */
+.login-btn {
+  display: block;
+  width: 98.5%;
+  height: 40px;
+
+  padding: 10px 16px;
+  border-radius: 999px;
+
+  text-align: center;
+  font-size: 16px;
+  font-weight: 600;
+  color: #f5f7ff;
+  cursor: pointer;
+
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+
+  transition: background 0.2s, transform 0.1s;
+}
+
+.login-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  }
+
+  /* Linki pod formularzem logowania (załóż konto, zapomniałeś hasła) */
+  .login-links {
+  width: 80%;                 /* same width as inputs (or whatever you use) */
+  margin: 14px auto 0 auto;   /* centered block */
+  
+  display: flex;
+  justify-content: space-between;   /* 🔥 MAGIC: left + right alignment */
+  align-items: center;
+
+  font-size: 14px;
+  color: rgba(240, 242, 255, 0.85);
+}
+
+/* Drobne linki pod formularzem (zapomniałeś hasła, itp.) */
+.link-muted {
+  font-size: 13px;
+  color: #666666;
+  margin: 4px 0;
+}
+
+/* Logo w kółku z gradientem */
+.login-logo-circle {
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+
+  background: radial-gradient(circle,
+    rgba(0, 89, 201, 1) 55%,      /* solid center */
+    rgba(0, 89, 201, 0.3) 80%,    /* 50% transparency at edge */
+    rgba(0, 89, 201, 0) 100%      /* fade into air */
+  );
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  margin: 0 auto 24px;
+
+  box-shadow: 0 10px 30px rgba(0, 89, 201, 0.5);
+}
+
+.login-logo-circle img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* =========================================
+   3. KAFELKI + DOLNE MENU (WSPÓLNE)
+========================================= */
+
+/* Wspólne tło aplikacji (student, nauczyciel) */
+.home-page {
+  background: transparent;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Wspólna siatka kafelków */
+.tile-grid {
+  border-radius: 16px;
+  padding: 15px;
+  display: grid;
+  grid-template-columns: repeat(2, 180px);  gap: 20px;
+  margin: 0 auto  ;
+}
+
+.date-display {
+    margin: 5px 0 0 12px;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.7);
+    font-weight: 400;
+}
+
+.tile {
+  position: relative;
+  /* Stałe wymiary */
+  height: 180px;
+  width: 180px;
+  
+  /* Wygląd (Glassmorphism) */
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 28px;
+  padding: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  
+  /* Układ Flex: Ikona na górze, Tytuł na samym dole */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between; /* Rozrzuca elementy góra-dół */
+  align-items: flex-start;        /* Wyrównanie do lewej */
+  text-align: left;
+  
+  cursor: pointer;
+  transition: transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1), 
+              background 0.2s, 
+              border-color 0.2s;
+}
+
+.tile:hover {
+  transform: translateY(-5px) scale(1.02);
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.tile:active {
+  transform: scale(0.98);
+}
+
+.tile-icon-img {
+  width: 100px;
+  height: 100px;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2));
+}
+
+.tile-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: 0.01em;
+  margin-bottom: 5px; /* Lekki odstęp od dolnej krawędzi */
+}
+
+/* Dolny pasek nawigacji (wspólny dla studenta i nauczyciela) */
+.bottom-nav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 50px;
+
+  background: rgba(255, 255, 255, 0.05);      /* półprzezroczyste szkło */
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(18px) saturate(160%);
+  border-radius: 16px 16px 0 0;
+
+
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+
+/* Pojedynczy przycisk w dolnym menu */
+.bottom-item {
+  border: none;
+  background: none;
+  color: #999999;
+  cursor: pointer;
+  
+  /* Uproszczony układ: centrowanie pojedynczej ikony */
+  display: flex; 
+  align-items: center;
+  justify-content: center;
+  }
+
+.bottom-item:hover {
+  background-color: rgba(0, 180, 255, 0.30);
+  box-shadow:
+    0 10px 26px rgba(0, 0, 0, 0.55),
+    0 0 15px rgba(0, 180, 255, 0.65);
+  }
+
+/* Ikona w dolnym menu */
+.bottom-icon {
+    width: 44px; /* Domyślny rozmiar ikony */
+    height: 44px;
+}
+
+/* =========================================
+   4. STRONA GŁÓWNA STUDENTA/NAUCZYCIELA
+========================================= */
+
+/* Niebieski nagłówek z zaokrąglonym dołem */
+.home-page-header {
+  color: #ffffff;
+  height: 115px;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.1);      /* półprzezroczyste szkło */
+  padding: 24px 0 40px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 0 0 16px 16px;
+  backdrop-filter: blur(18px) saturate(160%);
+  text-align: left;
+}
+
+/* Powitanie w nagłówku */
+.hello-message {
+  margin: 0;
+  font-size: 28px;
+  margin-top: -35px;
+  margin-left: 12px;
+}
+
+/* Biała część z kafelkami */
+.home-page-content {
+  margin-top: 40px;
+  height: auto;
+}
+
+/* =========================================
+   5. STRONA PROFILU
+========================================= */
+
+.profile-page-container {
+    /* Używa tła z body */
+    min-height: 100vh;
+    padding-bottom: 0 40px 0; /* Dystans od dołu */
+}
+
+/* --- NAGŁÓWEK --- */
+.profile-header {
+    /* Używamy Flexbox dla wyśrodkowania tytułu */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    padding: 30px 20px 20px;
+    color: #ffffff;
+}
+
+.profile-title {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 600;
+}
+
+.back-button {
+    position: absolute;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #ffffff;
+    padding: 8px;
+    border-radius: 50%;
+    transition: background 0.2s;
+}
+
+.back-button:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* --- KARTA PROFILOWA --- */
+.profile-card-wrapper {
+    max-width: 450px;
+    margin: 20px auto;
+    padding: 0 16px; /* Wewnętrzny padding dla małych ekranów */
+}
+
+.profile-card {
+    /* Karta profilu */
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    padding: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(18px) saturate(160%);
+    color: #ffffff;
+}
+
+.profile-name {
+    /* Imię i nazwisko na górze karty */
+    font-size: 22px;
+    font-weight: 700;
+    margin-top: 0;
+    margin-bottom: 20px;
+    text-align: center;
+    padding-bottom: 15px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.profile-detail-item {
+  /* Pojedynczy wiersz szczegółów profilu */
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.profile-detail-item:last-child {
+    border-bottom: none;
+}
+
+.profile-detail-item .label {
+    font-weight: 400;
+    opacity: 0.8;
+}
+
+.profile-detail-item .value {
+    font-weight: 600;
+}
+
+/* --- PRZYCISKI OPCJI --- */
+.profile-options-wrapper {
+    max-width: 450px;
+    margin: 20px auto;
+    padding: 0 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+/* Styl wspólny dla przycisków opcji profilu */
+.profile-option-btn {
+    width: 100%;
+  
+    padding: 15px 20px;
+    border-radius: 16px;
+
+    text-align: center;
+    font-size: 16px;
+    font-weight: 600;
+    color: #f5f7ff;
+    cursor: pointer;
+
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+
+    transition: background 0.2s, transform 0.1s;
+}
+
+.profile-option-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.logout-btn {
+    /* Czerwony kolor dla przycisku wylogowania, aby podkreślić akcję */
+    background: rgba(255, 0, 0, 0.15); 
+    border-color: rgba(255, 0, 0, 0.4);
+    margin-top: 25px; /* Dodatkowa przerwa */
+}
+
+.logout-btn:hover {
+    background: rgba(255, 0, 0, 0.3);
+}
+
+/* =========================================
+   6. LOGO (POZOSTAŁE EKRANY)
+========================================= */
+
+/* Dla widoków, które używają logo poza logowaniem */
+.logo-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+/* Domyślny rozmiar logo (np. w headerze studenta/nauczyciela) */
+.logo-img {
+  width: 120px;      /* stała docelowa szerokość logotypu */
+  max-width: 40%;    /* nie większe niż 40% szerokości ekranu */
+  height: auto;      /* zachowane proporcje */
+  margin-top: -15px;
+  object-fit: contain;
+}
+
+/* =========================================
+   7. STRONA PLANU ZAJĘĆ (Z WBUDOWANYM KALENDARZEM ZWIJANYM)
+========================================= */
+
+.schedule-page-container {
+    min-height: 100vh;
+    padding-bottom: 40px;
+    color: #ffffff;
+    
+    /* 🔥 NOWE: Flexbox do idealnego centrowania w poziomie */
+    display: flex;
+    flex-direction: column;
+    align-items: center; 
+}
+
+/* NAGŁÓWEK */
+.schedule-header {
+    width: 100%; /* Zapewnia pełną szerokość */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    padding: 30px 0 20px;
+}
+
+.schedule-title {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 600;
+}
+
+/* --- KONTENER GŁÓWNY KALENDARZA --- */
+.calendar-container {
+    width: 100%; /* Zapewnia pełną szerokość */
+    max-width: 450px;
+    margin: 10px auto 30px;
+    padding: 0 16px;
+}
+
+.calendar-toggle-header {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(18px) saturate(160%);
+    border-radius: 16px;
+    padding: 12px 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    margin-bottom: 10px;
+}
+
+.calendar-collapsed .calendar-toggle-header {
+    margin-bottom: 0;
+}
+
+.selected-date-display {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0;
+}
+
+/* --- RZECZYWISTY KOMPONENT KALENDARZA (ZWIJANY) --- */
+.calendar-wrapper {
+    overflow: hidden;
+    max-height: 400px;
+    transition: max-height 0.4s ease-in-out, 
+                opacity 0.4s ease-in-out,
+                padding 0.4s ease-in-out;
+    opacity: 1;
+    
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(18px) saturate(160%);
+
+    border-radius: 16px;
+    padding: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+}
+
+/* KLASA ZWIJANIA */
+.calendar-collapsed .calendar-wrapper {
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    opacity: 0;
+    border: 1px solid transparent; 
+    box-shadow: none;
+}
+
+/* --- KONTROLKI MIESIĘCY --- */
+.calendar-header-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.month-display {
+    font-size: 18px;
+    font-weight: 700;
+    margin: 0;
+    text-transform: capitalize;
+}
+
+.month-control-btn {
+    background: none;
+    border: none;
+    color: #ffffff;
+    font-size: 24px;
+    cursor: pointer;
+    opacity: 0.7;
+    padding: 5px 10px;
+    border-radius: 50%;
+    transition: background 0.2s;
+}
+
+.month-control-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    opacity: 1;
+}
+
+/* --- SIATKA DNI --- */
+.day-names-row, .days-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    text-align: center;
+}
+
+.day-names-row {
+    font-size: 12px;
+    font-weight: 700;
+    opacity: 0.8;
+    margin-bottom: 8px;
+}
+
+.day-name {
+    padding: 5px 0;
+}
+
+.calendar-day-btn {
+    width: 90%;
+    aspect-ratio: 1 / 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: none;
+    border: none;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.calendar-day-btn:hover:not(.empty) {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.calendar-day-btn.empty {
+    cursor: default;
+    opacity: 0;
+}
+
+.calendar-day-btn.today {
+    border: 1px solid #a8d7ff;
+    font-weight: 700;
+}
+
+.calendar-day-btn.selected {
+    background: #0059C9;
+    font-weight: 700;
+    box-shadow: 0 2px 8px rgba(0, 89, 201, 0.5);
+    transform: scale(1.05);
+}
+
+
+/* --- LISTA ZAJĘĆ --- */
+
+.schedule-list-wrapper {
+    flex: 1; 
+    overflow-y: auto; 
+    -webkit-overflow-scrolling: touch;
+    
+    /* 🔥 NAPRAWA: box-sizing i width */
+    width: 100%; 
+    max-width: 600px; /* Maksymalna szerokość na dużych ekranach */
+    margin: 0 auto;   /* Centrowanie kontenera na stronie */
+    
+    /* Padding jest wliczany w szerokość dzięki box-sizing */
+    padding: 10px 16px 40px; 
+    box-sizing: border-box; /* KLUCZOWE: Zapobiega wystawaniu poza ekran */
+    
+    transition: margin-top 0.4s ease-in-out; 
+}
+
+/* Lekkie podniesienie listy, gdy kalendarz jest zwinięty */
+.calendar-collapsed + .schedule-list-wrapper {
+    margin-top: -15px; 
+}
+
+.schedule-day-heading {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    padding-left: 5px;
+    opacity: 0.9;
+    color: #ffffff;
+}
+
+.lesson-card {
+    /* Glassmorphism dla pojedynczej lekcji */
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    padding: 18px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(18px) saturate(160%);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+    margin-bottom: 12px;
+    
+    /* 🔥 NAPRAWA: Karta nie może być szersza niż kontener */
+    width: 100%; 
+    box-sizing: border-box;
+}
+
+.lesson-time-status {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.lesson-time {
+    font-weight: 700;
+    font-size: 16px;
+    color: #a8d7ff;
+}
+
+.lesson-status-tag {
+    background: #FFD700;
+    color: #1a1a1a;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.lesson-subject {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0 0 10px 0;
+    color: #ffffff;
+}
+
+.lesson-details {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    font-size: 14px;
+    opacity: 0.8;
+}
+
+.detail-label {
+    font-weight: 700;
+    opacity: 0.9;
+    margin-right: 4px;
+}
+
+.no-schedule-message {
+    text-align: center;
+    padding: 40px 20px;
+    opacity: 0.6;
+    font-size: 16px;
+    color: #ffffff;
+}
+
+/* =========================================
+   8. STRONA SKANOWANIA QR
+========================================= */
+
+.scan-page-container {
+    height: 100vh; /* Zmiana z min-height na height, by zająć dokładnie 100% wysokości */
+    padding: 0;   /* Usunięcie paddingów, aby uniknąć scrollowania */
+    color: #ffffff;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* Zapobiega przypadkowemu scrollowaniu */
+}
+
+/* NAGŁÓWEK */
+.scan-header {
+    /* Zapewnia, że nagłówek ma stałą wysokość i się nie kurczy */
+    flex-shrink: 0; 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    padding: 20px 20px 10px; /* Zmniejszony dolny padding */
+}
+
+.scan-title {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 600;
+}
+
+/* OBSZAR KAMERY (WIDOK) */
+.scan-viewport-wrapper {
+    flex: 1; /* Klucz: zajmuje całą pozostałą przestrzeń pionową */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px; /* Minimalny padding wokół celownika */
+    min-height: 0; /* Wymagane w Flexbox, by zawartość się kurczyła */
+}
+
+.scan-viewport {
+    position: relative;
+    width: 100%;
+    height: 100%; /* Wypełnia całą dostępną wysokość w flex: 1 */
+    max-width: 400px; /* Ograniczenie szerokości na desktopach */
+    max-height: 550px; /* Ograniczenie maksymalnej wysokości */
+    background: #000;
+    border-radius: 30px;
+    overflow: hidden;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.camera-video, .camera-fallback {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* NAKŁADKA GRAFICZNA (UI) NA KAMERĘ - bez zmian, bo korzysta z 100% rodzica */
+.scan-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Celownik i animacja - bez zmian, bo skalują się względem .scan-frame */
+.scan-frame {
+    position: relative;
+    width: 250px;
+    height: 250px;
+}
+
+/* Narożniki ramki */
+.scan-corner {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    border-color: rgba(255, 255, 255, 0.8);
+    border-style: solid;
+    border-width: 0;
+}
+
+.scan-corner.top-left {
+    top: 0; left: 0;
+    border-top-width: 4px;
+    border-left-width: 4px;
+    border-top-left-radius: 12px;
+}
+.scan-corner.top-right {
+    top: 0; right: 0;
+    border-top-width: 4px;
+    border-right-width: 4px;
+    border-top-right-radius: 12px;
+}
+.scan-corner.bottom-left {
+    bottom: 0; left: 0;
+    border-bottom-width: 4px;
+    border-left-width: 4px;
+    border-bottom-left-radius: 12px;
+}
+.scan-corner.bottom-right {
+    bottom: 0; right: 0;
+    border-bottom-width: 4px;
+    border-right-width: 4px;
+    border-bottom-right-radius: 12px;
+}
+
+/* Animowana linia skanująca */
+.scan-line {
+    position: absolute;
+    width: 100%;
+    height: 2px;
+    background: #0059C9; /* Niebieski laser */
+    box-shadow: 0 0 10px #0059C9;
+    top: 0;
+    animation: scanAnimation 2s infinite linear;
+}
+
+@keyframes scanAnimation {
+    0% { top: 10%; opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { top: 90%; opacity: 0; }
+}
+
+.scan-instruction {
+    margin-top: 20px;
+    color: #ffffff;
+    font-size: 14px;
+    text-align: center;
+    max-width: 200px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+}
+
+/* PRZYCISKI DOLNE */
+.scan-controls {
+    flex-shrink: 0; /* Zapewnia, że przyciski mają stałą wysokość i się nie kurczą */
+    padding: 10px 20px 30px; /* Większy padding na dole dla bezpieczeństwa (np. strefa bezpieczeństwa w iOS) */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+}
+
+.flashlight-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #ffffff;
+    padding: 12px 24px;
+    border-radius: 50px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    backdrop-filter: blur(10px);
+    transition: all 0.2s;
+}
+
+.flashlight-btn:hover {
+    background: rgba(255, 255, 255, 0.25);
+}
+
+.flashlight-btn.active {
+    background: #ffffff;
+    color: #000;
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.4);
+}
+
+.manual-code-btn {
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 14px;
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.manual-code-btn:hover {
+    color: #ffffff;
+}
