@@ -8,6 +8,10 @@ import TeacherDashboard from "./pages/teacher/TeacherDashboard";
 import ProfilePage from "./pages/ProfilePage"; 
 import SchedulePage from "./pages/SchedulePage";
 import ScanQRPage from "./pages/ScanQRPage";
+import { useEffect } from "react";
+import { apiGet } from "./api";
+
+
 
 export const AuthContext = React.createContext(null);
 
@@ -22,6 +26,11 @@ const AppInner = () => {
   const [user, setUser] = useState(null); 
   const navigate = useNavigate();
 
+    useEffect(() => {
+  apiGet("/api/test")
+    .then((data) => console.log("API OK:", data))
+    .catch((err) => console.error("API ERROR:", err));
+}, []);
   const login = (email) => {
     const role = email.trim().toLowerCase().startsWith("s")
       ? "student"
