@@ -3,60 +3,77 @@ import React, { useContext, useState } from "react";
 import { AuthContext } from "../App";
 import notusLogo from "../assets/notus-logo.png";
 
+import { signInWithPopup } from "firebase/auth";
+import { auth, googleProvider } from "../firebase";
+import { apiGet } from "../api";
+
 const LoginPage = () => {
   const { login } = useContext(AuthContext);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!email || !password) return;
-    login(email); // na razie mock – hasło ignorowane
+  const loginGoogle = async () => {
+    setError("");
+    setLoading(true);
+
+    try {
+      // 1) popup Google
+      const result = await signInWithPopup(auth, googleProvider);
+
+      // 2) Firebase ID token
+      const token = await result.user.getIdToken();
+      localStorage.setItem("firebaseToken", token);
+
+      // 3) backend: pobierz /api/me (backend zwróci usera z rolą)
+      const me = await apiGet("/api/me");
+      console.log("ME:", me);
+
+      // 4) na razie używamy Twojego starego login(email)
+      // (potem zmienimy AuthContext, żeby brał role z backendu)
+      login(me.email);
+    } catch (e) {
+      console.error(e);
+      setError("Nie udało się zalogować przez Google. Sprawdź konsolę i konfigurację Firebase.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-<div className="login-page">
-  <div className="login-card">
+    <div className="login-page">
+      <div className="login-card">
+        {/* Logo */}
+        <div className="login-logo-circle">
+          <img src={notusLogo} alt="Notus logo" />
+        </div>
 
-    {/* Logo Notus w niebieskim okręgu */}
-    <div className="login-logo-circle">
-      <img src={notusLogo} alt="Notus logo" />
+        {/* Tytuł */}
+        <h1 className="login-title">Logowanie</h1>
+
+        {/* Komunikat błędu */}
+        {error && (
+          <div style={{ marginTop: 12, marginBottom: 12, color: "salmon" }}>
+            {error}
+          </div>
+        )}
+
+        {/* Google login */}
+        <button
+          type="button"
+          className="login-btn"
+          onClick={loginGoogle}
+          disabled={loading}
+        >
+          {loading ? "Logowanie..." : "Zaloguj przez Google"}
+        </button>
+
+        {/* Linki pomocnicze */}
+        <div className="login-links">
+          <span>Zapomniałeś hasła?</span>
+          <span>Potrzebujesz pomocy?</span>
+        </div>
+      </div>
     </div>
-
-    {/* Tytuł */}
-    <h1 className="login-title">Logowanie</h1>
-
-    {/* Formularz logowania */}
-    <form onSubmit={handleSubmit}>
-      <input
-        type="email"
-        placeholder="E-mail"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        required
-      />
-
-      <input
-        type="password"
-        placeholder="Hasło"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        required
-      />
-
-      <button type="submit" className="login-btn">
-        Zaloguj
-      </button>
-    </form>
-
-    {/* Linki pomocnicze */}
-    <div className="login-links">
-      <span>Zapomniałeś hasła?</span>
-      <span>Potrzebujesz pomocy?</span>
-    </div>
-
-  </div>
-</div>
   );
 };
 
