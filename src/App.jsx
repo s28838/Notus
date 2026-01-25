@@ -5,11 +5,12 @@ import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import LoginPage from "./pages/LoginPage";
 import StudentDashboard from "./pages/student/StudentDashboard";
 import TeacherDashboard from "./pages/teacher/TeacherDashboard";
-import ProfilePage from "./pages/ProfilePage"; 
+import ProfilePage from "./pages/ProfilePage";
 import SchedulePage from "./pages/SchedulePage";
 import ScanQRPage from "./pages/ScanQRPage";
 import { useEffect } from "react";
 import { apiGet } from "./api";
+import CreateSessionPage from "./pages/CreateSessionPage";
 
 
 
@@ -23,36 +24,36 @@ const RequireRole = ({ role, user, children }) => {
 
 const AppInner = () => {
   // Mock danych użytkownika na potrzeby demonstracji i testów
-  const [user, setUser] = useState(null); 
+  const [user, setUser] = useState(null);
   const navigate = useNavigate();
 
-    useEffect(() => {
-  apiGet("/api/test")
-    .then((data) => console.log("API OK:", data))
-    .catch((err) => console.error("API ERROR:", err));
-}, []);
+  useEffect(() => {
+    apiGet("/api/test")
+      .then((data) => console.log("API OK:", data))
+      .catch((err) => console.error("API ERROR:", err));
+  }, []);
   const login = (email) => {
     const role = email.trim().toLowerCase().startsWith("s")
       ? "student"
       : "teacher";
     const fakeName = role === "student" ? "Adam Student" : "Andrzej Wykładowca";
-    
+
     // 🔥 LOGIKA POBIERANIA NUMERU INDEKSU Z E-MAILA
     let indexNumber = null;
     if (role === "student") {
-        // Podziel adres e-mail przy znaku '@' i weź pierwszą część
-        const parts = email.split('@');
-        indexNumber = parts[0]; 
+      // Podziel adres e-mail przy znaku '@' i weź pierwszą część
+      const parts = email.split('@');
+      indexNumber = parts[0];
     }
-    
+
     // Zapisz numer indeksu w obiekcie user
-    setUser({ 
-        email, 
-        role, 
-        name: fakeName,
-        index: indexNumber // 🔥 NOWA WŁAŚCIWOŚĆ 'index'
+    setUser({
+      email,
+      role,
+      name: fakeName,
+      index: indexNumber // 🔥 NOWA WŁAŚCIWOŚĆ 'index'
     });
-    
+
     navigate(role === "student" ? "/student" : "/teacher");
   };
 
@@ -66,9 +67,9 @@ const AppInner = () => {
   return (
     <AuthContext.Provider value={authValue}>
       <Routes>
-        
+
         <Route path="/login" element={<LoginPage />} />
-        
+
         {/* GŁÓWNA ŚCIEŻKA STUDENTA */}
         <Route
           path="/student"
@@ -78,35 +79,35 @@ const AppInner = () => {
             </RequireRole>
           }
         />
-        
+
         {/* ŚCIEŻKA PROFILU DLA STUDENTA */}
-        <Route 
-          path="/student/profile" 
+        <Route
+          path="/student/profile"
           element={
             <RequireRole role="student" user={user}>
               <ProfilePage />
             </RequireRole>
-          } 
+          }
         />
-        
+
         {/* ŚCIEŻKA PLANU ZAJĘĆ DLA STUDENTA */}
-        <Route 
-          path="/student/schedule" 
+        <Route
+          path="/student/schedule"
           element={
             <RequireRole role="student" user={user}>
               <SchedulePage />
             </RequireRole>
-          } 
+          }
         />
-        
+
         {/* ŚCIEŻKA SKANU KODU QR DLA STUDENTA */}
-        <Route 
-          path="/student/scan-qr" 
+        <Route
+          path="/student/scan-qr"
           element={
             <RequireRole role="student" user={user}>
               <ScanQRPage />
             </RequireRole>
-          } 
+          }
         />
 
         {/* GŁÓWNA ŚCIEŻKA NAUCZYCIELA */}
@@ -118,27 +119,27 @@ const AppInner = () => {
             </RequireRole>
           }
         />
-        
+
         {/* ŚCIEŻKA PROFILU DLA NAUCZYCIELA */}
-        <Route 
-          path="/teacher/profile" 
+        <Route
+          path="/teacher/profile"
           element={
             <RequireRole role="teacher" user={user}>
               <ProfilePage />
             </RequireRole>
-          } 
+          }
         />
-        
+
         {/* 🔥 ŚCIEŻKA PLANU ZAJĘĆ DLA NAUCZYCIELA */}
-        <Route 
-          path="/teacher/schedule" 
+        <Route
+          path="/teacher/schedule"
           element={
             <RequireRole role="teacher" user={user}>
               <SchedulePage />
             </RequireRole>
-          } 
+          }
         />
-        
+
         {/* GŁÓWNA ŚCIEŻKA PRZEKIEROWUJĄCA */}
         <Route
           path="/"
@@ -148,6 +149,14 @@ const AppInner = () => {
             ) : (
               <Navigate to="/login" />
             )
+          }
+        />
+        <Route
+          path="/teacher/create-session"
+          element={
+            <RequireRole role="teacher" user={user}>
+              <CreateSessionPage />
+            </RequireRole>
           }
         />
       </Routes>
