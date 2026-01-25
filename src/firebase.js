@@ -2,13 +2,13 @@ import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyDTtSADv8FPfAgVZ402GMthevItJ9ZrXTI",
-  authDomain: "notus-51108.firebaseapp.com",
-  projectId: "notus-51108",
-  storageBucket: "notus-51108.firebasestorage.app",
-  messagingSenderId: "449765014282",
-  appId: "1:449765014282:web:4e2b7f8b2cf3ed7ec2d8f3",
-  measurementId: "G-ZBHELHN974"
+  apiKey: "AIzaSyBEu9gxPNySQYb38WTIiPQwylpAq-2zniE",
+  authDomain: "notus-b5cf3.firebaseapp.com",
+  projectId: "notus-b5cf3",
+  storageBucket: "notus-b5cf3.firebasestorage.app",
+  messagingSenderId: "907263182006",
+  appId: "1:907263182006:web:2ae26b13ef9a91ae4f1217",
+  measurementId: "G-ZWS1TKF5DP"
 };
 
 const app = initializeApp(firebaseConfig);
