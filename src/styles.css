@@ -1,18 +1,50 @@
 /* =========================================
-   1. GLOBAL / BAZA
+   1. GLOBAL / BAZA (STITCH THEME)
 ========================================= */
 
-body {
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --color-primary: #f45925;
+  --bg-light: #f8f6f5;
+  --bg-dark: #221410;
+  
+  --text-primary: #0f172a; /* slate-900 */
+  --text-secondary: #64748b; /* slate-500 */
+  --text-tertiary: #94a3b8; /* slate-400 */
+  
+  --surface-light: #ffffff;
+  --surface-dark: #1e293b; /* slate-800 */
+  --border-light: #e2e8f0; /* slate-200 */
+  --border-dark: #334155; /* slate-700 */
+}
+
+
+html, body {
   margin: 0;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  padding: 0;
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  background-color: var(--bg-light);
+  color: var(--text-primary);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
 
-  background:
-    radial-gradient(circle at 20% 25%, rgba(0, 140, 255, 0.20), transparent 80%),
-    radial-gradient(circle at 60% 30%, rgba(0, 90, 220, 0.20), transparent 75%),
-    radial-gradient(circle at 50% 85%, rgba(0, 120, 255, 0.15), transparent 45%),
-    #020308;
+/* Utilities for new components */
+.text-primary { color: var(--color-primary); }
+.bg-primary { background-color: var(--color-primary); }
+.text-slate-500 { color: var(--text-secondary); }
+.font-bold { font-weight: 700; }
+.font-medium { font-weight: 500; }
+.shadow-sm { box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05); }
 
-    min-height: 100vh;
+/* Hide scrollbar for horizontal scroll containers */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 /* =========================================

@@ -1,14 +1,16 @@
 // src/App.jsx
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
+import { supabase } from "./supabase";
 import LoginPage from "./pages/LoginPage";
 import StudentDashboard from "./pages/student/StudentDashboard";
 import TeacherDashboard from "./pages/teacher/TeacherDashboard";
+import TeacherStatsPage from "./pages/teacher/TeacherStatsPage";
 import ProfilePage from "./pages/ProfilePage";
 import SchedulePage from "./pages/SchedulePage";
 import ScanQRPage from "./pages/ScanQRPage";
-import { useEffect } from "react";
+import StatsPage from "./pages/StatsPage";
 import { apiGet } from "./api";
 import CreateSessionPage from "./pages/CreateSessionPage";
 
@@ -32,36 +34,78 @@ const AppInner = () => {
       .then((data) => console.log("API OK:", data))
       .catch((err) => console.error("API ERROR:", err));
   }, []);
+  useEffect(() => {
+    // Check active sessions and sets the user
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        handleSupabaseUser(session.user);
+      }
+    });
+
+    // Listen for changes on auth state (log in, log out, etc.)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        if (session?.user) {
+          handleSupabaseUser(session.user);
+        } else {
+          setUser(null);
+        }
+      }
+    );
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleSupabaseUser = (supabaseUser) => {
+    const email = supabaseUser.email;
+    const role = email.trim().toLowerCase().startsWith("s") ? "student" : "teacher";
+    
+    let indexNumber = null;
+    if (role === "student") {
+      const parts = email.split('@');
+      indexNumber = parts[0];
+    }
+
+    setUser({
+      email,
+      role,
+      name: supabaseUser.user_metadata?.full_name || email,
+      index: indexNumber,
+      photoURL: supabaseUser.user_metadata?.avatar_url || null
+    });
+  };
+
   const login = (email) => {
+    // Maintain mock login for development
     const role = email.trim().toLowerCase().startsWith("s")
       ? "student"
       : "teacher";
     const fakeName = role === "student" ? "Adam Student" : "Andrzej Wykładowca";
 
-    // 🔥 LOGIKA POBIERANIA NUMERU INDEKSU Z E-MAILA
     let indexNumber = null;
     if (role === "student") {
-      // Podziel adres e-mail przy znaku '@' i weź pierwszą część
       const parts = email.split('@');
       indexNumber = parts[0];
     }
 
-    // Zapisz numer indeksu w obiekcie user
     setUser({
       email,
       role,
       name: fakeName,
-      index: indexNumber // 🔥 NOWA WŁAŚCIWOŚĆ 'index'
+      index: indexNumber
     });
 
     navigate(role === "student" ? "/student" : "/teacher");
   };
 
-  const logout = () => {
+  const logout = async () => {
+    try { await supabase.auth.signOut(); } catch (e) { console.error(e); }
     setUser(null);
     navigate("/login");
   };
 
+  // We no longer need a custom loginWithGoogle here, 
+  // because Supabase onAuthStateChange will handle it automatically.
   const authValue = { user, login, logout };
 
   return (
@@ -110,6 +154,16 @@ const AppInner = () => {
           }
         />
 
+        {/* ŚCIEŻKA STATYSTYK DLA STUDENTA */}
+        <Route
+          path="/student/stats"
+          element={
+            <RequireRole role="student" user={user}>
+              <StatsPage />
+            </RequireRole>
+          }
+        />
+
         {/* GŁÓWNA ŚCIEŻKA NAUCZYCIELA */}
         <Route
           path="/teacher"
@@ -136,6 +190,16 @@ const AppInner = () => {
           element={
             <RequireRole role="teacher" user={user}>
               <SchedulePage />
+            </RequireRole>
+          }
+        />
+
+        {/* ŚCIEŻKA STATYSTYK DLA NAUCZYCIELA */}
+        <Route
+          path="/teacher/stats"
+          element={
+            <RequireRole role="teacher" user={user}>
+              <TeacherStatsPage />
             </RequireRole>
           }
         />

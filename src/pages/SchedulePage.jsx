@@ -1,26 +1,15 @@
-// src/pages/SchedulePage.jsx
-
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useContext } from "react";
 import { useNavigate } from "react-router-dom";
+import { AuthContext } from "../App";
 
-// --- Pomocnicze funkcje ---
-
-/**
- * Formatowanie daty na czytelny nagłówek (np. "Poniedziałek, 25 Listopada 2025")
- */
+// --- Helpers ---
 const formatDateHeader = (date) => {
-    return date.toLocaleDateString('pl-PL', { 
-        weekday: 'long', 
+    return date.toLocaleDateString('en-US', { 
         year: 'numeric', 
-        month: 'long', 
-        day: 'numeric' 
+        month: 'long'
     });
 };
 
-/**
- * Oblicza i zwraca listę dni (z pustymi komórkami) dla danego miesiąca,
- * zaczynając tydzień od Poniedziałku.
- */
 const getDaysInMonth = (date) => {
     const year = date.getFullYear();
     const month = date.getMonth();
@@ -28,16 +17,12 @@ const getDaysInMonth = (date) => {
     const lastDayOfMonth = new Date(year, month + 1, 0);
     const days = [];
 
-    // Obliczanie pustych komórek przed 1. dniem miesiąca
-    // .getDay() zwraca 0 dla Niedzieli, 1 dla Poniedziałku. Chcemy, aby Poniedziałek był 0.
     const startDayIndex = (firstDayOfMonth.getDay() + 6) % 7; 
     
-    // Dodawanie pustych komórek
     for (let i = 0; i < startDayIndex; i++) {
         days.push({ key: `empty-${i}`, date: null, isCurrentMonth: false });
     }
 
-    // Dodawanie dni miesiąca
     for (let d = 1; d <= lastDayOfMonth.getDate(); d++) {
         days.push({ 
             key: `day-${d}`, 
@@ -45,218 +30,188 @@ const getDaysInMonth = (date) => {
             isCurrentMonth: true 
         });
     }
-    
-    // Opcjonalne dodanie pustych komórek na koniec, by wypełnić ostatni rząd siatki (dla estetyki)
-    const totalCells = days.length;
-    const remainingCells = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
-    for (let i = 0; i < remainingCells; i++) {
-        days.push({ key: `empty-end-${i}`, date: null, isCurrentMonth: false });
-    }
 
     return days;
 };
 
-/**
- * Mockowe dane planu lekcji (Symulacja danych zależnych od daty)
- */
 const getMockSchedule = (date) => {
-    const dayOfWeek = date.getDay(); // 0 = Niedziela, 1 = Poniedziałek, ...
+    const dayOfWeek = date.getDay(); 
     
-    // Prosta symulacja: w weekendy i wtorki brak zajęć
     if (dayOfWeek === 0 || dayOfWeek === 6 || dayOfWeek === 2) {
         return [];
     }
     
-    // Zajęcia w czwartki (dayOfWeek === 4)
     if (dayOfWeek === 4) {
         return [
-            { time: "9:00 - 10:30", subject: "Sieci komputerowe", room: "F.404", teacher: "Marek Zając" },
-            { time: "10:45 - 12:15", subject: "Projektowanie interfejsów (LAB)", room: "C.105", teacher: "Adam Kowalski" },
+            { time: "10:30 - 12:00", subject: "Advanced Calculus", room: "Room 402", teacher: "Dr. Sarah Jenkins", type: "Lecture", color: "primary" },
+            { time: "13:00 - 14:30", subject: "Data Structures", room: "Lab 1", teacher: "Prof. Michael Chen", type: "Lab", color: "emerald" },
         ];
     }
     
-    // Domyślne zajęcia (Poniedziałek, Środa, Piątek)
     return [
-      { time: "8:00 - 9:30", subject: "Programowanie obiektowe (LAB)", room: "C.101", teacher: "Andrzej Wykładowca" },
-      { time: "9:45 - 11:15", subject: "Algorytmy i struktury danych", room: "A.305", teacher: "Katarzyna Dziuba" },
-      { time: "11:30 - 13:00", subject: "Bazy danych", room: "E.210", teacher: "Paweł Kurek" },
-      { time: "14:00 - 15:30", subject: "Matematyka dyskretna", room: "B.007", teacher: "Anna Nowak" },
+      { time: "08:00 - 09:30", subject: "Object Oriented Progr.", room: "C.101", teacher: "Andrzej Wykładowca", type: "Lab", color: "emerald" },
+      { time: "09:45 - 11:15", subject: "Data Structures", room: "A.305", teacher: "Katarzyna Dziuba", type: "Lecture", color: "primary" },
+      { time: "14:00 - 15:30", subject: "Discrete Mathematics", room: "B.007", teacher: "Anna Nowak", type: "Lecture", color: "primary" },
     ];
 };
 
-// Ikona strzałki w lewo (Powrót)
-const BackIcon = () => (
-  <svg 
-    xmlns="http://www.w3.org/2000/svg" 
-    width="24" 
-    height="24" 
-    viewBox="0 0 24 24" 
-    fill="none" 
-    stroke="currentColor" 
-    strokeWidth="2" 
-    strokeLinecap="round" 
-    strokeLinejoin="round"
-  >
-    <line x1="19" y1="12" x2="5" y2="12"></line>
-    <polyline points="12 19 5 12 12 5"></polyline>
-  </svg>
-);
-
-// Ikona strzałka w dół (do zwijania/rozwijania)
-const ChevronDownIcon = ({ isOpen }) => (
-    <svg 
-        xmlns="http://www.w3.org/2000/svg" 
-        width="20" 
-        height="20" 
-        viewBox="0 0 24 24" 
-        fill="none" 
-        stroke="currentColor" 
-        strokeWidth="2" 
-        strokeLinecap="round" 
-        strokeLinejoin="round"
-        // Rotacja ikony w zależności od stanu
-        style={{ transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s' }}
-    >
-        <polyline points="6 9 12 15 18 9"></polyline>
-    </svg>
-);
-
-
-// --- Komponent główny ---
-
 const SchedulePage = () => {
+  const { user } = useContext(AuthContext);
   const navigate = useNavigate();
-  // Data, której plan zajęć jest wyświetlany
   const [selectedDate, setSelectedDate] = useState(new Date()); 
-  // Data, której miesiąc jest aktualnie wyświetlany w komponencie kalendarza
   const [calendarMonth, setCalendarMonth] = useState(new Date()); 
-  // Stan dla zwijania/rozwijania kalendarza
-  const [isCalendarOpen, setIsCalendarOpen] = useState(true); 
-
+  
   const today = useMemo(() => new Date(), []);
   
   const schedule = useMemo(() => getMockSchedule(selectedDate), [selectedDate]);
-  const dateHeader = useMemo(() => formatDateHeader(selectedDate), [selectedDate]);
+  const dateHeader = useMemo(() => formatDateHeader(calendarMonth), [calendarMonth]);
   
-  // Generowanie dni do wyświetlenia w kalendarzu
   const daysInMonth = useMemo(() => getDaysInMonth(calendarMonth), [calendarMonth]);
 
-  const handleBack = () => {
-      navigate(-1);
-  };
+  const handleBack = () => navigate(-1);
+  const goToSchedule = () => navigate(user?.role === "teacher" ? "/teacher/schedule" : "/student/schedule");
+  const goToStats = () => navigate(user?.role === "teacher" ? "/teacher/stats" : "/student/stats");
+  const goToHome = () => navigate(user?.role === "teacher" ? "/teacher" : "/student");
+  const goToProfile = () => navigate(user?.role === "teacher" ? "/teacher/profile" : "/student/profile");
   
   const handleDaySelect = (date) => {
-      if (date) {
-          setSelectedDate(date);
-          // Ustawiamy wyświetlany miesiąc na wybrany dzień, jeśli to konieczne
-          if (date.getMonth() !== calendarMonth.getMonth() || date.getFullYear() !== calendarMonth.getFullYear()) {
-             setCalendarMonth(date); 
-          }
-          // Automatyczne zwijanie kalendarza po wyborze daty
-          setIsCalendarOpen(false); 
-      }
+      if (date) setSelectedDate(date);
   };
 
   const changeMonth = (offset) => {
-      // Używamy nowej instancji Date, aby prawidłowo zaktualizować stan
       const newMonth = new Date(calendarMonth.getTime());
       newMonth.setMonth(calendarMonth.getMonth() + offset);
       setCalendarMonth(newMonth);
   };
   
-  const currentMonthName = calendarMonth.toLocaleDateString('pl-PL', { year: 'numeric', month: 'long' });
+  const getDayShortName = (dayIndex) => {
+    const names = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    return names[dayIndex];
+  };
 
   return (
-    <div className="schedule-page-container">
-      {/* NAGŁÓWEK Z PRZYCISKIEM POWROTU */}
-      <div className="schedule-header">
-        <button 
-            className="back-button" 
-            onClick={handleBack} 
-            title="Powrót"
-        >
-            <BackIcon />
+    <div className="app-container" style={{ paddingBottom: '0' }}>
+      {/* Header */}
+      <div className="top-bar">
+        <button className="icon-btn" onClick={handleBack} style={{ background: 'var(--surface-light)', border: '1px solid var(--border-light)' }}>
+          <span className="material-symbols-outlined text-primary">arrow_back</span>
         </button>
-        <h1 className="schedule-title">Plan Zajęć</h1>
+        <h2 className="top-bar-title">My Schedule</h2>
+        <button className="icon-btn" style={{ background: 'var(--color-primary)', color: 'white' }}>
+          <span className="material-symbols-outlined">calendar_add_on</span>
+        </button>
       </div>
 
-      {/* GŁÓWNY KONTENER KALENDARZA (z mechanizmem zwijania) */}
-      <div className={`calendar-container ${!isCalendarOpen ? 'calendar-collapsed' : ''}`}>
-          
-          {/* NAGŁÓWEK DO KLIKANIA - wyświetla aktualnie wybraną datę */}
-          <div 
-              className="calendar-toggle-header" 
-              onClick={() => setIsCalendarOpen(!isCalendarOpen)}
-              role="button"
-              aria-expanded={isCalendarOpen}
-          >
-              <h3 className="selected-date-display">{dateHeader}</h3>
-              <ChevronDownIcon isOpen={isCalendarOpen} />
+      {/* Date Picker Section */}
+      <div style={{ padding: '1.5rem 1rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+             <button onClick={() => changeMonth(-1)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text-tertiary)' }}>{'<'}</button>
+             <h2 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0 }}>{dateHeader}</h2>
+             <button onClick={() => changeMonth(1)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text-tertiary)' }}>{'>'}</button>
           </div>
-
-          {/* RZECZYWISTY KALENDARZ (zwijana treść z glassmorphism) */}
-          <div className="calendar-wrapper">
-              <div className="calendar-header-controls">
-                  <button onClick={() => changeMonth(-1)} className="month-control-btn">{'<'}</button>
-                  <h3 className="month-display">{currentMonthName}</h3>
-                  <button onClick={() => changeMonth(1)} className="month-control-btn">{'>'}</button>
-              </div>
-
-              <div className="day-names-row">
-                  {['Pn', 'Wt', 'Śr', 'Cz', 'Pt', 'Sb', 'Nd'].map(day => (
-                      <div key={day} className="day-name">{day}</div>
-                  ))}
-              </div>
-
-              <div className="days-grid">
-                  {daysInMonth.map(dayInfo => {
-                      const date = dayInfo.date;
-                      
-                      // Porównywanie tylko dat (bez czasu)
-                      const isSelected = date && date.toDateString() === selectedDate.toDateString();
-                      const isToday = date && date.toDateString() === today.toDateString();
-                      
-                      return (
-                          <button
-                              key={dayInfo.key}
-                              className={`calendar-day-btn ${isSelected ? 'selected' : ''} ${isToday ? 'today' : ''} ${!date ? 'empty' : ''}`}
-                              onClick={() => handleDaySelect(date)}
-                              disabled={!date}
-                          >
-                              {date ? date.getDate() : ''}
-                          </button>
-                      );
-                  })}
-              </div>
-          </div>
-      </div>
-      
-      {/* TREŚĆ - Lista zajęć */}
-      <div className="schedule-list-wrapper">
-        <h2 className="schedule-day-heading">Zajęcia na {dateHeader}</h2>
+          <span className="text-primary font-medium" style={{ fontSize: '0.875rem' }}>Today</span>
+        </div>
         
-        {schedule.length > 0 ? (
-            schedule.map((lesson, index) => (
-                <div key={index} className="lesson-card">
-                    <div className="lesson-time-status">
-                        <span className="lesson-time">{lesson.time}</span>
-                        {/* Status: "Trwa" tylko dla pierwszych zajęć w dniu dzisiejszym */}
-                        {selectedDate.toDateString() === today.toDateString() && index === 0 && (
-                            <span className="lesson-status-tag">Trwa</span>
-                        )}
-                    </div>
-                    <h3 className="lesson-subject">{lesson.subject}</h3>
-                    <div className="lesson-details">
-                        <span><span className="detail-label">Sala:</span> {lesson.room}</span>
-                        <span><span className="detail-label">Prowadzący:</span> {lesson.teacher}</span>
-                    </div>
+        {/* Horizontal Scroll Days */}
+        <div className="no-scrollbar" style={{ display: 'flex', gap: '0.75rem', overflowX: 'auto', paddingBottom: '0.5rem' }}>
+          {daysInMonth.map((dayInfo, index) => {
+             const date = dayInfo.date;
+             if (!date) return null; // skip empties for this horizontal view
+             
+             const isSelected = date.toDateString() === selectedDate.toDateString();
+             const dayName = getDayShortName((date.getDay() + 6) % 7);
+             
+             return (
+                <div 
+                  key={dayInfo.key} 
+                  onClick={() => handleDaySelect(date)}
+                  className={`glass-card ${isSelected ? 'selected' : ''}`}
+                  style={{ 
+                    minWidth: '64px', height: '5rem', display: 'flex', flexDirection: 'column', 
+                    alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+                    background: isSelected ? 'var(--color-primary)' : 'var(--surface-light)',
+                    color: isSelected ? 'white' : 'var(--text-primary)',
+                    boxShadow: isSelected ? '0 10px 15px -3px rgba(244, 89, 37, 0.3)' : '0 1px 2px 0 rgba(0,0,0,0.05)',
+                    border: isSelected ? 'none' : '1px solid var(--border-light)',
+                    margin: 0
+                  }}
+                >
+                  <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', fontWeight: 700, color: isSelected ? 'rgba(255,255,255,0.8)' : 'var(--text-secondary)' }}>{dayName}</span>
+                  <span style={{ fontSize: '1.125rem', fontWeight: 700 }}>{date.getDate()}</span>
                 </div>
-            ))
-        ) : (
-            <div className="no-schedule-message">Brak zaplanowanych zajęć w tym dniu.</div>
-        )}
+             );
+          })}
+        </div>
       </div>
 
+      {/* Timeline Section */}
+      <div style={{ padding: '0 1rem', paddingBottom: '6rem' }}>
+        <h3 style={{ fontWeight: 700, color: 'var(--text-secondary)', fontSize: '0.875rem', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '1rem', marginTop: 0 }}>
+          {selectedDate.toDateString() === today.toDateString() ? "Today's Timeline" : "Timeline"}
+        </h3>
+        
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          {schedule.length > 0 ? (
+            schedule.map((lesson, index) => (
+              <div key={index} style={{ position: 'relative', paddingLeft: '2rem' }}>
+                {/* Timeline Line */}
+                <div style={{ position: 'absolute', left: '0.75rem', top: 0, bottom: index === schedule.length - 1 ? '50%' : '-1rem', width: '2px', background: 'rgba(244, 89, 37, 0.2)' }}></div>
+                {/* Timeline Dot */}
+                <div style={{ position: 'absolute', left: '0.375rem', top: '1.5rem', width: '14px', height: '14px', borderRadius: '50%', border: `2px solid ${index === 0 ? 'var(--color-primary)' : 'var(--border-light)'}`, background: 'white', zIndex: 10 }}></div>
+                
+                <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', opacity: index > 0 && selectedDate.toDateString() === today.toDateString() ? 0.8 : 1 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <div>
+                      <h4 style={{ fontWeight: 700, fontSize: '1.125rem', margin: '0 0 0.25rem' }}>{lesson.subject}</h4>
+                      <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', fontWeight: 500, margin: 0 }}>{lesson.teacher}</p>
+                    </div>
+                    <span style={{ 
+                        background: lesson.color === 'emerald' ? '#d1fae5' : 'rgba(244, 89, 37, 0.1)', 
+                        color: lesson.color === 'emerald' ? '#059669' : 'var(--color-primary)', 
+                        padding: '0.25rem 0.75rem', borderRadius: '999px', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase' 
+                    }}>{lesson.type}</span>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', paddingTop: '0.5rem', borderTop: '1px solid var(--border-light)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-secondary)' }}>
+                      <span className="material-symbols-outlined text-primary" style={{ fontSize: '1.25rem' }}>schedule</span>
+                      <span style={{ fontSize: '0.875rem' }}>{lesson.time}</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-secondary)' }}>
+                      <span className="material-symbols-outlined text-primary" style={{ fontSize: '1.25rem' }}>location_on</span>
+                      <span style={{ fontSize: '0.875rem' }}>{lesson.room}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-secondary)' }}>
+              No classes scheduled for this date.
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Bottom Navigation */}
+      <nav className="bottom-nav-stitch">
+        <button className="nav-item" onClick={goToHome}>
+          <span className="material-symbols-outlined">home</span>
+          {user?.role === "teacher" ? "Główna" : "Home"}
+        </button>
+        <button className="nav-item active">
+          <span className="material-symbols-outlined fill">calendar_month</span>
+          {user?.role === "teacher" ? "Plan" : "Schedule"}
+        </button>
+        <button className="nav-item" onClick={goToStats}>
+          <span className="material-symbols-outlined">bar_chart</span>
+          {user?.role === "teacher" ? "Staty" : "Stats"}
+        </button>
+        <button className="nav-item" onClick={goToProfile}>
+          <span className="material-symbols-outlined">person</span>
+          {user?.role === "teacher" ? "Profil" : "Profile"}
+        </button>
+      </nav>
     </div>
   );
 };

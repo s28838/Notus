@@ -1,26 +1,6 @@
-// src/pages/ScanQRPage.jsx
-
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiPost } from "../api";
-
-// Ikona strzałki w lewo (Powrót)
-const BackIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-    fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-  >
-    <line x1="19" y1="12" x2="5" y2="12"></line>
-    <polyline points="12 19 5 12 12 5"></polyline>
-  </svg>
-);
-
-// Ikona latarki
-const FlashlightIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path>
-  </svg>
-);
 
 const ScanQRPage = () => {
   const navigate = useNavigate();
@@ -59,6 +39,7 @@ const ScanQRPage = () => {
   const handleBack = () => {
     navigate(-1);
   };
+  
   const handleManualCode = async () => {
     const qrToken = prompt("Wklej kod z QR (token):");
     if (!qrToken) return;
@@ -75,56 +56,60 @@ const ScanQRPage = () => {
   };
 
   return (
-    <div className="scan-page-container">
-      {/* NAGŁÓWEK */}
-      <div className="scan-header">
-        <button className="back-button" onClick={handleBack} title="Powrót">
-          <BackIcon />
+    <div className="app-container" style={{ paddingBottom: '0' }}>
+      {/* Header */}
+      <div className="top-bar">
+        <button className="icon-btn" onClick={handleBack} style={{ background: 'transparent', color: 'var(--text-primary)' }}>
+          <span className="material-symbols-outlined">arrow_back</span>
         </button>
-        <h1 className="scan-title">Skanuj QR</h1>
+        <h2 className="top-bar-title" style={{ marginRight: '2.5rem' }}>Skanuj QR</h2>
       </div>
 
       {/* OBSZAR SKANOWANIA */}
-      <div className="scan-viewport-wrapper">
-
-        <div className="scan-viewport">
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden', background: '#000' }}>
           {/* Element Video (Kamera) */}
           {hasPermission !== false ? (
-            <video ref={videoRef} autoPlay playsInline muted className="camera-video"></video>
+            <video ref={videoRef} autoPlay playsInline muted style={{ width: '100%', height: '100%', objectFit: 'cover' }}></video>
           ) : (
-            <div className="camera-fallback">
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'white' }}>
               <p>Brak dostępu do kamery.</p>
             </div>
           )}
 
           {/* Nakładka graficzna (Celownik) */}
-          <div className="scan-overlay">
-            <div className="scan-frame">
-              <div className="scan-corner top-left"></div>
-              <div className="scan-corner top-right"></div>
-              <div className="scan-corner bottom-left"></div>
-              <div className="scan-corner bottom-right"></div>
-
-              {/* Animowana linia skanująca */}
-              <div className="scan-line"></div>
+          <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+            {/* Ciemniejsza ramka wokół skanera */}
+            <div style={{ border: '2px solid rgba(255, 255, 255, 0.5)', width: '250px', height: '250px', borderRadius: '1rem', position: 'relative', boxShadow: '0 0 0 9999px rgba(0,0,0,0.6)' }}>
+              {/* Animowana linia skanująca mogłaby być tu */}
+              <div style={{ position: 'absolute', top: '50%', left: 0, right: 0, height: '2px', background: 'var(--color-primary)', boxShadow: '0 0 8px var(--color-primary)' }}></div>
             </div>
-            <p className="scan-instruction">Zeskanuj kod QR z sali lub od prowadzącego</p>
+            <p style={{ color: 'white', marginTop: '2rem', fontWeight: 500, fontSize: '0.875rem' }}>Zeskanuj kod QR z sali</p>
           </div>
-        </div>
       </div>
 
       {/* PRZYCISKI KONTROLNE */}
-      <div className="scan-controls">
+      <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem', background: 'var(--surface-light)', borderTopLeftRadius: '1.5rem', borderTopRightRadius: '1.5rem', marginTop: '-1.5rem', position: 'relative', zIndex: 10 }}>
         <button
-          className={`flashlight-btn ${isFlashlightOn ? 'active' : ''}`}
           onClick={() => setIsFlashlightOn(!isFlashlightOn)}
+          style={{ 
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', 
+            padding: '1rem', borderRadius: '0.75rem', border: '1px solid var(--border-light)', 
+            background: isFlashlightOn ? 'rgba(244, 89, 37, 0.1)' : 'transparent', 
+            color: isFlashlightOn ? 'var(--color-primary)' : 'var(--text-primary)',
+            fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s'
+          }}
         >
-          <FlashlightIcon />
+          <span className="material-symbols-outlined">{isFlashlightOn ? 'flashlight_on' : 'flashlight_off'}</span>
           <span>{isFlashlightOn ? "Wyłącz latarkę" : "Włącz latarkę"}</span>
         </button>
 
-        <button className="manual-code-btn" onClick={handleManualCode}>
-          Wpisz kod ręcznie
+        <button 
+          onClick={handleManualCode}
+          className="btn-white" 
+          style={{ background: 'var(--color-primary)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
+        >
+          <span className="material-symbols-outlined">keyboard</span>
+          <span>Wpisz kod ręcznie</span>
         </button>
       </div>
     </div>

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#f45925",
+                        "background-light": "#f8f6f5",
+                        "background-dark": "#221410",
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased">
+<div class="relative flex h-auto min-h-screen w-full max-w-md mx-auto flex-col bg-background-light dark:bg-background-dark overflow-x-hidden pb-24">
+<!-- Header -->
+<div class="flex items-center bg-background-light dark:bg-background-dark p-4 pb-2 justify-between sticky top-0 z-10">
+<div class="flex size-12 shrink-0 items-center">
+<div class="bg-primary/10 flex items-center justify-center rounded-full size-10 border-2 border-primary/20">
+<span class="material-symbols-outlined text-primary">account_circle</span>
+</div>
+</div>
+<h2 class="text-slate-900 dark:text-slate-100 text-lg font-bold leading-tight tracking-[-0.015em] flex-1 ml-2">Attendance Hub</h2>
+<div class="flex w-12 items-center justify-end">
+<button class="flex cursor-pointer items-center justify-center rounded-xl h-10 w-10 bg-primary/10 text-primary">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+</div>
+</div>
+<!-- Quick Scan Hero -->
+<div class="p-4">
+<div class="relative overflow-hidden rounded-xl bg-primary p-8 text-white shadow-lg shadow-primary/20">
+<div class="relative z-10 flex flex-col items-center text-center gap-4">
+<div class="bg-white/20 p-4 rounded-full backdrop-blur-sm">
+<span class="material-symbols-outlined text-4xl">qr_code_scanner</span>
+</div>
+<div>
+<h1 class="text-2xl font-bold">Quick Scan</h1>
+<p class="text-white/80 text-sm">Tap to mark attendance via QR code</p>
+</div>
+<button class="w-full bg-white text-primary font-bold py-3 rounded-lg shadow-md hover:bg-slate-50 transition-colors">
+                        Open Scanner
+                    </button>
+</div>
+<!-- Abstract Background Pattern -->
+<div class="absolute top-0 right-0 -mr-16 -mt-16 w-48 h-48 bg-white/10 rounded-full"></div>
+<div class="absolute bottom-0 left-0 -ml-8 -mb-8 w-32 h-32 bg-white/5 rounded-full"></div>
+</div>
+</div>
+<!-- Total Attendance Progress -->
+<div class="flex flex-col gap-3 p-4 mx-4 my-2 rounded-xl bg-white dark:bg-slate-900 shadow-sm border border-primary/5">
+<div class="flex gap-6 justify-between items-center">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">analytics</span>
+<p class="text-slate-900 dark:text-slate-100 text-base font-bold leading-normal">Total Attendance</p>
+</div>
+<p class="text-primary text-xl font-bold leading-normal">92%</p>
+</div>
+<div class="rounded-full bg-primary/10 h-3 w-full overflow-hidden">
+<div class="h-full rounded-full bg-primary shadow-[0_0_8px_rgba(244,89,37,0.4)]" style="width: 92%;"></div>
+</div>
+<div class="flex justify-between items-center">
+<p class="text-slate-500 dark:text-slate-400 text-xs font-medium uppercase tracking-wider">Target: 85%</p>
+<p class="text-green-500 text-xs font-bold">+7% above goal</p>
+</div>
+</div>
+<!-- Next Class Section -->
+<h3 class="text-slate-900 dark:text-slate-100 text-lg font-bold leading-tight tracking-[-0.015em] px-4 pb-2 pt-2">Next Classes</h3>
+<div class="p-4"><div class="flex flex-col gap-3">
+<!-- Class 1 -->
+<div class="flex items-center justify-between gap-3 rounded-xl bg-white dark:bg-slate-900 p-3 shadow-sm border border-primary/5">
+<div class="flex flex-col">
+<div class="flex items-center gap-1.5 text-primary mb-0.5">
+<span class="material-symbols-outlined text-xs">schedule</span>
+<p class="text-[10px] font-bold uppercase tracking-wide">Starts in 15 mins</p>
+</div>
+<p class="text-slate-900 dark:text-slate-100 text-base font-bold leading-tight">Advanced Calculus</p>
+<div class="flex gap-3 mt-1">
+<div class="flex items-center gap-1 text-slate-500 dark:text-slate-400">
+<span class="material-symbols-outlined text-sm">alarm</span>
+<p class="text-xs">10:30 AM</p>
+</div>
+<div class="flex items-center gap-1 text-slate-500 dark:text-slate-400">
+<span class="material-symbols-outlined text-sm">location_on</span>
+<p class="text-xs">Room 402</p>
+</div>
+</div>
+</div>
+<div class="bg-primary/5 p-2 rounded-lg">
+<span class="material-symbols-outlined text-primary">chevron_right</span>
+</div>
+</div>
+<!-- Class 2 -->
+<div class="flex items-center justify-between gap-3 rounded-xl bg-white dark:bg-slate-900 p-3 shadow-sm border border-primary/5">
+<div class="flex flex-col">
+<div class="flex items-center gap-1.5 text-slate-500 mb-0.5">
+<span class="material-symbols-outlined text-xs">schedule</span>
+<p class="text-[10px] font-bold uppercase tracking-wide">Starts in 1 hour</p>
+</div>
+<p class="text-slate-900 dark:text-slate-100 text-base font-bold leading-tight">Data Structures</p>
+<div class="flex gap-3 mt-1">
+<div class="flex items-center gap-1 text-slate-500 dark:text-slate-400">
+<span class="material-symbols-outlined text-sm">alarm</span>
+<p class="text-xs">11:45 AM</p>
+</div>
+<div class="flex items-center gap-1 text-slate-500 dark:text-slate-400">
+<span class="material-symbols-outlined text-sm">location_on</span>
+<p class="text-xs">Lab 03</p>
+</div>
+</div>
+</div>
+<div class="bg-slate-100 dark:bg-slate-800 p-2 rounded-lg">
+<span class="material-symbols-outlined text-slate-400">chevron_right</span>
+</div>
+</div>
+</div></div>
+<!-- Bottom Navigation -->
+<div class="fixed bottom-0 left-0 right-0 max-w-md mx-auto flex gap-2 border-t border-primary/10 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md px-4 pb-6 pt-3 z-20">
+<a class="flex flex-1 flex-col items-center justify-center gap-1 text-primary" href="#">
+<span class="material-symbols-outlined fill-1">home</span>
+<p class="text-xs font-bold tracking-[0.015em]">Home</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-center gap-1 text-slate-400 dark:text-slate-500" href="#">
+<span class="material-symbols-outlined">calendar_month</span>
+<p class="text-xs font-medium tracking-[0.015em]">Schedule</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-center gap-1 text-slate-400 dark:text-slate-500" href="#">
+<span class="material-symbols-outlined">bar_chart</span>
+<p class="text-xs font-medium tracking-[0.015em]">Stats</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-center gap-1 text-slate-400 dark:text-slate-500" href="#">
+<span class="material-symbols-outlined">person</span>
+<p class="text-xs font-medium tracking-[0.015em]">Profile</p>
+</a>
+</div>
+</div>
+</body></html>

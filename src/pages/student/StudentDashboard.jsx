@@ -1,76 +1,137 @@
-// src/pages/student/StudentDashboard.jsx
-import notusLogo2 from "../../assets/notus-logo2.png";
-import skanujQRIcon from "../../assets/icons/skanuj-qr-icon.png";
-import planZajecIcon from "../../assets/icons/plan-zajec-icon.png";
-import historiaZajecIcon from "../../assets/icons/historia-zajec-icon.png";
-import kontoIcon from "../../assets/icons/konto-icon.png";
 import React, { useContext } from "react";
 import { AuthContext } from "../../App";
 import { useNavigate } from "react-router-dom";
 
 const StudentDashboard = () => {
-   const { user } = useContext(AuthContext);
-   const firstName = (user?.name || "Student").split(" ")[0];
-   const navigate = useNavigate();
-   
-   // Data
-   const today = new Date().toLocaleDateString('pl-PL', {
-       weekday: 'long',
-       day: 'numeric',
-       month: 'long'
-   });
-   const formattedDate = today.charAt(0).toUpperCase() + today.slice(1);
-
-   // Nawigacja
-   const goToProfile = () => navigate("/student/profile");
-   const goToSchedule = () => navigate("/student/schedule");
-   const goToScanQR = () => navigate("/student/scan-qr");
+  const { user } = useContext(AuthContext);
+  const firstName = (user?.name || "Student").split(" ")[0];
+  const navigate = useNavigate();
+  
+  const goToProfile = () => navigate("/student/profile");
+  const goToSchedule = () => navigate("/student/schedule");
+  const goToScanQR = () => navigate("/student/scan-qr");
+  // Assuming a new path for stats
+  const goToStats = () => navigate("/student/stats");
 
   return (
-    <div className="home-page">
-      <div className="home-page-header">
-        <div className="logo-wrapper">
-            <img src={notusLogo2} alt="Notus Logo" className="logo-img" />
+    <div className="app-container">
+      {/* Header */}
+      <div className="top-bar">
+        <div className="icon-btn" style={{ background: 'rgba(244, 89, 37, 0.1)', cursor: 'default' }}>
+          <span className="material-symbols-outlined text-primary">account_circle</span>
         </div>
-        
-        <h1 className="hello-message">Witaj, {firstName}</h1>
-        <p className="date-display">{formattedDate}</p>
+        <h2 className="top-bar-title">Attendance Hub</h2>
+        <button className="icon-btn">
+          <span className="material-symbols-outlined">notifications</span>
+        </button>
       </div>
 
-      <div className="home-page-content">
-        <div className="tile-grid">
-          
-          <button className="tile" onClick={goToScanQR}>
-            <span className="tile-icon">
-              <img src={skanujQRIcon} alt="Skanuj QR" className="tile-icon-img" />
-            </span>
-            <span className="tile-title">Skanuj QR</span>
-          </button>
+      {/* Quick Scan Hero */}
+      <div className="hero-card">
+        <div className="hero-card-icon">
+          <span className="material-symbols-outlined" style={{ fontSize: '2rem' }}>qr_code_scanner</span>
+        </div>
+        <div>
+          <h1 className="hero-card-title">Quick Scan</h1>
+          <p className="hero-card-subtitle">Tap to mark attendance via QR code</p>
+        </div>
+        <button className="btn-white" onClick={goToScanQR}>
+          Open Scanner
+        </button>
+        {/* Abstract Background Pattern elements (simulated) */}
+        <div style={{ position: 'absolute', top: 0, right: 0, marginRight: '-4rem', marginTop: '-4rem', width: '12rem', height: '12rem', background: 'rgba(255,255,255,0.1)', borderRadius: '50%' }}></div>
+        <div style={{ position: 'absolute', bottom: 0, left: 0, marginLeft: '-2rem', marginBottom: '-2rem', width: '8rem', height: '8rem', background: 'rgba(255,255,255,0.05)', borderRadius: '50%' }}></div>
+      </div>
 
-          <button className="tile" onClick={goToSchedule}>
-            <span className="tile-icon">
-              <img src={planZajecIcon} alt="Plan zajęć" className="tile-icon-img" />
-            </span>
-            <span className="tile-title">Plan zajęć</span>
-          </button>
-
-          <button className="tile">
-            <span className="tile-icon">
-              <img src={historiaZajecIcon} alt="Historia" className="tile-icon-img" />
-            </span>
-            <span className="tile-title">Historia zajęć</span>
-          </button>
-
-          <button className="tile" onClick={goToProfile}>
-            <span className="tile-icon">
-              <img src={kontoIcon} alt="Konto" className="tile-icon-img" />
-            </span>
-            <span className="tile-title">Konto</span>
-          </button>
+      {/* Total Attendance Progress */}
+      <div className="stats-card">
+        <div className="stats-header">
+          <p className="stats-title">
+            <span className="material-symbols-outlined text-primary">analytics</span>
+            Total Attendance
+          </p>
+          <p className="stats-value">92%</p>
+        </div>
+        <div className="progress-track">
+          <div className="progress-fill" style={{ width: '92%' }}></div>
+        </div>
+        <div className="stats-footer">
+          <p className="stats-target">Target: 85%</p>
+          <p className="stats-above">+7% above goal</p>
         </div>
       </div>
-      
-      {/* USUNIĘTO SEKCJĘ <nav className="bottom-nav"> */}
+
+      {/* Next Class Section */}
+      <h3 className="section-title">Next Classes</h3>
+      <div className="list-container">
+        {/* Class 1 */}
+        <div className="list-item">
+          <div className="list-item-content">
+            <div className="list-item-top">
+              <span className="material-symbols-outlined list-item-tag primary" style={{ fontSize: '14px' }}>schedule</span>
+              <p className="list-item-tag primary">Starts in 15 mins</p>
+            </div>
+            <h4 className="list-item-title">Advanced Calculus</h4>
+            <div className="list-item-details">
+              <div className="detail-pill">
+                <span className="material-symbols-outlined">alarm</span>
+                <p style={{ margin: 0 }}>10:30 AM</p>
+              </div>
+              <div className="detail-pill">
+                <span className="material-symbols-outlined">location_on</span>
+                <p style={{ margin: 0 }}>Room 402</p>
+              </div>
+            </div>
+          </div>
+          <div className="list-item-action">
+            <span className="material-symbols-outlined">chevron_right</span>
+          </div>
+        </div>
+
+        {/* Class 2 */}
+        <div className="list-item" style={{ opacity: 0.8 }}>
+          <div className="list-item-content">
+            <div className="list-item-top">
+              <span className="material-symbols-outlined list-item-tag secondary" style={{ fontSize: '14px' }}>schedule</span>
+              <p className="list-item-tag secondary">Starts in 1 hour</p>
+            </div>
+            <h4 className="list-item-title">Data Structures</h4>
+            <div className="list-item-details">
+              <div className="detail-pill">
+                <span className="material-symbols-outlined">alarm</span>
+                <p style={{ margin: 0 }}>11:45 AM</p>
+              </div>
+              <div className="detail-pill">
+                <span className="material-symbols-outlined">location_on</span>
+                <p style={{ margin: 0 }}>Lab 03</p>
+              </div>
+            </div>
+          </div>
+          <div className="list-item-action" style={{ background: 'rgba(0,0,0,0.05)', color: 'var(--text-tertiary)' }}>
+            <span className="material-symbols-outlined">chevron_right</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom Navigation */}
+      <nav className="bottom-nav-stitch">
+        <button className="nav-item active" onClick={() => navigate("/student")}>
+          <span className="material-symbols-outlined fill">home</span>
+          Home
+        </button>
+        <button className="nav-item" onClick={goToSchedule}>
+          <span className="material-symbols-outlined">calendar_month</span>
+          Schedule
+        </button>
+        <button className="nav-item" onClick={goToStats}>
+          <span className="material-symbols-outlined">bar_chart</span>
+          Stats
+        </button>
+        <button className="nav-item" onClick={goToProfile}>
+          <span className="material-symbols-outlined">person</span>
+          Profile
+        </button>
+      </nav>
     </div>
   );
 };

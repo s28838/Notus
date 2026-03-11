@@ -43,52 +43,113 @@ const CreateSessionPage = () => {
   };
 
   return (
-    <div style={{ padding: 16 }}>
-      <button onClick={() => navigate(-1)}>← Powrót</button>
-
-      <h1>Utwórz zajęcia</h1>
-
-      <div style={{ marginTop: 12 }}>
-        <label>Tytuł zajęć</label>
-        <input
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="np. Bazy danych - lab 1"
-          style={{ display: "block", width: "100%", padding: 10, marginTop: 6 }}
-        />
+    <div className="app-container" style={{ paddingBottom: '2rem' }}>
+      {/* Header */}
+      <div className="top-bar">
+        <button className="icon-btn" onClick={() => navigate(-1)} style={{ background: 'transparent', color: 'var(--text-primary)' }}>
+          <span className="material-symbols-outlined">arrow_back</span>
+        </button>
+        <h2 className="top-bar-title" style={{ marginRight: '2.5rem' }}>Utwórz zajęcia</h2>
       </div>
 
-      {error && <div style={{ color: "salmon", marginTop: 12 }}>{error}</div>}
-
-      <button
-        onClick={createAndGetQr}
-        disabled={loading || !title.trim()}
-        style={{ marginTop: 12, padding: 12 }}
-      >
-        {loading ? "Tworzę..." : "Utwórz i pokaż QR"}
-      </button>
-
-      {qr && (
-        <div style={{ marginTop: 20 }}>
-          <h2>QR do sesji #{qr.sessionId}</h2>
-
-          <img
-            alt="QR"
-            src={`data:image/png;base64,${qr.qrPngBase64}`}
-            style={{ width: 260, height: 260, borderRadius: 12 }}
+      <div style={{ padding: '1.5rem' }}>
+        
+        {/* Form Container */}
+        <div className="glass-card" style={{ padding: '1.5rem' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 700, marginBottom: '0.75rem', color: 'var(--text-primary)' }}>
+            <span className="material-symbols-outlined text-primary">edit_note</span>
+            Tytuł zajęć
+          </label>
+          <input
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="np. Bazy danych - lab 1"
+            style={{ 
+              display: "block", width: "100%", padding: '1rem', boxSizing: 'border-box',
+              borderRadius: '0.5rem', border: '1px solid var(--border-light)', 
+              background: 'var(--bg-light)', color: 'var(--text-primary)',
+              fontFamily: 'inherit', outline: 'none', transition: 'border-color 0.2s'
+            }}
           />
 
-          <div style={{ marginTop: 10 }}>
-            <button onClick={refreshQr} disabled={loading} style={{ padding: 10 }}>
+          {error && (
+            <div style={{ padding: '0.75rem', marginTop: '1rem', background: '#fef2f2', color: '#ef4444', borderRadius: '0.5rem', fontSize: '0.875rem', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+               <span className="material-symbols-outlined" style={{ fontSize: '1.25rem' }}>error</span>
+               {error}
+            </div>
+          )}
+
+          <button
+            className="btn-white"
+            onClick={createAndGetQr}
+            disabled={loading || !title.trim()}
+            style={{ 
+              width: '100%', marginTop: '1.5rem', padding: '1rem', background: 'var(--color-primary)', 
+              color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
+              opacity: (loading || !title.trim()) ? 0.6 : 1, cursor: (loading || !title.trim()) ? 'not-allowed' : 'pointer'
+            }}
+          >
+            <span className="material-symbols-outlined">{loading ? 'hourglass_empty' : 'qr_code'}</span>
+            {loading ? "Tworzę..." : "Utwórz i pokaż QR"}
+          </button>
+        </div>
+
+        {/* QR Result */}
+        {qr && (
+          <div className="glass-card" style={{ marginTop: '1.5rem', padding: '1.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <h2 style={{ fontSize: '1.125rem', fontWeight: 700, margin: '0 0 1rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <span className="material-symbols-outlined text-primary">check_circle</span>
+              Sesja #{qr.sessionId}
+            </h2>
+
+            <div style={{ background: 'white', padding: '1rem', borderRadius: '1rem', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}>
+              <img
+                alt="QR Code"
+                src={`data:image/png;base64,${qr.qrPngBase64}`}
+                style={{ width: '220px', height: '220px', display: 'block' }}
+              />
+            </div>
+
+            <button 
+              onClick={refreshQr} 
+              disabled={loading} 
+              style={{ 
+                marginTop: '1.5rem', padding: '0.75rem 1.5rem', borderRadius: '999px',
+                border: '1px solid var(--border-light)', background: 'transparent', color: 'var(--text-secondary)',
+                display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, cursor: 'pointer'
+              }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '1.125rem' }}>refresh</span>
               Odśwież QR
             </button>
-          </div>
 
-          <div style={{ marginTop: 10, fontSize: 12 }}>
-            Token (fallback): <code>{qr.qrToken}</code>
+            <div style={{ marginTop: '1.5rem', padding: '0.75rem', background: 'var(--bg-light)', borderRadius: '0.5rem', width: '100%', textAlign: 'center' }}>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '0.25rem' }}>Kod (Token) dla studentów:</span>
+              <code style={{ fontSize: '1.125rem', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '0.1em' }}>{qr.qrToken}</code>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+
+      </div>
+      {/* Bottom Nav */}
+      <nav className="bottom-nav-stitch">
+        <button className="nav-item" onClick={() => navigate("/teacher")}>
+          <span className="material-symbols-outlined">home</span>
+          Główna
+        </button>
+        <button className="nav-item" onClick={() => navigate("/teacher/schedule")}>
+          <span className="material-symbols-outlined">calendar_month</span>
+          Plan
+        </button>
+        <button className="nav-item" onClick={() => navigate("/teacher/stats")}>
+          <span className="material-symbols-outlined">bar_chart</span>
+          Staty
+        </button>
+        <button className="nav-item" onClick={() => navigate("/teacher/profile")}>
+          <span className="material-symbols-outlined">person</span>
+          Profil
+        </button>
+      </nav>
     </div>
   );
 };

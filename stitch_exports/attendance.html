@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Attendance Statistics</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#f45925",
+                        "background-light": "#f8f6f5",
+                        "background-dark": "#221410",
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans"]
+                    },
+                    borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased">
+<div class="relative flex min-h-screen w-full flex-col overflow-x-hidden pb-24">
+<!-- Header -->
+<header class="flex items-center bg-background-light dark:bg-background-dark p-4 sticky top-0 z-10 border-b border-primary/10">
+<div class="flex size-10 shrink-0 items-center justify-center rounded-full hover:bg-primary/10 cursor-pointer">
+<span class="material-symbols-outlined text-slate-900 dark:text-slate-100">arrow_back</span>
+</div>
+<h1 class="text-lg font-bold leading-tight flex-1 text-center pr-10">Attendance Stats</h1>
+</header>
+<!-- Overview Cards -->
+<div class="flex flex-wrap gap-4 p-4">
+<div class="flex min-w-[150px] flex-1 flex-col gap-2 rounded-xl p-5 bg-primary/5 border border-primary/10">
+<p class="text-slate-600 dark:text-slate-400 text-sm font-medium">Overall Attendance</p>
+<div class="flex items-baseline gap-1">
+<p class="text-primary text-3xl font-bold tracking-tight">92%</p>
+<span class="text-green-600 text-xs font-bold">+2.4%</span>
+</div>
+</div>
+<div class="flex min-w-[150px] flex-1 flex-col gap-2 rounded-xl p-5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm">
+<p class="text-slate-600 dark:text-slate-400 text-sm font-medium">Classes Attended</p>
+<p class="text-slate-900 dark:text-slate-100 text-3xl font-bold tracking-tight">46</p>
+</div>
+<div class="flex min-w-[150px] flex-1 flex-col gap-2 rounded-xl p-5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm">
+<p class="text-slate-600 dark:text-slate-400 text-sm font-medium">Classes Missed</p>
+<p class="text-slate-900 dark:text-slate-100 text-3xl font-bold tracking-tight">4</p>
+</div>
+</div>
+<!-- Weekly Trends Chart -->
+<section class="px-4 py-4">
+<div class="rounded-xl bg-white dark:bg-slate-800 p-6 border border-slate-200 dark:border-slate-700 shadow-sm">
+<div class="flex justify-between items-center mb-6">
+<div>
+<h3 class="text-slate-900 dark:text-slate-100 text-lg font-bold leading-tight">Weekly Trend</h3>
+<p class="text-slate-500 text-sm">Last 7 days performance</p>
+</div>
+<div class="flex gap-1 bg-slate-100 dark:bg-slate-700 p-1 rounded-lg">
+<button class="px-3 py-1 text-xs font-bold bg-white dark:bg-slate-600 rounded-md shadow-sm">Weekly</button>
+<button class="px-3 py-1 text-xs font-bold text-slate-500">Monthly</button>
+</div>
+</div>
+<div class="grid grid-cols-7 gap-3 h-40 items-end">
+<div class="flex flex-col items-center gap-2 group">
+<div class="w-full bg-primary/20 rounded-t-md relative overflow-hidden h-[40%] group-hover:bg-primary/30 transition-colors">
+<div class="absolute bottom-0 w-full bg-primary h-[80%] rounded-t-sm"></div>
+</div>
+<span class="text-[10px] font-bold text-slate-400">MON</span>
+</div>
+<div class="flex flex-col items-center gap-2 group">
+<div class="w-full bg-primary/20 rounded-t-md relative overflow-hidden h-[90%]">
+<div class="absolute bottom-0 w-full bg-primary h-[95%] rounded-t-sm"></div>
+</div>
+<span class="text-[10px] font-bold text-slate-400">TUE</span>
+</div>
+<div class="flex flex-col items-center gap-2 group">
+<div class="w-full bg-primary/20 rounded-t-md relative overflow-hidden h-[75%]">
+<div class="absolute bottom-0 w-full bg-primary h-[100%] rounded-t-sm"></div>
+</div>
+<span class="text-[10px] font-bold text-primary">WED</span>
+</div>
+<div class="flex flex-col items-center gap-2 group">
+<div class="w-full bg-primary/20 rounded-t-md relative overflow-hidden h-[15%]">
+<div class="absolute bottom-0 w-full bg-primary h-[40%] rounded-t-sm"></div>
+</div>
+<span class="text-[10px] font-bold text-slate-400">THU</span>
+</div>
+<div class="flex flex-col items-center gap-2 group">
+<div class="w-full bg-primary/20 rounded-t-md relative overflow-hidden h-[85%]">
+<div class="absolute bottom-0 w-full bg-primary h-[90%] rounded-t-sm"></div>
+</div>
+<span class="text-[10px] font-bold text-slate-400">FRI</span>
+</div>
+<div class="flex flex-col items-center gap-2 group">
+<div class="w-full bg-primary/20 rounded-t-md relative overflow-hidden h-[5%]">
+<div class="absolute bottom-0 w-full bg-primary h-[0%] rounded-t-sm"></div>
+</div>
+<span class="text-[10px] font-bold text-slate-400">SAT</span>
+</div>
+<div class="flex flex-col items-center gap-2 group">
+<div class="w-full bg-primary/20 rounded-t-md relative overflow-hidden h-[5%]">
+<div class="absolute bottom-0 w-full bg-primary h-[0%] rounded-t-sm"></div>
+</div>
+<span class="text-[10px] font-bold text-slate-400">SUN</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Subject Breakdown -->
+<section class="px-4 py-4">
+<h3 class="text-slate-900 dark:text-slate-100 text-lg font-bold leading-tight mb-4">Subject Breakdown</h3>
+<div class="flex flex-col gap-3">
+<!-- Subject Item -->
+<div class="flex flex-col gap-3 rounded-xl bg-white dark:bg-slate-800 p-4 border border-slate-200 dark:border-slate-700">
+<div class="flex justify-between items-center">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-lg bg-orange-100 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary">function</span>
+</div>
+<div>
+<p class="font-bold text-slate-900 dark:text-slate-100">Advanced Mathematics</p>
+<p class="text-xs text-slate-500">12/13 classes attended</p>
+</div>
+</div>
+<span class="text-primary font-bold">94%</span>
+</div>
+<div class="w-full bg-slate-100 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
+<div class="bg-primary h-full rounded-full" style="width: 94%;"></div>
+</div>
+</div>
+<!-- Subject Item -->
+<div class="flex flex-col gap-3 rounded-xl bg-white dark:bg-slate-800 p-4 border border-slate-200 dark:border-slate-700">
+<div class="flex justify-between items-center">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-lg bg-blue-100 flex items-center justify-center">
+<span class="material-symbols-outlined text-blue-600">science</span>
+</div>
+<div>
+<p class="font-bold text-slate-900 dark:text-slate-100">Quantum Physics</p>
+<p class="text-xs text-slate-500">10/12 classes attended</p>
+</div>
+</div>
+<span class="text-primary font-bold">83%</span>
+</div>
+<div class="w-full bg-slate-100 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
+<div class="bg-primary h-full rounded-full" style="width: 83%;"></div>
+</div>
+</div>
+<!-- Subject Item -->
+<div class="flex flex-col gap-3 rounded-xl bg-white dark:bg-slate-800 p-4 border border-slate-200 dark:border-slate-700">
+<div class="flex justify-between items-center">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-lg bg-green-100 flex items-center justify-center">
+<span class="material-symbols-outlined text-green-600">language</span>
+</div>
+<div>
+<p class="font-bold text-slate-900 dark:text-slate-100">English Literature</p>
+<p class="text-xs text-slate-500">15/15 classes attended</p>
+</div>
+</div>
+<span class="text-primary font-bold">100%</span>
+</div>
+<div class="w-full bg-slate-100 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
+<div class="bg-primary h-full rounded-full" style="width: 100%;"></div>
+</div>
+</div>
+<!-- Subject Item -->
+<div class="flex flex-col gap-3 rounded-xl bg-white dark:bg-slate-800 p-4 border border-slate-200 dark:border-slate-700">
+<div class="flex justify-between items-center">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-lg bg-purple-100 flex items-center justify-center">
+<span class="material-symbols-outlined text-purple-600">history_edu</span>
+</div>
+<div>
+<p class="font-bold text-slate-900 dark:text-slate-100">World History</p>
+<p class="text-xs text-slate-500">9/11 classes attended</p>
+</div>
+</div>
+<span class="text-primary font-bold">81%</span>
+</div>
+<div class="w-full bg-slate-100 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
+<div class="bg-primary h-full rounded-full" style="width: 81%;"></div>
+</div>
+</div>
+</div>
+</section>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 left-0 right-0 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 pb-6 pt-2 z-50">
+<div class="flex gap-2 max-w-lg mx-auto">
+<a class="flex flex-1 flex-col items-center justify-center gap-1 text-slate-400" href="#">
+<div class="flex h-8 items-center justify-center">
+<span class="material-symbols-outlined">home</span>
+</div>
+<p class="text-[10px] font-bold leading-normal tracking-wide">Home</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-center gap-1 text-slate-400" href="#">
+<div class="flex h-8 items-center justify-center">
+<span class="material-symbols-outlined">calendar_today</span>
+</div>
+<p class="text-[10px] font-bold leading-normal tracking-wide">Schedule</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-center gap-1 text-primary" href="#">
+<div class="flex h-8 items-center justify-center">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1">bar_chart</span>
+</div>
+<p class="text-[10px] font-bold leading-normal tracking-wide">Stats</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-center gap-1 text-slate-400" href="#">
+<div class="flex h-8 items-center justify-center">
+<span class="material-symbols-outlined">person</span>
+</div>
+<p class="text-[10px] font-bold leading-normal tracking-wide">Profile</p>
+</a>
+</div>
+</nav>
+</div>
+</body></html>

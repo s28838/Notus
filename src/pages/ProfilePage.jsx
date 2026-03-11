@@ -1,99 +1,127 @@
-// src/pages/ProfilePage.jsx
-
 import React, { useContext } from "react";
 import { AuthContext } from "../App";
 import { useNavigate } from "react-router-dom";
-
-// Ikona strzałki w lewo (SVG)
-const BackIcon = () => (
-  <svg 
-    xmlns="http://www.w3.org/2000/svg" 
-    width="24" 
-    height="24" 
-    viewBox="0 0 24 24" 
-    fill="none" 
-    stroke="currentColor" 
-    strokeWidth="2" 
-    strokeLinecap="round" 
-    strokeLinejoin="round"
-  >
-    <line x1="19" y1="12" x2="5" y2="12"></line>
-    <polyline points="12 19 5 12 12 5"></polyline>
-  </svg>
-);
 
 const ProfilePage = () => {
   const { user, logout } = useContext(AuthContext);
   const navigate = useNavigate();
 
-  // Użyjemy danych użytkownika, które są dostępne w kontekście
-  const userName = user?.name || "Użytkownik Testowy";
-  const userEmail = user?.email || "test@notus.edu";
-  const userRole = user?.role === "student" ? "Student" : "Wykładowca";
-  
-  // 🔥 POBRANIE NUMERU INDEKSU Z OBIEKTU USER
-  const userIndex = user?.index || "-"; 
+  const userName = user?.name || "Student User";
+  const userRole = user?.role === "student" ? "Student" : "Teacher";
+  const userIndex = user?.index || "20230541"; 
 
   const handleLogout = () => {
     logout();
   };
   
-  // Funkcja powrotu do poprzedniego dashboardu
-  const handleBack = () => {
-      navigate(-1);
-  };
+  const handleBack = () => navigate(-1);
+  const goToSchedule = () => navigate(user?.role === "teacher" ? "/teacher/schedule" : "/student/schedule");
+  const goToStats = () => navigate(user?.role === "teacher" ? "/teacher/stats" : "/student/stats");
+  const goToHome = () => navigate(user?.role === "teacher" ? "/teacher" : "/student");
 
   return (
-    <div className="profile-page-container">
-      {/* NAGŁÓWEK Z PRZYCISKIEM POWROTU */}
-      <div className="profile-header">
-        <button 
-            className="back-button" 
-            onClick={handleBack} 
-            title="Powrót"
-        >
-            <BackIcon />
+    <div className="app-container" style={{ paddingBottom: '0' }}>
+      {/* Header */}
+      <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '2rem 1.5rem 1rem' }}>
+        <h1 style={{ fontSize: '1.5rem', fontWeight: 800, margin: 0 }}>Profile</h1>
+        <button className="icon-btn" style={{ background: 'rgba(244, 89, 37, 0.1)' }}>
+          <span className="material-symbols-outlined">settings</span>
         </button>
-        <h1 className="profile-title">Moje Konto</h1>
+      </header>
+
+      {/* Profile Info Section */}
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '1.5rem' }}>
+        <h2 style={{ fontSize: '1.25rem', fontWeight: 700, margin: '1rem 0 0' }}>{userName}</h2>
+        <p style={{ color: 'var(--text-secondary)', fontWeight: 500, margin: 0 }}>{userRole === 'Student' ? `Student ID: ${userIndex}` : userRole}</p>
       </div>
 
-      {/* KARTA PROFILOWA (Glassmorphism) */}
-      <div className="profile-card-wrapper">
-        <div className="profile-card">
+      {/* Academic Information */}
+      <div style={{ padding: '0 1.5rem', marginBottom: '2rem' }}>
+        <h3 style={{ fontSize: '0.875rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-tertiary)', marginBottom: '0.75rem', marginLeft: '0.25rem', marginTop: 0 }}>Academic Information</h3>
+        <div style={{ display: 'grid', gap: '0.75rem' }}>
           
-          {/* SEKCJA DANYCH */}
-          <div className="profile-details-section">
-            <h2 className="profile-name">{userName}</h2>
-            <div className="profile-detail-item">
-                <span className="label">Rola:</span>
-                <span className="value">{userRole}</span>
+          <div className="glass-card" style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem' }}>
+            <div style={{ width: '2.5rem', height: '2.5rem', borderRadius: '0.5rem', background: 'rgba(244, 89, 37, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-primary)' }}>
+              <span className="material-symbols-outlined">school</span>
             </div>
-            <div className="profile-detail-item">
-                <span className="label">E-mail:</span>
-                <span className="value">{userEmail}</span>
+            <div>
+              <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 500, margin: 0 }}>Department</p>
+              <p style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>Computer Science & AI</p>
             </div>
-            {/* 🔥 WARUNKOWE WYŚWIETLANIE NUMERU INDEKSU DLA STUDENTA */}
-            {userRole === "Student" && (
-                <div className="profile-detail-item">
-                    <span className="label">Numer Indeksu:</span>
-                    <span className="value">{userIndex}</span>
-                </div>
-            )}
           </div>
+
+          <div className="glass-card" style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem' }}>
+            <div style={{ width: '2.5rem', height: '2.5rem', borderRadius: '0.5rem', background: 'rgba(244, 89, 37, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-primary)' }}>
+              <span className="material-symbols-outlined">calendar_today</span>
+            </div>
+            <div>
+              <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 500, margin: 0 }}>Academic Year</p>
+              <p style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>3rd Year, Semester 2</p>
+            </div>
+          </div>
+
         </div>
       </div>
 
-      {/* SEKCJA OPCJI (Przyciski) */}
-      <div className="profile-options-wrapper">
-        {/* Przykładowy przycisk do zmiany hasła (może być rozwijany później) */}
-        <button className="profile-option-btn">Zmień hasło</button>
-        
-        {/* Przycisk Wyloguj */}
-        <button className="profile-option-btn logout-btn" onClick={handleLogout}>
-            Wyloguj
+      {/* Preferences */}
+      <div style={{ padding: '0 1.5rem', marginBottom: '2rem' }}>
+        <h3 style={{ fontSize: '0.875rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-tertiary)', marginBottom: '0.75rem', marginLeft: '0.25rem', marginTop: 0 }}>Preferences</h3>
+        <div className="glass-card" style={{ padding: 0, overflow: 'hidden' }}>
+          
+          {[
+            { icon: "person", text: "Account Settings" },
+            { icon: "notifications", text: "Notification Preferences" },
+            { icon: "verified_user", text: "Privacy Policy" },
+            { icon: "help", text: "Help & Support" }
+          ].map((pref, i) => (
+            <button key={i} style={{ 
+              width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', 
+              padding: '1rem', background: 'transparent', border: 'none', 
+              borderBottom: i < 3 ? '1px solid var(--border-light)' : 'none',
+              cursor: 'pointer'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <span className="material-symbols-outlined text-slate-500">{pref.icon}</span>
+                <span style={{ fontWeight: 500, color: 'var(--text-primary)' }}>{pref.text}</span>
+              </div>
+              <span className="material-symbols-outlined text-slate-500">chevron_right</span>
+            </button>
+          ))}
+
+        </div>
+      </div>
+
+      {/* Logout */}
+      <div style={{ padding: '0 1.5rem', marginBottom: '8rem' }}>
+        <button className="btn-white" onClick={handleLogout} style={{ 
+          background: 'var(--color-primary)', color: 'white', display: 'flex', 
+          alignItems: 'center', justifyContent: 'center', gap: '0.5rem', padding: '1rem',
+          boxShadow: '0 10px 15px -3px rgba(244, 89, 37, 0.2)'
+        }}>
+          <span className="material-symbols-outlined">logout</span>
+          <span>Log Out</span>
         </button>
       </div>
 
+      {/* Bottom Nav Bar */}
+      <nav className="bottom-nav-stitch">
+        <button className="nav-item" onClick={goToHome}>
+          <span className="material-symbols-outlined">home</span>
+          {user?.role === "teacher" ? "Główna" : "Home"}
+        </button>
+        <button className="nav-item" onClick={goToSchedule}>
+          <span className="material-symbols-outlined">calendar_month</span>
+          {user?.role === "teacher" ? "Plan" : "Schedule"}
+        </button>
+        <button className="nav-item" onClick={goToStats}>
+          <span className="material-symbols-outlined">bar_chart</span>
+          {user?.role === "teacher" ? "Staty" : "Stats"}
+        </button>
+        <button className="nav-item active">
+          <span className="material-symbols-outlined fill">person</span>
+          {user?.role === "teacher" ? "Profil" : "Profile"}
+        </button>
+      </nav>
     </div>
   );
 };
