@@ -1,13 +1,14 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiPost, apiGet } from "../api";
+import "./CreateSessionPage.css";
 
 const CreateSessionPage = () => {
   const navigate = useNavigate();
   const [title, setTitle] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [qr, setQr] = useState(null); // QrResponse
+  const [qr, setQr] = useState(null);
 
   const createAndGetQr = async () => {
     setError("");
@@ -15,10 +16,7 @@ const CreateSessionPage = () => {
     setQr(null);
 
     try {
-      // 1) create session
       const created = await apiPost("/api/attendance/sessions", { title });
-
-      // 2) fetch qr
       const qrResp = await apiGet(`/api/attendance/sessions/${created.sessionId}/qr`);
       setQr(qrResp);
     } catch (e) {
@@ -30,8 +28,10 @@ const CreateSessionPage = () => {
 
   const refreshQr = async () => {
     if (!qr?.sessionId) return;
+
     setError("");
     setLoading(true);
+
     try {
       const qrResp = await apiGet(`/api/attendance/sessions/${qr.sessionId}/qr`);
       setQr(qrResp);
@@ -43,52 +43,73 @@ const CreateSessionPage = () => {
   };
 
   return (
-    <div style={{ padding: 16 }}>
-      <button onClick={() => navigate(-1)}>← Powrót</button>
-
-      <h1>Utwórz zajęcia</h1>
-
-      <div style={{ marginTop: 12 }}>
-        <label>Tytuł zajęć</label>
-        <input
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="np. Bazy danych - lab 1"
-          style={{ display: "block", width: "100%", padding: 10, marginTop: 6 }}
-        />
-      </div>
-
-      {error && <div style={{ color: "salmon", marginTop: 12 }}>{error}</div>}
-
-      <button
-        onClick={createAndGetQr}
-        disabled={loading || !title.trim()}
-        style={{ marginTop: 12, padding: 12 }}
-      >
-        {loading ? "Tworzę..." : "Utwórz i pokaż QR"}
+    <div className="create-session-page">
+      <button className="create-session-back" onClick={() => navigate(-1)}>
+        ←
       </button>
 
-      {qr && (
-        <div style={{ marginTop: 20 }}>
-          <h2>QR do sesji #{qr.sessionId}</h2>
-
-          <img
-            alt="QR"
-            src={`data:image/png;base64,${qr.qrPngBase64}`}
-            style={{ width: 260, height: 260, borderRadius: 12 }}
-          />
-
-          <div style={{ marginTop: 10 }}>
-            <button onClick={refreshQr} disabled={loading} style={{ padding: 10 }}>
-              Odśwież QR
-            </button>
+      <div className="create-session-wrapper">
+        <div className="create-session-card">
+          <div className="create-session-header">
+            <h1>Utwórz zajęcia</h1>
+            <p>Wprowadź tytuł zajęć i wygeneruj kod QR dla studentów.</p>
           </div>
 
-          <div style={{ marginTop: 10, fontSize: 12 }}>
-            Token (fallback): <code>{qr.qrToken}</code>
+          <div className="create-session-form-group">
+            <label htmlFor="session-title">Tytuł zajęć</label>
+            <input
+              id="session-title"
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="np. Bazy danych - lab 1"
+              className="create-session-input"
+            />
           </div>
+
+          {error && <div className="create-session-error">{error}</div>}
+
+          <button
+            onClick={createAndGetQr}
+            disabled={loading || !title.trim()}
+            className="create-session-button"
+          >
+            {loading ? "Tworzę..." : "Utwórz i pokaż QR"}
+          </button>
         </div>
-      )}
+
+        {qr && (
+          <div className="create-session-card qr-card">
+            <div className="qr-card-header">
+              <h2>Wygenerowany kod QR</h2>
+              <span className="session-badge">Sesja #{qr.sessionId}</span>
+            </div>
+
+            <div className="qr-image-wrapper">
+              <img
+                alt="QR"
+                src={`data:image/png;base64,${qr.qrPngBase64}`}
+                className="qr-image"
+              />
+            </div>
+
+            <div className="qr-actions">
+              <button
+                onClick={refreshQr}
+                disabled={loading}
+                className="create-session-button secondary"
+              >
+                {loading ? "Odświeżam..." : "Odśwież QR"}
+              </button>
+            </div>
+
+            <div className="qr-token-box">
+              <span>Token (fallback):</span>
+              <code>{qr.qrToken}</code>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
