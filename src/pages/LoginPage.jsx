@@ -1,10 +1,11 @@
 import React, { useContext, useState } from "react";
 import { AuthContext } from "../App";
 import notusLogo from "../assets/notus-logo.png";
-import { supabase } from "../supabase";
+import { signInWithPopup } from "firebase/auth";
+import { auth, googleProvider } from "../firebase";
 
 const LoginPage = () => {
-  const { login } = useContext(AuthContext);
+  const { loginWithGoogle, login } = useContext(AuthContext);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [email, setEmail] = useState("");
@@ -21,13 +22,8 @@ const LoginPage = () => {
     setError("");
     setLoading(true);
     try {
-      await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          // You do not need a redirectTo for local dev usually, but good practice if needed later
-        }
-      });
-      // Supabase handles the redirect automatically, so we don't set loading back to false here if successful.
+      const result = await signInWithPopup(auth, googleProvider);
+      loginWithGoogle(result.user);
     } catch (e) {
       console.error(e);
       setError("Logowanie przez Google nie powiodło się.");

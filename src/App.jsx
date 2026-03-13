@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
-import { supabase } from "./supabase";
+import { signOut } from "firebase/auth";
+import { auth } from "./firebase";
 import LoginPage from "./pages/LoginPage";
 import StudentDashboard from "./pages/student/StudentDashboard";
 import TeacherDashboard from "./pages/teacher/TeacherDashboard";
@@ -34,45 +35,33 @@ const AppInner = () => {
       .then((data) => console.log("API OK:", data))
       .catch((err) => console.error("API ERROR:", err));
   }, []);
-  useEffect(() => {
-    // Check active sessions and sets the user
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        handleSupabaseUser(session.user);
-      }
-    });
+  // Login using Firebase Google auth result directly (no backend needed)
+  const loginWithGoogle = (firebaseUser) => {
+    const email = firebaseUser.email;
+    const role = email.trim().toLowerCase().startsWith("s")
+      ? "student"
+      : "teacher";
 
-    // Listen for changes on auth state (log in, log out, etc.)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        if (session?.user) {
-          handleSupabaseUser(session.user);
-        } else {
-          setUser(null);
-        }
-      }
-    );
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  const handleSupabaseUser = (supabaseUser) => {
-    const email = supabaseUser.email;
-    const role = email.trim().toLowerCase().startsWith("s") ? "student" : "teacher";
-    
     let indexNumber = null;
     if (role === "student") {
       const parts = email.split('@');
       indexNumber = parts[0];
     }
 
+    const token = firebaseUser.accessToken;
+    if (token) {
+      localStorage.setItem("firebaseToken", token);
+    }
+
     setUser({
       email,
       role,
-      name: supabaseUser.user_metadata?.full_name || email,
+      name: firebaseUser.displayName || email,
       index: indexNumber,
-      photoURL: supabaseUser.user_metadata?.avatar_url || null
+      photoURL: firebaseUser.photoURL || null
     });
+
+    navigate(role === "student" ? "/student" : "/teacher");
   };
 
   const login = (email) => {
@@ -99,14 +88,13 @@ const AppInner = () => {
   };
 
   const logout = async () => {
-    try { await supabase.auth.signOut(); } catch (e) { console.error(e); }
+    try { await signOut(auth); } catch (e) { /* ignore */ }
+    localStorage.removeItem("firebaseToken");
     setUser(null);
     navigate("/login");
   };
 
-  // We no longer need a custom loginWithGoogle here, 
-  // because Supabase onAuthStateChange will handle it automatically.
-  const authValue = { user, login, logout };
+  const authValue = { user, login, loginWithGoogle, logout };
 
   return (
     <AuthContext.Provider value={authValue}>
