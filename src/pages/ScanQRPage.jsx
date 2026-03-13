@@ -5,16 +5,22 @@ import { apiPost } from "../api";
 const ScanQRPage = () => {
   const navigate = useNavigate();
   const videoRef = useRef(null);
-  const [hasPermission, setHasPermission] = useState(null); // null = sprawdzanie, true = jest, false = brak
+
+  const [hasPermission, setHasPermission] = useState(null);
   const [isFlashlightOn, setIsFlashlightOn] = useState(false);
 
-  // Próba uruchomienia kamery przy wejściu na stronę
+  const [manualCode, setManualCode] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
+  const [messageType, setMessageType] = useState(""); // success | error
+
   useEffect(() => {
     const startCamera = async () => {
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: "environment" } // Preferuj tylną kamerę
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+            video: { facingMode: "environment" } // Preferuj tylną kamerę
         });
+
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
           setHasPermission(true);
@@ -27,11 +33,10 @@ const ScanQRPage = () => {
 
     startCamera();
 
-    // Czyszczenie przy wyjściu (zatrzymanie kamery)
     return () => {
       if (videoRef.current && videoRef.current.srcObject) {
         const tracks = videoRef.current.srcObject.getTracks();
-        tracks.forEach(track => track.stop());
+        tracks.forEach((track) => track.stop());
       }
     };
   }, []);
@@ -39,7 +44,6 @@ const ScanQRPage = () => {
   const handleBack = () => {
     navigate(-1);
   };
-  
   const handleManualCode = async () => {
     const qrToken = prompt("Wklej kod z QR (token):");
     if (!qrToken) return;

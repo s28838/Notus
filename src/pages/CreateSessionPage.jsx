@@ -1,13 +1,14 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiPost, apiGet } from "../api";
+import "./CreateSessionPage.css";
 
 const CreateSessionPage = () => {
   const navigate = useNavigate();
   const [title, setTitle] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [qr, setQr] = useState(null); // QrResponse
+  const [qr, setQr] = useState(null);
 
   const createAndGetQr = async () => {
     setError("");
@@ -15,10 +16,7 @@ const CreateSessionPage = () => {
     setQr(null);
 
     try {
-      // 1) create session
       const created = await apiPost("/api/attendance/sessions", { title });
-
-      // 2) fetch qr
       const qrResp = await apiGet(`/api/attendance/sessions/${created.sessionId}/qr`);
       setQr(qrResp);
     } catch (e) {
@@ -30,8 +28,10 @@ const CreateSessionPage = () => {
 
   const refreshQr = async () => {
     if (!qr?.sessionId) return;
+
     setError("");
     setLoading(true);
+
     try {
       const qrResp = await apiGet(`/api/attendance/sessions/${qr.sessionId}/qr`);
       setQr(qrResp);
@@ -150,6 +150,7 @@ const CreateSessionPage = () => {
           Profil
         </button>
       </nav>
+
     </div>
   );
 };
