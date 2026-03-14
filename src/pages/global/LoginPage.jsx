@@ -1,8 +1,8 @@
 import React, { useContext, useState } from "react";
-import { AuthContext } from "../App";
-import notusLogo from "../assets/notus-logo.png";
+import { AuthContext } from "../../context/AuthContext";
+import notusLogo from "../../assets/notus-logo.png";
 import { signInWithPopup } from "firebase/auth";
-import { auth, googleProvider } from "../firebase";
+import { auth, googleProvider } from "../../config/firebase";
 
 const LoginPage = () => {
   const { loginWithGoogle, login } = useContext(AuthContext);

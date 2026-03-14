@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { apiPost, apiGet } from "../api";
+import { apiPost, apiGet } from "../../services/api";
 import "./CreateSessionPage.css";
 
 const CreateSessionPage = () => {
