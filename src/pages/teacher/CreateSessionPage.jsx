@@ -1,9 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
+import { AuthContext } from "../../context/AuthContext";
 import { apiPost, apiGet } from "../../services/api";
 import "./CreateSessionPage.css";
 
 const CreateSessionPage = () => {
+  const { getToken } = useContext(AuthContext);
   const navigate = useNavigate();
   const [title, setTitle] = useState("");
   const [loading, setLoading] = useState(false);
@@ -16,8 +18,9 @@ const CreateSessionPage = () => {
     setQr(null);
 
     try {
-      const created = await apiPost("/api/attendance/sessions", { title });
-      const qrResp = await apiGet(`/api/attendance/sessions/${created.sessionId}/qr`);
+      const token = await getToken();
+      const created = await apiPost("/api/attendance/sessions", { title }, token);
+      const qrResp = await apiGet(`/api/attendance/sessions/${created.sessionId}/qr`, token);
       setQr(qrResp);
     } catch (e) {
       setError(e.message || String(e));
@@ -33,7 +36,8 @@ const CreateSessionPage = () => {
     setLoading(true);
 
     try {
-      const qrResp = await apiGet(`/api/attendance/sessions/${qr.sessionId}/qr`);
+      const token = await getToken();
+      const qrResp = await apiGet(`/api/attendance/sessions/${qr.sessionId}/qr`, token);
       setQr(qrResp);
     } catch (e) {
       setError(e.message || String(e));

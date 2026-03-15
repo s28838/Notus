@@ -24,10 +24,20 @@ const AppRoutes = () => {
   const { user } = useContext(AuthContext);
 
   useEffect(() => {
-    apiGet("/api/test")
-      .then((data) => console.log("API OK:", data))
-      .catch((err) => console.error("API ERROR:", err));
-  }, []);
+    const testApi = async () => {
+      try {
+        const token = await getToken();
+        const data = await apiGet("/api/test", token);
+        console.log("API OK:", data);
+      } catch (err) {
+        console.error("API ERROR:", err);
+      }
+    };
+    
+    if (user) {
+      testApi();
+    }
+  }, [user, getToken]);
 
   return (
     <Routes>

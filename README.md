@@ -6,7 +6,7 @@ Aplikacja kliencka do zarządzania obecnością i procesem dydaktycznym na uczel
 
 Główne technologie wykorzystane w projekcie to:
 - **React 18** z frameworkiem **Vite** dla błyskawicznych czasów renderowania i budowania.
-- **Firebase** (wersja 12) do procesów uwierzytelniania użytkowników (np. logowanie Google).
+- **Clerk** do procesów uwierzytelniania użytkowników (np. logowanie Google).
 - **React Router** do nawigacji po stronie klienckiej.
 - **Capacitor** do przyszłego obudowania aplikacji i dostarczenia jej na platformy mobilne (Android/iOS).
 
@@ -15,7 +15,7 @@ Główne technologie wykorzystane w projekcie to:
 Projekt przeszedł gruntowną restrukturyzację dla lepszej przejrzystości:
 ```text
 src/
-├── config/        # Pliki konfiguracyjne np. do połączeń z Firebase
+├── config/        # Pliki konfiguracyjne
 ├── context/       # Globalne konteksty dla React (np. uwierzytelnianie)
 ├── pages/         # Główne "ekrany" aplikacji
 │   ├── global/    # Widoki wspólne (np. Logowanie, Profil)

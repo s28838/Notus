@@ -1,11 +1,14 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useContext } from "react";
 import { useNavigate } from "react-router-dom";
+import { AuthContext } from "../../context/AuthContext";
 import { apiPost } from "../../services/api";
 
 const ScanQRPage = () => {
+  const { getToken } = useContext(AuthContext);
   const navigate = useNavigate();
   const videoRef = useRef(null);
-
+  
+  // ... (keeping other state)
   const [hasPermission, setHasPermission] = useState(null);
   const [isFlashlightOn, setIsFlashlightOn] = useState(false);
 
@@ -49,7 +52,8 @@ const ScanQRPage = () => {
     if (!qrToken) return;
 
     try {
-      const resp = await apiPost("/api/attendance/check-in", { qrToken });
+      const token = await getToken();
+      const resp = await apiPost("/api/attendance/check-in", { qrToken }, token);
       alert("✅ Zapisano obecność!");
       console.log("check-in response:", resp);
       navigate(-1); // opcjonalnie: wróć do dashboardu

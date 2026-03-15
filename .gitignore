@@ -1,24 +1,51 @@
 # --- NODE MODULES ---
 node_modules/
+.pnp
+.pnp.js
 
-# --- VITE BUILD OUTPUT ---
+# --- VITE/BUILD OUTPUT ---
 dist/
+dist-ssr/
+*.local
+www/
 
 # --- LOG FILES ---
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
 
 # --- ENV VARIABLES ---
 .env
 .env.local
-.env.development
-.env.production
-.env.test
+.env.development.local
+.env.test.local
+.env.production.local
+*.env.local
 
 # --- SYSTEM FILES ---
 .DS_Store
 Thumbs.db
+*.swp
+*.bak
+*.tmp
 
-# --- VSCODE SETTINGS (opcjonalnie) ---
+# --- IDE SETTINGS ---
 .vscode/
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# --- CAPACITOR/MOBILE ---
+android/app/build/
+android/app/src/main/assets/public/
+ios/App/App/DerivedData/
+ios/App/public/
+
+# --- EXPORTS ---
+stitch_exports/

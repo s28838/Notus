@@ -1,12 +1,18 @@
 const BASE = import.meta.env.VITE_API_URL;
 
 export async function apiGet(path) {
-  const token = localStorage.getItem("firebaseToken");
+  const token = localStorage.getItem("clerkToken");
 
   const res = await fetch(`${BASE}${path}`, {
     method: "GET",
     headers: token ? { Authorization: `Bearer ${token}` } : {},
   });
+
+  if (res.status === 401 || res.status === 403) {
+    window.dispatchEvent(new CustomEvent("auth:error", { 
+      detail: { status: res.status, path } 
+    }));
+  }
 
   const text = await res.text();
 
@@ -21,7 +27,7 @@ export async function apiGet(path) {
   }
 }
 export async function apiPost(path, body) {
-  const token = localStorage.getItem("firebaseToken");
+  const token = localStorage.getItem("clerkToken");
 
   const res = await fetch(`${BASE}${path}`, {
     method: "POST",
@@ -31,6 +37,12 @@ export async function apiPost(path, body) {
     },
     body: JSON.stringify(body),
   });
+
+  if (res.status === 401 || res.status === 403) {
+    window.dispatchEvent(new CustomEvent("auth:error", { 
+      detail: { status: res.status, path } 
+    }));
+  }
 
   const text = await res.text();
 

@@ -12,6 +12,41 @@ export const AuthProvider = ({ children }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    const syncToken = async () => {
+      try {
+        if (isLoaded && isSignedIn) {
+          const t = await getToken();
+          if (t) {
+            localStorage.setItem("clerkToken", t);
+          }
+        } else if (isLoaded && !isSignedIn) {
+          localStorage.removeItem("clerkToken");
+        }
+      } catch (err) {
+        console.error("Token sync error:", err);
+      }
+    };
+
+    syncToken();
+    // Refresh token every 5 minutes to keep localStorage in sync
+    const interval = setInterval(syncToken, 5 * 60 * 1000);
+
+    return () => clearInterval(interval);
+  }, [isLoaded, isSignedIn, getToken]);
+
+  useEffect(() => {
+    const handleAuthError = (e) => {
+      console.warn("Global auth error detected:", e.detail);
+      if (e.detail.status === 401 || e.detail.status === 403) {
+        logout();
+      }
+    };
+
+    window.addEventListener("auth:error", handleAuthError);
+    return () => window.removeEventListener("auth:error", handleAuthError);
+  }, []);
+
+  useEffect(() => {
     try {
       if (isLoaded && isSignedIn && clerkUser) {
         const email = clerkUser.primaryEmailAddress?.emailAddress || "";
