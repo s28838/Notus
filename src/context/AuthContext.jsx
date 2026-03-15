@@ -1,75 +1,71 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { signOut } from "firebase/auth";
-import { auth } from "../config/firebase";
+import { useUser, useAuth, useClerk } from "@clerk/react";
 
 export const AuthContext = React.createContext(null);
 
 export const AuthProvider = ({ children }) => {
-  // Mock danych użytkownika na potrzeby demonstracji i testów
+  const { isLoaded, isSignedIn, user: clerkUser } = useUser();
+  const { signOut } = useClerk();
+  const { getToken } = useAuth();
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
 
-  // Login using Firebase Google auth result directly (no backend needed)
-  const loginWithGoogle = (firebaseUser) => {
-    const email = firebaseUser.email;
-    const role = email.trim().toLowerCase().startsWith("s")
-      ? "student"
-      : "teacher";
+  useEffect(() => {
+    try {
+      if (isLoaded && isSignedIn && clerkUser) {
+        const email = clerkUser.primaryEmailAddress?.emailAddress || "";
+        const role = email.trim().toLowerCase().startsWith("s")
+          ? "student"
+          : "teacher";
 
-    let indexNumber = null;
-    if (role === "student") {
-      const parts = email.split('@');
-      indexNumber = parts[0];
+        let indexNumber = null;
+        if (role === "student" && email.includes('@')) {
+          indexNumber = email.split('@')[0];
+        }
+
+        setUser({
+          email,
+          role,
+          name: clerkUser.fullName || clerkUser.username || email,
+          index: indexNumber,
+          photoURL: clerkUser.imageUrl || null,
+          clerkId: clerkUser.id
+        });
+      } else if (isLoaded && !isSignedIn) {
+        setUser(null);
+      }
+    } catch (err) {
+      console.error("Error in AuthContext useEffect:", err);
     }
+  }, [isLoaded, isSignedIn, clerkUser]);
 
-    const token = firebaseUser.accessToken;
-    if (token) {
-      localStorage.setItem("firebaseToken", token);
+  const logout = async () => {
+    try {
+      await signOut();
+      setUser(null);
+      navigate("/login");
+    } catch (err) {
+      console.error("Logout error:", err);
     }
-
-    setUser({
-      email,
-      role,
-      name: firebaseUser.displayName || email,
-      index: indexNumber,
-      photoURL: firebaseUser.photoURL || null
-    });
-
-    navigate(role === "student" ? "/student" : "/teacher");
   };
 
   const login = (email) => {
-    // Maintain mock login for development
-    const role = email.trim().toLowerCase().startsWith("s")
-      ? "student"
-      : "teacher";
-    const fakeName = role === "student" ? "Adam Student" : "Andrzej Wykładowca";
-
-    let indexNumber = null;
-    if (role === "student") {
-      const parts = email.split('@');
-      indexNumber = parts[0];
-    }
-
-    setUser({
-      email,
-      role,
-      name: fakeName,
-      index: indexNumber
-    });
-
+    const role = email.trim().toLowerCase().startsWith("s") ? "student" : "teacher";
+    setUser({ email, role, name: "Logged User", index: email.split('@')[0] });
     navigate(role === "student" ? "/student" : "/teacher");
   };
 
-  const logout = async () => {
-    try { await signOut(auth); } catch (e) { /* ignore */ }
-    localStorage.removeItem("firebaseToken");
-    setUser(null);
-    navigate("/login");
-  };
+  const authValue = { user, login, logout, isLoaded, getToken };
 
-  const authValue = { user, login, loginWithGoogle, logout };
+  // Don't render until Clerk is loaded to avoid flashes or context errors
+  if (!isLoaded) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: 'var(--bg-light)' }}>
+        <div style={{ color: 'var(--color-primary)', fontWeight: 700 }}>Ładowanie...</div>
+      </div>
+    );
+  }
 
   return (
     <AuthContext.Provider value={authValue}>
