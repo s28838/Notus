@@ -21,7 +21,7 @@ const RequireRole = ({ role, user, children }) => {
 };
 
 const AppRoutes = () => {
-  const { user } = useContext(AuthContext);
+  const { user, getToken } = useContext(AuthContext);
 
   useEffect(() => {
     const testApi = async () => {

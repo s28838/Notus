@@ -1,6 +1,7 @@
-import React, { useState, useMemo, useContext } from "react";
+import React, { useState, useMemo, useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
+import { supabase } from "../../supabaseClient";
 
 // --- Helpers ---
 const formatDateHeader = (date) => {
@@ -61,9 +62,58 @@ const SchedulePage = () => {
   const [selectedDate, setSelectedDate] = useState(new Date()); 
   const [calendarMonth, setCalendarMonth] = useState(new Date()); 
   
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [schedule, setSchedule] = useState([]);
+  
   const today = useMemo(() => new Date(), []);
   
-  const schedule = useMemo(() => getMockSchedule(selectedDate), [selectedDate]);
+  useEffect(() => {
+    const fetchSchedule = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        // Find the start and end of the selected date for filtering
+        const startOfDay = new Date(selectedDate);
+        startOfDay.setHours(0, 0, 0, 0);
+        
+        const endOfDay = new Date(selectedDate);
+        endOfDay.setHours(23, 59, 59, 999);
+        
+        // This query assumes your table is named 'schedule' and has a 'date' column.
+        // It also assumes columns like 'subject', 'teacher', 'type', 'color', 'time', 'room'.
+        const { data, error: fetchError } = await supabase
+          .from('schedule') 
+          .select('*')
+          .gte('date', startOfDay.toISOString())
+          .lte('date', endOfDay.toISOString())
+          .order('time', { ascending: true });
+          
+        if (fetchError) throw fetchError;
+        
+        // Map the database rows to the expected format for our UI components.
+        // Adjust these field mappings if your Supabase columns have different names.
+        const formattedData = (data || []).map(row => ({
+          subject: row.subject || "Unknown Subject",
+          teacher: row.teacher || "Unknown Teacher",
+          type: row.type || "Lecture",
+          color: row.color || "primary",
+          time: row.time || "00:00",
+          room: row.room || "TBD",
+        }));
+        
+        setSchedule(formattedData);
+      } catch (err) {
+        console.error("Supabase fetch error:", err);
+        setError("Failed to load schedule from database. Check console and verify table/columns.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchSchedule();
+  }, [selectedDate]);
+
   const dateHeader = useMemo(() => formatDateHeader(calendarMonth), [calendarMonth]);
   
   const daysInMonth = useMemo(() => getDaysInMonth(calendarMonth), [calendarMonth]);
@@ -152,7 +202,24 @@ const SchedulePage = () => {
         </h3>
         
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          {schedule.length > 0 ? (
+          {isLoading ? (
+            <div style={{ textAlign: 'center', padding: '3rem 1rem', color: 'var(--text-secondary)' }}>
+              <div className="loading-spinner" style={{ margin: '0 auto 1rem', width: '32px', height: '32px', border: '3px solid var(--border-light)', borderTopColor: 'var(--color-primary)', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
+              <p style={{ margin: 0, fontWeight: 500 }}>Loading schedule...</p>
+              <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
+            </div>
+          ) : error ? (
+            <div className="glass-card" style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-secondary)', border: '1px solid rgba(239, 68, 68, 0.3)', background: 'rgba(239, 68, 68, 0.05)' }}>
+              <span className="material-symbols-outlined" style={{ fontSize: '2rem', marginBottom: '0.5rem', color: '#ef4444' }}>error</span>
+              <p style={{ margin: 0, fontWeight: 500, color: '#ef4444' }}>{error}</p>
+              <button 
+                onClick={() => setSelectedDate(new Date(selectedDate))} 
+                style={{ marginTop: '1rem', padding: '0.5rem 1rem', background: '#ef4444', border: 'none', borderRadius: '0.5rem', color: 'white', cursor: 'pointer', fontWeight: 600 }}
+              >
+                Try Again
+              </button>
+            </div>
+          ) : schedule.length > 0 ? (
             schedule.map((lesson, index) => (
               <div key={index} style={{ position: 'relative', paddingLeft: '2rem' }}>
                 {/* Timeline Line */}
@@ -186,8 +253,10 @@ const SchedulePage = () => {
               </div>
             ))
           ) : (
-            <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-secondary)' }}>
-              No classes scheduled for this date.
+            <div className="glass-card" style={{ textAlign: 'center', padding: '3rem 2rem', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
+              <span className="material-symbols-outlined" style={{ fontSize: '3rem', color: 'var(--border-light)' }}>event_busy</span>
+              <p style={{ margin: 0, fontWeight: 500, fontSize: '1.125rem' }}>No classes scheduled</p>
+              <p style={{ margin: 0, fontSize: '0.875rem', opacity: 0.8 }}>Enjoy your free time or check another date.</p>
             </div>
           )}
         </div>
