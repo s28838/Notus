@@ -82,12 +82,19 @@ const SchedulePage = () => {
         
         // This query assumes your table is named 'schedule' and has a 'date' column.
         // It also assumes columns like 'subject', 'teacher', 'type', 'color', 'time', 'room'.
-        const { data, error: fetchError } = await supabase
+        let query = supabase
           .from('schedule') 
           .select('*')
           .gte('date', startOfDay.toISOString())
           .lte('date', endOfDay.toISOString())
           .order('time', { ascending: true });
+          
+        // Filter by teacher's name if the active user is a teacher
+        if (user?.role === 'teacher' && user?.name) {
+          query = query.ilike('teacher', `%${user.name}%`);
+        }
+        
+        const { data, error: fetchError } = await query;
           
         if (fetchError) throw fetchError;
         

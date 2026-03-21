@@ -1,25 +1,94 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
 import { apiPost, apiGet } from "../../services/api";
+import { supabase } from "../../supabaseClient";
 import "./CreateSessionPage.css";
 
 const CreateSessionPage = () => {
-  const { getToken } = useContext(AuthContext);
+  const { getToken, user } = useContext(AuthContext);
   const navigate = useNavigate();
-  const [title, setTitle] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [qr, setQr] = useState(null);
+  
+  const [lessons, setLessons] = useState([]);
+  const [currentLesson, setCurrentLesson] = useState(null);
+
+  useEffect(() => {
+    const fetchTodaySchedule = async () => {
+      setLoading(true);
+      try {
+        const startOfDay = new Date();
+        startOfDay.setHours(0, 0, 0, 0);
+        const endOfDay = new Date();
+        endOfDay.setHours(23, 59, 59, 999);
+        
+        let query = supabase
+          .from('schedule')
+          .select('*')
+          .gte('date', startOfDay.toISOString())
+          .lte('date', endOfDay.toISOString())
+          .order('time', { ascending: true });
+          
+        if (user?.name) {
+          query = query.ilike('teacher', `%${user.name}%`);
+        }
+        
+        const { data, fetchErr } = await query;
+        if (fetchErr) throw fetchErr;
+        
+        setLessons(data || []);
+        
+        if (data && data.length > 0) {
+          const now = new Date();
+          const currentTime = now.getHours() * 60 + now.getMinutes();
+          
+          let active = null;
+          for (const l of data) {
+            if (!l.time) continue;
+            const [start, end] = l.time.split(" - ");
+            if (start && end) {
+              const [startH, startM] = start.split(":").map(Number);
+              const [endH, endM] = end.split(":").map(Number);
+              const startTime = startH * 60 + startM;
+              const endTime = endH * 60 + endM;
+              
+              if (currentTime >= startTime - 30 && currentTime <= endTime) {
+                active = l;
+                break;
+              }
+            }
+          }
+          setCurrentLesson(active || data[0]);
+        }
+      } catch (err) {
+         console.error("Fetch schedule error:", err);
+         setError("Nie udało się pobrać planu zajęć.");
+      } finally {
+         setLoading(false);
+      }
+    };
+    
+    if (user?.name) {
+        fetchTodaySchedule();
+    }
+  }, [user]);
 
   const createAndGetQr = async () => {
+    if (!currentLesson) {
+      setError("Brak wybranych zajęć.");
+      return;
+    }
+
     setError("");
     setLoading(true);
     setQr(null);
 
     try {
       const token = await getToken();
-      const created = await apiPost("/api/attendance/sessions", { title }, token);
+      const sessionTitle = `${currentLesson.subject} (${currentLesson.time})`;
+      const created = await apiPost("/api/attendance/sessions", { title: sessionTitle }, token);
       const qrResp = await apiGet(`/api/attendance/sessions/${created.sessionId}/qr`, token);
       setQr(qrResp);
     } catch (e) {
@@ -60,21 +129,37 @@ const CreateSessionPage = () => {
         
         {/* Form Container */}
         <div className="glass-card" style={{ padding: '1.5rem' }}>
-          <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 700, marginBottom: '0.75rem', color: 'var(--text-primary)' }}>
-            <span className="material-symbols-outlined text-primary">edit_note</span>
-            Tytuł zajęć
+          <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 700, marginBottom: '1rem', color: 'var(--text-primary)' }}>
+            <span className="material-symbols-outlined text-primary">school</span>
+            Dzisiejsze zajęcia
           </label>
-          <input
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="np. Bazy danych - lab 1"
-            style={{ 
-              display: "block", width: "100%", padding: '1rem', boxSizing: 'border-box',
-              borderRadius: '0.5rem', border: '1px solid var(--border-light)', 
-              background: 'var(--bg-light)', color: 'var(--text-primary)',
-              fontFamily: 'inherit', outline: 'none', transition: 'border-color 0.2s'
-            }}
-          />
+          
+          {lessons.length === 0 ? (
+            <div style={{ padding: '1rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
+              {loading ? "Ładowanie zajęć..." : "Brak przypisanych zajęć na dziś."}
+            </div>
+          ) : (
+            <select
+              value={currentLesson?.id || ""}
+              onChange={(e) => {
+                const selected = lessons.find(l => l.id === e.target.value);
+                setCurrentLesson(selected);
+              }}
+              style={{
+                display: "block", width: "100%", padding: '1rem', boxSizing: 'border-box',
+                borderRadius: '0.5rem', border: '1px solid var(--border-light)', 
+                background: 'var(--bg-light)', color: 'var(--text-primary)',
+                fontFamily: 'inherit', outline: 'none', cursor: 'pointer', appearance: 'none',
+                WebkitAppearance: 'none'
+              }}
+            >
+              {lessons.map(l => (
+                <option key={l.id} value={l.id}>
+                  {l.time} - {l.subject} ({l.type})
+                </option>
+              ))}
+            </select>
+          )}
 
           {error && (
             <div style={{ padding: '0.75rem', marginTop: '1rem', background: '#fef2f2', color: '#ef4444', borderRadius: '0.5rem', fontSize: '0.875rem', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
@@ -86,15 +171,15 @@ const CreateSessionPage = () => {
           <button
             className="btn-white"
             onClick={createAndGetQr}
-            disabled={loading || !title.trim()}
+            disabled={loading || !currentLesson}
             style={{ 
               width: '100%', marginTop: '1.5rem', padding: '1rem', background: 'var(--color-primary)', 
               color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
-              opacity: (loading || !title.trim()) ? 0.6 : 1, cursor: (loading || !title.trim()) ? 'not-allowed' : 'pointer'
+              opacity: (loading || !currentLesson) ? 0.6 : 1, cursor: (loading || !currentLesson) ? 'not-allowed' : 'pointer'
             }}
           >
             <span className="material-symbols-outlined">{loading ? 'hourglass_empty' : 'qr_code'}</span>
-            {loading ? "Tworzę..." : "Utwórz i pokaż QR"}
+            {loading ? "Generuję..." : "Generuj kod QR"}
           </button>
         </div>
 

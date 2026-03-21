@@ -1,7 +1,7 @@
 const BASE = import.meta.env.VITE_API_URL;
 
-export async function apiGet(path) {
-  const token = localStorage.getItem("clerkToken");
+export async function apiGet(path, overrideToken) {
+  const token = overrideToken || localStorage.getItem("clerkToken");
 
   const res = await fetch(`${BASE}${path}`, {
     method: "GET",
@@ -26,8 +26,8 @@ export async function apiGet(path) {
     return text;
   }
 }
-export async function apiPost(path, body) {
-  const token = localStorage.getItem("clerkToken");
+export async function apiPost(path, body, overrideToken) {
+  const token = overrideToken || localStorage.getItem("clerkToken");
 
   const res = await fetch(`${BASE}${path}`, {
     method: "POST",

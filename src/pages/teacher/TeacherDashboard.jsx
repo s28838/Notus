@@ -1,11 +1,93 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "../../supabaseClient";
+import { apiGet, apiPost } from "../../services/api";
 
 const TeacherDashboard = () => {
-  const { user } = useContext(AuthContext);
+  const { user, getToken } = useContext(AuthContext);
   const firstName = (user?.name || "Teacher").split(" ")[0];
   const navigate = useNavigate();
+  
+  const [currentLesson, setCurrentLesson] = useState(null);
+  const [loadingSchedule, setLoadingSchedule] = useState(true);
+
+  // QR States for inline display
+  const [qr, setQr] = useState(null);
+  const [loadingQr, setLoadingQr] = useState(false);
+  const [errorQr, setErrorQr] = useState("");
+
+  useEffect(() => {
+    const fetchTodaySchedule = async () => {
+      try {
+        const startOfDay = new Date();
+        startOfDay.setHours(0, 0, 0, 0);
+        const endOfDay = new Date();
+        endOfDay.setHours(23, 59, 59, 999);
+        
+        let query = supabase
+          .from('schedule')
+          .select('*')
+          .gte('date', startOfDay.toISOString())
+          .lte('date', endOfDay.toISOString())
+          .order('time', { ascending: true });
+          
+        if (user?.name) {
+          query = query.ilike('teacher', `%${user.name}%`);
+        }
+        
+        const { data, error } = await query;
+        if (error) throw error;
+        
+        if (data && data.length > 0) {
+          const now = new Date();
+          const currentTime = now.getHours() * 60 + now.getMinutes();
+          
+          let found = null;
+          for (const l of data) {
+            if (!l.time) continue;
+            const [start] = l.time.split(" - ");
+            const [startH, startM] = start.split(":").map(Number);
+            const startTime = startH * 60 + startM;
+            
+            if (currentTime >= startTime - 30) {
+                found = l;
+            }
+          }
+          setCurrentLesson(found || data[0]);
+        }
+      } catch (err) {
+        console.error("Dashboard schedule error:", err);
+      } finally {
+        setLoadingSchedule(false);
+      }
+    };
+
+    if (user?.name) {
+      fetchTodaySchedule();
+    }
+  }, [user]);
+
+  const handleGenerateQr = async () => {
+    if (!currentLesson) return;
+    
+    setLoadingQr(true);
+    setErrorQr("");
+    
+    try {
+      const token = await getToken();
+      const sessionTitle = `${currentLesson.subject} (${currentLesson.time})`;
+      
+      const created = await apiPost("/api/attendance/sessions", { title: sessionTitle }, token);
+      const qrResp = await apiGet(`/api/attendance/sessions/${created.sessionId}/qr`, token);
+      setQr(qrResp);
+    } catch (err) {
+      console.error("QR Generation Error:", err);
+      setErrorQr("Nie udało się wygenerować kodu.");
+    } finally {
+      setLoadingQr(false);
+    }
+  };
 
   const goToProfile = () => navigate("/teacher/profile");
   const goToSchedule = () => navigate("/teacher/schedule");
@@ -26,17 +108,57 @@ const TeacherDashboard = () => {
       </div>
 
       {/* Hero Card - Create Session */}
-      <div className="hero-card">
-        <div className="hero-card-icon">
-          <span className="material-symbols-outlined" style={{ fontSize: '2rem' }}>add_box</span>
-        </div>
-        <div>
-          <h1 className="hero-card-title">Nowe zajęcia</h1>
-          <p className="hero-card-subtitle">Wybierz, aby wygenerować kod QR</p>
-        </div>
-        <button className="btn-white" onClick={goToCreateSession}>
-          Utwórz sesję
-        </button>
+      <div className="hero-card" style={{ padding: qr ? '1.5rem' : '2rem' }}>
+        {qr ? (
+           /* Inline QR View */
+           <div style={{ zIndex: 10, width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <div style={{ background: 'white', padding: '0.75rem', borderRadius: '1rem', boxShadow: '0 8px 16px rgba(0,0,0,0.1)' }}>
+                <img 
+                   src={`data:image/png;base64,${qr.qrPngBase64}`} 
+                   alt="QR" 
+                   style={{ width: '160px', height: '160px', display: 'block' }} 
+                />
+              </div>
+              <p style={{ 
+                marginTop: '0.75rem', fontWeight: 700, fontSize: '0.875rem', 
+                color: 'white', letterSpacing: '0.05em', textAlign: 'center', 
+                width: '100%', wordBreak: 'break-all', padding: '0 1rem', boxSizing: 'border-box' 
+              }}>
+                KOD: {qr.qrToken}
+              </p>
+              <button 
+                onClick={() => setQr(null)}
+                style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white', padding: '0.5rem 1rem', borderRadius: '99px', fontSize: '0.75rem', fontWeight: 600, marginTop: '0.5rem', cursor: 'pointer' }}
+              >
+                Zamknij
+              </button>
+           </div>
+        ) : (
+           /* Default CTA View */
+           <>
+            <div className="hero-card-icon">
+              <span className="material-symbols-outlined" style={{ fontSize: '2rem' }}>add_box</span>
+            </div>
+            <div>
+              <h1 className="hero-card-title">Pokaż kod dla zajęć</h1>
+              <p className="hero-card-subtitle">
+                {loadingSchedule ? "Ładowanie planu..." : (
+                  currentLesson ? (
+                    <>
+                      <span style={{ fontWeight: 700, opacity: 0.9 }}>Teraz: </span>
+                      {currentLesson.subject} ({currentLesson.time})
+                    </>
+                  ) : "Brak zajęć na dziś"
+                )}
+              </p>
+              {errorQr && <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.9)', margin: '0.25rem 0 0 0' }}>{errorQr}</p>}
+            </div>
+            <button className="btn-white" onClick={handleGenerateQr} disabled={loadingQr || !currentLesson}>
+              {loadingQr ? "Generuję..." : "Generuj kod QR"}
+            </button>
+           </>
+        )}
+        
         {/* Abstract Background Pattern elements */}
         <div style={{ position: 'absolute', top: 0, right: 0, marginRight: '-4rem', marginTop: '-4rem', width: '12rem', height: '12rem', background: 'rgba(255,255,255,0.1)', borderRadius: '50%' }}></div>
         <div style={{ position: 'absolute', bottom: 0, left: 0, marginLeft: '-2rem', marginBottom: '-2rem', width: '8rem', height: '8rem', background: 'rgba(255,255,255,0.05)', borderRadius: '50%' }}></div>

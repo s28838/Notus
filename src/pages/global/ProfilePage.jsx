@@ -36,32 +36,34 @@ const ProfilePage = () => {
       </div>
 
       {/* Academic Information */}
-      <div style={{ padding: '0 1.5rem', marginBottom: '2rem' }}>
-        <h3 style={{ fontSize: '0.875rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-tertiary)', marginBottom: '0.75rem', marginLeft: '0.25rem', marginTop: 0 }}>Academic Information</h3>
-        <div style={{ display: 'grid', gap: '0.75rem' }}>
-          
-          <div className="glass-card" style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem' }}>
-            <div style={{ width: '2.5rem', height: '2.5rem', borderRadius: '0.5rem', background: 'rgba(244, 89, 37, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-primary)' }}>
-              <span className="material-symbols-outlined">school</span>
+      {userRole === 'Student' && (
+        <div style={{ padding: '0 1.5rem', marginBottom: '2rem' }}>
+          <h3 style={{ fontSize: '0.875rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-tertiary)', marginBottom: '0.75rem', marginLeft: '0.25rem', marginTop: 0 }}>Academic Information</h3>
+          <div style={{ display: 'grid', gap: '0.75rem' }}>
+            
+            <div className="glass-card" style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem' }}>
+              <div style={{ width: '2.5rem', height: '2.5rem', borderRadius: '0.5rem', background: 'rgba(244, 89, 37, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-primary)' }}>
+                <span className="material-symbols-outlined">school</span>
+              </div>
+              <div>
+                <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 500, margin: 0 }}>Department</p>
+                <p style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>Computer Science & AI</p>
+              </div>
             </div>
-            <div>
-              <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 500, margin: 0 }}>Department</p>
-              <p style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>Computer Science & AI</p>
-            </div>
-          </div>
 
-          <div className="glass-card" style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem' }}>
-            <div style={{ width: '2.5rem', height: '2.5rem', borderRadius: '0.5rem', background: 'rgba(244, 89, 37, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-primary)' }}>
-              <span className="material-symbols-outlined">calendar_today</span>
+            <div className="glass-card" style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem' }}>
+              <div style={{ width: '2.5rem', height: '2.5rem', borderRadius: '0.5rem', background: 'rgba(244, 89, 37, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-primary)' }}>
+                <span className="material-symbols-outlined">calendar_today</span>
+              </div>
+              <div>
+                <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 500, margin: 0 }}>Academic Year</p>
+                <p style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>3rd Year, Semester 2</p>
+              </div>
             </div>
-            <div>
-              <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 500, margin: 0 }}>Academic Year</p>
-              <p style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>3rd Year, Semester 2</p>
-            </div>
-          </div>
 
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Preferences */}
       <div style={{ padding: '0 1.5rem', marginBottom: '2rem' }}>
