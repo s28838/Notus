@@ -1,7 +1,6 @@
 import React, { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "../../supabaseClient";
 import { apiGet, apiPost } from "../../services/api";
 
 const TeacherDashboard = () => {
@@ -13,9 +12,20 @@ const TeacherDashboard = () => {
   const [loadingSchedule, setLoadingSchedule] = useState(true);
 
   // QR States for inline display
-  const [qr, setQr] = useState(null);
+  const [qr, setQr] = useState(() => {
+    const saved = localStorage.getItem("active_qr_session");
+    return saved ? JSON.parse(saved) : null;
+  });
   const [loadingQr, setLoadingQr] = useState(false);
   const [errorQr, setErrorQr] = useState("");
+
+  useEffect(() => {
+    if (qr) {
+      localStorage.setItem("active_qr_session", JSON.stringify(qr));
+    } else {
+      localStorage.removeItem("active_qr_session");
+    }
+  }, [qr]);
 
   useEffect(() => {
     const fetchTodaySchedule = async () => {
@@ -25,36 +35,51 @@ const TeacherDashboard = () => {
         const endOfDay = new Date();
         endOfDay.setHours(23, 59, 59, 999);
         
-        let query = supabase
-          .from('schedule')
-          .select('*')
-          .gte('date', startOfDay.toISOString())
-          .lte('date', endOfDay.toISOString())
-          .order('time', { ascending: true });
-          
-        if (user?.name) {
-          query = query.ilike('teacher', `%${user.name}%`);
+        const token = await getToken();
+        let params = {
+          start: startOfDay.toISOString(),
+          end: endOfDay.toISOString()
+        };
+        
+        if (user?.role === 'teacher' && user?.name) {
+          params.teacherName = user.name;
         }
         
-        const { data, error } = await query;
-        if (error) throw error;
+        const data = await apiGet("/api/schedule", params, token);
         
         if (data && data.length > 0) {
           const now = new Date();
           const currentTime = now.getHours() * 60 + now.getMinutes();
           
-          let found = null;
+          let active = null;
+          let next = null;
+
           for (const l of data) {
-            if (!l.time) continue;
-            const [start] = l.time.split(" - ");
-            const [startH, startM] = start.split(":").map(Number);
-            const startTime = startH * 60 + startM;
+            if (!l.time || !l.time.includes(" - ")) continue;
             
-            if (currentTime >= startTime - 30) {
-                found = l;
+            const [startStr, endStr] = l.time.split(" - ");
+            const [sH, sM] = startStr.split(":").map(Number);
+            const [eH, eM] = endStr.split(":").map(Number);
+            
+            const startMins = sH * 60 + sM;
+            const endMins = eH * 60 + eM;
+            
+            // Check if active
+            if (currentTime >= startMins && currentTime <= endMins) {
+              active = l;
+              break; // Found the active lesson
+            }
+            
+            // If not active, check if it's the next one
+            if (currentTime < startMins && !next) {
+              next = l;
             }
           }
-          setCurrentLesson(found || data[0]);
+          
+          // Priority: Active > Next > fallback to null
+          setCurrentLesson(active || next);
+        } else {
+          setCurrentLesson(null);
         }
       } catch (err) {
         console.error("Dashboard schedule error:", err);
@@ -108,55 +133,84 @@ const TeacherDashboard = () => {
       </div>
 
       {/* Hero Card - Create Session */}
-      <div className="hero-card" style={{ padding: qr ? '1.5rem' : '2rem' }}>
+      <div className="hero-card" style={{ padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+        
+        {/* Top Section: Lesson Info (Always Visible) */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', width: '100%' }}>
+          <div className="hero-card-icon" style={{ margin: 0, flexShrink: 0 }}>
+            <span className="material-symbols-outlined" style={{ fontSize: '2rem' }}>
+              {qr ? 'qr_code_2' : 'add_box'}
+            </span>
+          </div>
+          <div style={{ flex: 1 }}>
+            <h1 className="hero-card-title" style={{ fontSize: '1.25rem', marginBottom: '0.25rem' }}>
+              {qr ? "Aktywna Sesja QR" : "Pokaż kod dla zajęć"}
+            </h1>
+            <p className="hero-card-subtitle" style={{ margin: 0 }}>
+              {loadingSchedule ? "Ładowanie planu..." : (
+                currentLesson ? (() => {
+                  const now = new Date();
+                  const currentTime = now.getHours() * 60 + now.getMinutes();
+                  const [startStr, endStr] = currentLesson.time.split(" - ");
+                  const [sH, sM] = startStr.split(":").map(Number);
+                  const [eH, eM] = endStr.split(":").map(Number);
+                  const startMins = sH * 60 + sM;
+                  const endMins = eH * 60 + eM;
+                  
+                  const isActive = currentTime >= startMins && currentTime <= endMins;
+                  
+                  return (
+                    <>
+                      <span style={{ fontWeight: 700, opacity: 0.9 }}>
+                        {isActive ? "Teraz: " : "Następne: "}
+                      </span>
+                      {currentLesson.subject} ({currentLesson.time})
+                    </>
+                  );
+                })() : "Brak zajęć na dziś"
+              )}
+            </p>
+          </div>
+        </div>
+
+        {/* Bottom Section: Action or QR */}
         {qr ? (
            /* Inline QR View */
-           <div style={{ zIndex: 10, width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+           <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', background: 'rgba(255,255,255,0.1)', borderRadius: '1.25rem', padding: '1.5rem 1rem' }}>
               <div style={{ background: 'white', padding: '0.75rem', borderRadius: '1rem', boxShadow: '0 8px 16px rgba(0,0,0,0.1)' }}>
                 <img 
                    src={`data:image/png;base64,${qr.qrPngBase64}`} 
                    alt="QR" 
-                   style={{ width: '160px', height: '160px', display: 'block' }} 
+                   style={{ width: '140px', height: '140px', display: 'block' }} 
                 />
               </div>
               <p style={{ 
-                marginTop: '0.75rem', fontWeight: 700, fontSize: '0.875rem', 
-                color: 'white', letterSpacing: '0.05em', textAlign: 'center', 
-                width: '100%', wordBreak: 'break-all', padding: '0 1rem', boxSizing: 'border-box' 
+                marginTop: '1rem', fontWeight: 800, fontSize: '0.875rem', 
+                color: 'white', letterSpacing: '0.05em', textAlign: 'center',
+                width: '100%', wordBreak: 'break-all', padding: '0 1rem', boxSizing: 'border-box'
               }}>
                 KOD: {qr.qrToken}
               </p>
               <button 
                 onClick={() => setQr(null)}
-                style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white', padding: '0.5rem 1rem', borderRadius: '99px', fontSize: '0.75rem', fontWeight: 600, marginTop: '0.5rem', cursor: 'pointer' }}
+                style={{ background: 'white', border: 'none', color: 'var(--color-primary)', padding: '0.6rem 1.5rem', borderRadius: '99px', fontSize: '0.875rem', fontWeight: 700, marginTop: '0.75rem', cursor: 'pointer', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}
               >
-                Zamknij
+                Zamknij sesję
               </button>
            </div>
         ) : (
            /* Default CTA View */
-           <>
-            <div className="hero-card-icon">
-              <span className="material-symbols-outlined" style={{ fontSize: '2rem' }}>add_box</span>
-            </div>
-            <div>
-              <h1 className="hero-card-title">Pokaż kod dla zajęć</h1>
-              <p className="hero-card-subtitle">
-                {loadingSchedule ? "Ładowanie planu..." : (
-                  currentLesson ? (
-                    <>
-                      <span style={{ fontWeight: 700, opacity: 0.9 }}>Teraz: </span>
-                      {currentLesson.subject} ({currentLesson.time})
-                    </>
-                  ) : "Brak zajęć na dziś"
-                )}
-              </p>
-              {errorQr && <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.9)', margin: '0.25rem 0 0 0' }}>{errorQr}</p>}
-            </div>
-            <button className="btn-white" onClick={handleGenerateQr} disabled={loadingQr || !currentLesson}>
+           <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            <button 
+              className="btn-white" 
+              onClick={handleGenerateQr} 
+              disabled={loadingQr || !currentLesson}
+              style={{ width: '100%', justifyContent: 'center', height: '3.5rem', fontSize: '1rem' }}
+            >
               {loadingQr ? "Generuję..." : "Generuj kod QR"}
             </button>
-           </>
+            {errorQr && <p style={{ textAlign: 'center', fontSize: '0.875rem', color: 'rgba(255,255,255,0.9)', margin: 0 }}>{errorQr}</p>}
+           </div>
         )}
         
         {/* Abstract Background Pattern elements */}
