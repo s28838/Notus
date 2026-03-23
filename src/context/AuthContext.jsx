@@ -47,6 +47,19 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   useEffect(() => {
+    const syncUserToBackend = async () => {
+      try {
+        if (isLoaded && isSignedIn && clerkUser) {
+          const token = await getToken();
+          // This call triggers findOrCreate in the backend
+          const data = await apiGet("/api/me", {}, token);
+          console.log("Backend user sync success:", data);
+        }
+      } catch (err) {
+        console.error("Backend user sync failed:", err);
+      }
+    };
+
     try {
       if (isLoaded && isSignedIn && clerkUser) {
         const email = clerkUser.primaryEmailAddress?.emailAddress || "";
@@ -65,15 +78,20 @@ export const AuthProvider = ({ children }) => {
           name: clerkUser.fullName || clerkUser.username || email,
           index: indexNumber,
           photoURL: clerkUser.imageUrl || null,
-          clerkId: clerkUser.id
+          clerkId: clerkUser.id,
+          isDev: false
         });
+
+        // Trigger synchronization with backend
+        syncUserToBackend();
       } else if (isLoaded && !isSignedIn) {
-        setUser(null);
+        // Only clear if not a dev user
+        setUser(prev => (prev?.isDev ? prev : null));
       }
     } catch (err) {
       console.error("Error in AuthContext useEffect:", err);
     }
-  }, [isLoaded, isSignedIn, clerkUser]);
+  }, [isLoaded, isSignedIn, clerkUser, getToken]);
 
   const logout = async () => {
     try {
@@ -87,7 +105,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = (email) => {
     const role = email.trim().toLowerCase().startsWith("s") ? "student" : "teacher";
-    setUser({ email, role, name: "Logged User", index: email.split('@')[0] });
+    setUser({ email, role, name: "Dev Mode User", index: email.split('@')[0], isDev: true });
     navigate(role === "student" ? "/student" : "/teacher");
   };
 

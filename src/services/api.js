@@ -1,9 +1,15 @@
 const BASE = import.meta.env.VITE_API_URL;
 
-export async function apiGet(path, overrideToken) {
+export async function apiGet(path, params, overrideToken) {
   const token = overrideToken || localStorage.getItem("clerkToken");
 
-  const res = await fetch(`${BASE}${path}`, {
+  let url = `${BASE}${path}`;
+  if (params) {
+    const query = new URLSearchParams(params).toString();
+    url += `?${query}`;
+  }
+
+  const res = await fetch(url, {
     method: "GET",
     headers: token ? { Authorization: `Bearer ${token}` } : {},
   });

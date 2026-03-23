@@ -2,7 +2,6 @@ import React, { useState, useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
 import { apiPost, apiGet } from "../../services/api";
-import { supabase } from "../../supabaseClient";
 import "./CreateSessionPage.css";
 
 const CreateSessionPage = () => {
@@ -24,19 +23,17 @@ const CreateSessionPage = () => {
         const endOfDay = new Date();
         endOfDay.setHours(23, 59, 59, 999);
         
-        let query = supabase
-          .from('schedule')
-          .select('*')
-          .gte('date', startOfDay.toISOString())
-          .lte('date', endOfDay.toISOString())
-          .order('time', { ascending: true });
-          
+        const token = await getToken();
+        let params = {
+          start: startOfDay.toISOString(),
+          end: endOfDay.toISOString()
+        };
+
         if (user?.name) {
-          query = query.ilike('teacher', `%${user.name}%`);
+          params.teacherName = user.name;
         }
-        
-        const { data, fetchErr } = await query;
-        if (fetchErr) throw fetchErr;
+
+        const data = await apiGet("/api/schedule", params, token);
         
         setLessons(data || []);
         

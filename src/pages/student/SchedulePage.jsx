@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
-import { supabase } from "../../supabaseClient";
+import { apiGet } from "../../services/api";
 
 // --- Helpers ---
 const formatDateHeader = (date) => {
@@ -57,7 +57,7 @@ const getMockSchedule = (date) => {
 };
 
 const SchedulePage = () => {
-  const { user } = useContext(AuthContext);
+  const { user, getToken } = useContext(AuthContext);
   const navigate = useNavigate();
   const [selectedDate, setSelectedDate] = useState(new Date()); 
   const [calendarMonth, setCalendarMonth] = useState(new Date()); 
@@ -80,26 +80,19 @@ const SchedulePage = () => {
         const endOfDay = new Date(selectedDate);
         endOfDay.setHours(23, 59, 59, 999);
         
-        // This query assumes your table is named 'schedule' and has a 'date' column.
-        // It also assumes columns like 'subject', 'teacher', 'type', 'color', 'time', 'room'.
-        let query = supabase
-          .from('schedule') 
-          .select('*')
-          .gte('date', startOfDay.toISOString())
-          .lte('date', endOfDay.toISOString())
-          .order('time', { ascending: true });
-          
-        // Filter by teacher's name if the active user is a teacher
+        const token = await getToken();
+        let params = {
+          start: startOfDay.toISOString(),
+          end: endOfDay.toISOString()
+        };
+
         if (user?.role === 'teacher' && user?.name) {
-          query = query.ilike('teacher', `%${user.name}%`);
+          params.teacherName = user.name;
         }
-        
-        const { data, error: fetchError } = await query;
+
+        const data = await apiGet("/api/schedule", params, token);
           
-        if (fetchError) throw fetchError;
-        
         // Map the database rows to the expected format for our UI components.
-        // Adjust these field mappings if your Supabase columns have different names.
         const formattedData = (data || []).map(row => ({
           subject: row.subject || "Unknown Subject",
           teacher: row.teacher || "Unknown Teacher",
@@ -111,15 +104,15 @@ const SchedulePage = () => {
         
         setSchedule(formattedData);
       } catch (err) {
-        console.error("Supabase fetch error:", err);
-        setError("Failed to load schedule from database. Check console and verify table/columns.");
+        console.error("Backend fetch error:", err);
+        setError("Failed to load schedule from database. Check console and verify api.");
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchSchedule();
-  }, [selectedDate]);
+  }, [selectedDate, user, getToken]);
 
   const dateHeader = useMemo(() => formatDateHeader(calendarMonth), [calendarMonth]);
   
