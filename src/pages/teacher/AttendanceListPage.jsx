@@ -98,7 +98,7 @@ const AttendanceListPage = () => {
                                             wordBreak: "break-all",
                                         }}
                                     >
-                                        {item.studentUid}
+                                        {item.studentName}
                                     </div>
                                     <div
                                         style={{
@@ -106,7 +106,7 @@ const AttendanceListPage = () => {
                                             color: "var(--text-secondary)",
                                         }}
                                     >
-                                        Student obecny
+                                        {item.studentIndex || "Brak indeksu"}
                                     </div>
                                 </div>
 

@@ -439,7 +439,7 @@ const TeacherDashboard = () => {
                               color: "var(--text-primary)",
                             }}
                           >
-                            {item.studentUid}
+                            {item.studentName}
                           </div>
                           <div
                             style={{
@@ -447,7 +447,7 @@ const TeacherDashboard = () => {
                               color: "var(--text-secondary)",
                             }}
                           >
-                            Student obecny
+                            {item.studentIndex || "Brak indeksu"}
                           </div>
                         </div>
 
