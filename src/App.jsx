@@ -13,6 +13,7 @@ import ScanQRPage from "./pages/student/ScanQRPage";
 import StatsPage from "./pages/student/StatsPage";
 import { apiGet } from "./services/api";
 import CreateSessionPage from "./pages/teacher/CreateSessionPage";
+import AttendanceListPage from "./pages/teacher/AttendanceListPage";
 
 const RequireRole = ({ role, user, children }) => {
   if (!user) return <Navigate to="/login" />;
@@ -33,7 +34,7 @@ const AppRoutes = () => {
         console.error("API ERROR:", err);
       }
     };
-    
+
     if (user) {
       testApi();
     }
@@ -132,6 +133,11 @@ const AppRoutes = () => {
           </RequireRole>
         }
       />
+      {/*Lista obecnosci*/}
+      <Route
+        path="/teacher/attendance/:sessionId"
+        element={<AttendanceListPage />}
+      />
 
       {/* GŁÓWNA ŚCIEŻKA PRZEKIEROWUJĄCA */}
       <Route
@@ -144,7 +150,7 @@ const AppRoutes = () => {
           )
         }
       />
-      
+
       {/* ŚCIEŻKA TWORZENIA SESJI */}
       <Route
         path="/teacher/create-session"
