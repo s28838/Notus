@@ -1,5 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import TeacherBottomNav from "../../components/teacher/TeacherBottomNav";
 
 const TeacherStatsPage = () => {
   const navigate = useNavigate();
@@ -75,24 +76,7 @@ const TeacherStatsPage = () => {
       </section>
 
       {/* Bottom Nav */}
-      <nav className="bottom-nav-stitch">
-        <button className="nav-item" onClick={goToHome}>
-          <span className="material-symbols-outlined">home</span>
-          Główna
-        </button>
-        <button className="nav-item" onClick={goToSchedule}>
-          <span className="material-symbols-outlined">calendar_month</span>
-          Plan
-        </button>
-        <button className="nav-item active">
-          <span className="material-symbols-outlined fill">bar_chart</span>
-          Staty
-        </button>
-        <button className="nav-item" onClick={goToProfile}>
-          <span className="material-symbols-outlined">person</span>
-          Profil
-        </button>
-      </nav>
+      <TeacherBottomNav />
     </div>
   );
 };

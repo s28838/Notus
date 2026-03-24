@@ -51,8 +51,14 @@ export const AuthProvider = ({ children }) => {
       try {
         if (isLoaded && isSignedIn && clerkUser) {
           const token = await getToken();
+          const name = clerkUser.fullName || 
+                       (clerkUser.firstName && clerkUser.lastName ? `${clerkUser.firstName} ${clerkUser.lastName}` : null) ||
+                       clerkUser.firstName ||
+                       clerkUser.username || 
+                       clerkUser.primaryEmailAddress?.emailAddress || 
+                       "";
           // This call triggers findOrCreate in the backend
-          const data = await apiGet("/api/me", {}, token);
+          const data = await apiGet("/api/me", { name }, token);
           console.log("Backend user sync success:", data);
         }
       } catch (err) {

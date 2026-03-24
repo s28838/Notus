@@ -1,6 +1,7 @@
 import React, { useContext } from "react";
 import { AuthContext } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import TeacherBottomNav from "../../components/teacher/TeacherBottomNav";
 
 const ProfilePage = () => {
   const { user, logout } = useContext(AuthContext);
@@ -105,25 +106,28 @@ const ProfilePage = () => {
         </button>
       </div>
 
-      {/* Bottom Nav Bar */}
-      <nav className="bottom-nav-stitch">
-        <button className="nav-item" onClick={goToHome}>
-          <span className="material-symbols-outlined">home</span>
-          {user?.role === "teacher" ? "Główna" : "Home"}
-        </button>
-        <button className="nav-item" onClick={goToSchedule}>
-          <span className="material-symbols-outlined">calendar_month</span>
-          {user?.role === "teacher" ? "Plan" : "Schedule"}
-        </button>
-        <button className="nav-item" onClick={goToStats}>
-          <span className="material-symbols-outlined">bar_chart</span>
-          {user?.role === "teacher" ? "Staty" : "Stats"}
-        </button>
-        <button className="nav-item active">
-          <span className="material-symbols-outlined fill">person</span>
-          {user?.role === "teacher" ? "Profil" : "Profile"}
-        </button>
-      </nav>
+      {user?.role === "teacher" ? (
+        <TeacherBottomNav />
+      ) : (
+        <nav className="bottom-nav-stitch">
+          <button className="nav-item" onClick={goToHome}>
+            <span className="material-symbols-outlined">home</span>
+            Home
+          </button>
+          <button className="nav-item" onClick={goToSchedule}>
+            <span className="material-symbols-outlined">calendar_month</span>
+            Schedule
+          </button>
+          <button className="nav-item" onClick={goToStats}>
+            <span className="material-symbols-outlined">bar_chart</span>
+            Stats
+          </button>
+          <button className="nav-item active">
+            <span className="material-symbols-outlined fill">person</span>
+            Profile
+          </button>
+        </nav>
+      )}
     </div>
   );
 };

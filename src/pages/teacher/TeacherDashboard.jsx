@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { apiGet, apiPost } from "../../services/api";
+import TeacherBottomNav from "../../components/teacher/TeacherBottomNav";
 
 
 const TeacherDashboard = () => {
@@ -250,9 +251,7 @@ const TeacherDashboard = () => {
               flexDirection: "column",
               gap: "1rem",
               alignItems: "center",
-              background: "rgba(255,255,255,0.1)",
-              borderRadius: "1.25rem",
-              padding: "1.5rem 1rem",
+              padding: "0.5rem 0",
             }}
           >
             <div
@@ -297,7 +296,7 @@ const TeacherDashboard = () => {
               }}
             >
               <button
-                onClick={handleCreateQuiz}
+                onClick={() => navigate("/teacher/quizzes")}
                 style={{
                   background: "white",
                   border: "none",
@@ -310,7 +309,7 @@ const TeacherDashboard = () => {
                   boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
                 }}
               >
-                Stwórz quiz
+                Wybierz quiz
               </button>
 
               <button
@@ -447,7 +446,7 @@ const TeacherDashboard = () => {
                               color: "var(--text-secondary)",
                             }}
                           >
-                            {item.studentIndex || "Brak indeksu"}
+                            {item.indexNumber || "Brak indeksu"}
                           </div>
                         </div>
 
@@ -565,6 +564,26 @@ const TeacherDashboard = () => {
           </div>
         </div>
 
+        <div className="list-item" onClick={() => navigate("/teacher/quizzes")} style={{ cursor: "pointer" }}>
+          <div className="list-item-content">
+            <h4 className="list-item-title" style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+              <span className="material-symbols-outlined text-primary" style={{ fontSize: "1.25rem" }}>
+                quiz
+              </span>
+              Zarządzaj Quizami
+            </h4>
+            <div className="list-item-details">
+              <div className="detail-pill">
+                <span className="material-symbols-outlined" style={{ fontSize: "1rem" }}>auto_awesome</span>
+                <p style={{ margin: 0 }}>Stwórz lub generuj z AI</p>
+              </div>
+            </div>
+          </div>
+          <div className="list-item-action">
+            <span className="material-symbols-outlined">chevron_right</span>
+          </div>
+        </div>
+
         <div className="list-item" onClick={goToHistory} style={{ cursor: "pointer" }}>
           <div className="list-item-content">
             <h4 className="list-item-title" style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
@@ -586,24 +605,7 @@ const TeacherDashboard = () => {
         </div>
       </div>
 
-      <nav className="bottom-nav-stitch">
-        <button className="nav-item active" onClick={() => navigate("/teacher")}>
-          <span className="material-symbols-outlined fill">home</span>
-          Główna
-        </button>
-        <button className="nav-item" onClick={goToSchedule}>
-          <span className="material-symbols-outlined">calendar_month</span>
-          Plan
-        </button>
-        <button className="nav-item" onClick={goToHistory}>
-          <span className="material-symbols-outlined">bar_chart</span>
-          Staty
-        </button>
-        <button className="nav-item" onClick={goToProfile}>
-          <span className="material-symbols-outlined">person</span>
-          Profil
-        </button>
-      </nav>
+      <TeacherBottomNav />
     </div>
   );
 };

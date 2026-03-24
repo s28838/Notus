@@ -1,5 +1,6 @@
 import React, { useState, useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import TeacherBottomNav from "../../components/teacher/TeacherBottomNav";
 import { AuthContext } from "../../context/AuthContext";
 import { apiPost, apiGet } from "../../services/api";
 import "./CreateSessionPage.css";
@@ -217,25 +218,7 @@ const CreateSessionPage = () => {
         )}
 
       </div>
-      {/* Bottom Nav */}
-      <nav className="bottom-nav-stitch">
-        <button className="nav-item" onClick={() => navigate("/teacher")}>
-          <span className="material-symbols-outlined">home</span>
-          Główna
-        </button>
-        <button className="nav-item" onClick={() => navigate("/teacher/schedule")}>
-          <span className="material-symbols-outlined">calendar_month</span>
-          Plan
-        </button>
-        <button className="nav-item" onClick={() => navigate("/teacher/stats")}>
-          <span className="material-symbols-outlined">bar_chart</span>
-          Staty
-        </button>
-        <button className="nav-item" onClick={() => navigate("/teacher/profile")}>
-          <span className="material-symbols-outlined">person</span>
-          Profil
-        </button>
-      </nav>
+      <TeacherBottomNav />
 
     </div>
   );

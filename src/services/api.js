@@ -88,3 +88,53 @@ export async function apiPost(path, body, overrideToken) {
     return text;
   }
 }
+
+export async function apiDelete(path, overrideToken) {
+  const token = overrideToken || localStorage.getItem("clerkToken");
+
+  const res = await fetch(`${BASE}${path}`, {
+    method: "DELETE",
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+
+  if (res.status === 401 || res.status === 403) {
+    window.dispatchEvent(new CustomEvent("auth:error", { 
+      detail: { status: res.status, path } 
+    }));
+  }
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`HTTP ${res.status}: ${text}`);
+  }
+
+  return true;
+}
+
+export async function apiPostMultipart(path, formData, overrideToken) {
+  const token = overrideToken || localStorage.getItem("clerkToken");
+
+  const res = await fetch(`${BASE}${path}`, {
+    method: "POST",
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    body: formData,
+  });
+
+  if (res.status === 401 || res.status === 403) {
+    window.dispatchEvent(new CustomEvent("auth:error", { 
+      detail: { status: res.status, path } 
+    }));
+  }
+
+  const text = await res.text();
+
+  if (!res.ok) {
+    throw new Error(`HTTP ${res.status}: ${text}`);
+  }
+
+  try {
+    return JSON.parse(text);
+  } catch {
+    return text;
+  }
+}

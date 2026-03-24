@@ -14,6 +14,9 @@ import StatsPage from "./pages/student/StatsPage";
 import { apiGet } from "./services/api";
 import CreateSessionPage from "./pages/teacher/CreateSessionPage";
 import AttendanceListPage from "./pages/teacher/AttendanceListPage";
+import QuizzesPage from "./pages/teacher/QuizzesPage";
+import CreateQuizPage from "./pages/teacher/CreateQuizPage";
+import QuizViewPage from "./pages/teacher/QuizViewPage";
 
 const RequireRole = ({ role, user, children }) => {
   if (!user) return <Navigate to="/login" />;
@@ -157,6 +160,32 @@ const AppRoutes = () => {
         element={
           <RequireRole role="teacher" user={user}>
             <CreateSessionPage />
+          </RequireRole>
+        }
+      />
+
+      {/* ŚCIEŻKI QUIZÓW */}
+      <Route
+        path="/teacher/quizzes"
+        element={
+          <RequireRole role="teacher" user={user}>
+            <QuizzesPage />
+          </RequireRole>
+        }
+      />
+      <Route
+        path="/teacher/create-quiz"
+        element={
+          <RequireRole role="teacher" user={user}>
+            <CreateQuizPage />
+          </RequireRole>
+        }
+      />
+      <Route
+        path="/teacher/quiz/:quizId"
+        element={
+          <RequireRole role="teacher" user={user}>
+            <QuizViewPage />
           </RequireRole>
         }
       />

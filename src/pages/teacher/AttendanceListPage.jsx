@@ -106,7 +106,7 @@ const AttendanceListPage = () => {
                                             color: "var(--text-secondary)",
                                         }}
                                     >
-                                        {item.studentIndex || "Brak indeksu"}
+                                        {item.indexNumber || "Brak indeksu"}
                                     </div>
                                 </div>
 
