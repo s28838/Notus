@@ -284,7 +284,7 @@ const TeacherDashboard = () => {
                 boxSizing: "border-box",
               }}
             >
-              KOD: {qr.qrToken}
+              KOD: {qr.shortCode}
             </p>
 
             <div
