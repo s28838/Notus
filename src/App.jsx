@@ -1,6 +1,6 @@
 // src/App.jsx
 
-import React, { useEffect, useContext } from "react";
+import { useContext } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { AuthContext, AuthProvider } from "./context/AuthContext";
 import LoginPage from "./pages/global/LoginPage";
@@ -11,7 +11,6 @@ import ProfilePage from "./pages/global/ProfilePage";
 import SchedulePage from "./pages/student/SchedulePage";
 import ScanQRPage from "./pages/student/ScanQRPage";
 import StatsPage from "./pages/student/StatsPage";
-import { apiGet } from "./services/api";
 import CreateSessionPage from "./pages/teacher/CreateSessionPage";
 import AttendanceListPage from "./pages/teacher/AttendanceListPage";
 import QuizzesPage from "./pages/teacher/QuizzesPage";
@@ -25,23 +24,7 @@ const RequireRole = ({ role, user, children }) => {
 };
 
 const AppRoutes = () => {
-  const { user, getToken } = useContext(AuthContext);
-
-  useEffect(() => {
-    const testApi = async () => {
-      try {
-        const token = await getToken();
-        const data = await apiGet("/api/test", token);
-        console.log("API OK:", data);
-      } catch (err) {
-        console.error("API ERROR:", err);
-      }
-    };
-
-    if (user) {
-      testApi();
-    }
-  }, [user, getToken]);
+  const { user } = useContext(AuthContext);
 
   return (
     <Routes>

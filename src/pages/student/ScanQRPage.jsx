@@ -27,8 +27,7 @@ const ScanQRPage = () => {
           videoRef.current.srcObject = stream;
           setHasPermission(true);
         }
-      } catch (err) {
-        console.error("Błąd dostępu do kamery:", err);
+      } catch {
         setHasPermission(false);
       }
     };
@@ -96,7 +95,6 @@ const ScanQRPage = () => {
         navigate(-1);
       }, 1200);
     } catch (err) {
-      console.error("CHECK-IN ERROR:", err);
       setMessage(err.message || "Wystąpił błąd podczas zapisu obecności.");
       setMessageType("error");
     } finally {

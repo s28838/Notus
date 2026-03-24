@@ -82,8 +82,8 @@ const TeacherDashboard = () => {
         } else {
           setCurrentLesson(null);
         }
-      } catch (err) {
-        console.error("Dashboard schedule error:", err);
+      } catch {
+        // schedule unavailable, currentLesson stays null
       } finally {
         setLoadingSchedule(false);
       }
@@ -102,8 +102,7 @@ const TeacherDashboard = () => {
       const token = await getToken();
       const data = await apiGet(`/api/attendance/sessions/${sessionId}/records`, token);
       setAttendanceList(Array.isArray(data) ? data : []);
-    } catch (err) {
-      console.error("Attendance fetch error:", err);
+    } catch {
       setAttendanceList([]);
     } finally {
       setAttendanceLoading(false);
@@ -146,8 +145,7 @@ const TeacherDashboard = () => {
       );
 
       setQr(qrResp);
-    } catch (err) {
-      console.error("QR Generation Error:", err);
+    } catch {
       setErrorQr("Nie udało się wygenerować kodu.");
     } finally {
       setLoadingQr(false);

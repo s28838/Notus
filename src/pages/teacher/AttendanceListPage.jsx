@@ -18,8 +18,7 @@ const AttendanceListPage = () => {
             const token = await getToken();
             const data = await apiGet(`/api/attendance/sessions/${sessionId}/records`, token);
             setAttendanceList(Array.isArray(data) ? data : []);
-        } catch (err) {
-            console.error(err);
+        } catch {
             setError("Nie udało się pobrać listy obecności.");
         } finally {
             setLoading(false);

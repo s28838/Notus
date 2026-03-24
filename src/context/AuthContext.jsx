@@ -58,8 +58,7 @@ export const AuthProvider = ({ children }) => {
                        clerkUser.primaryEmailAddress?.emailAddress || 
                        "";
           // This call triggers findOrCreate in the backend
-          const data = await apiGet("/api/me", { name }, token);
-          console.log("Backend user sync success:", data);
+          await apiGet("/api/me", { name }, token);
         }
       } catch (err) {
         console.error("Backend user sync failed:", err);

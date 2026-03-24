@@ -8,7 +8,7 @@ const TeacherBottomNav = () => {
   const navItems = [
     { label: "Główna", icon: "home", path: "/teacher" },
     { label: "Plan", icon: "calendar_month", path: "/teacher/schedule" },
-    { label: "Staty", icon: "bar_chart", path: "/teacher/stats" },
+    { label: "Statystyki", icon: "bar_chart", path: "/teacher/stats" },
     { label: "Quizy", icon: "quiz", path: "/teacher/quizzes" },
     { label: "Profil", icon: "person", path: "/teacher/profile" },
   ];

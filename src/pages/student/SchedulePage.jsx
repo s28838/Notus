@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useContext, useEffect } from "react";
+import { useState, useMemo, useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
 import TeacherBottomNav from "../../components/teacher/TeacherBottomNav";
@@ -34,27 +34,6 @@ const getDaysInMonth = (date) => {
     }
 
     return days;
-};
-
-const getMockSchedule = (date) => {
-    const dayOfWeek = date.getDay(); 
-    
-    if (dayOfWeek === 0 || dayOfWeek === 6 || dayOfWeek === 2) {
-        return [];
-    }
-    
-    if (dayOfWeek === 4) {
-        return [
-            { time: "10:30 - 12:00", subject: "Advanced Calculus", room: "Room 402", teacher: "Dr. Sarah Jenkins", type: "Lecture", color: "primary" },
-            { time: "13:00 - 14:30", subject: "Data Structures", room: "Lab 1", teacher: "Prof. Michael Chen", type: "Lab", color: "emerald" },
-        ];
-    }
-    
-    return [
-      { time: "08:00 - 09:30", subject: "Object Oriented Progr.", room: "C.101", teacher: "Andrzej Wykładowca", type: "Lab", color: "emerald" },
-      { time: "09:45 - 11:15", subject: "Data Structures", room: "A.305", teacher: "Katarzyna Dziuba", type: "Lecture", color: "primary" },
-      { time: "14:00 - 15:30", subject: "Discrete Mathematics", room: "B.007", teacher: "Anna Nowak", type: "Lecture", color: "primary" },
-    ];
 };
 
 const SchedulePage = () => {
@@ -104,9 +83,8 @@ const SchedulePage = () => {
         }));
         
         setSchedule(formattedData);
-      } catch (err) {
-        console.error("Backend fetch error:", err);
-        setError("Failed to load schedule from database. Check console and verify api.");
+      } catch {
+        setError("Failed to load schedule. Please try again.");
       } finally {
         setIsLoading(false);
       }
@@ -120,7 +98,6 @@ const SchedulePage = () => {
   const daysInMonth = useMemo(() => getDaysInMonth(calendarMonth), [calendarMonth]);
 
   const handleBack = () => navigate(-1);
-  const goToSchedule = () => navigate(user?.role === "teacher" ? "/teacher/schedule" : "/student/schedule");
   const goToStats = () => navigate(user?.role === "teacher" ? "/teacher/stats" : "/student/stats");
   const goToHome = () => navigate(user?.role === "teacher" ? "/teacher" : "/student");
   const goToProfile = () => navigate(user?.role === "teacher" ? "/teacher/profile" : "/student/profile");
@@ -166,7 +143,7 @@ const SchedulePage = () => {
         
         {/* Horizontal Scroll Days */}
         <div className="no-scrollbar" style={{ display: 'flex', gap: '0.75rem', overflowX: 'auto', paddingBottom: '0.5rem' }}>
-          {daysInMonth.map((dayInfo, index) => {
+          {daysInMonth.map((dayInfo) => {
              const date = dayInfo.date;
              if (!date) return null; // skip empties for this horizontal view
              

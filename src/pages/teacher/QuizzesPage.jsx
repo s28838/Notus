@@ -18,8 +18,7 @@ const QuizzesPage = () => {
       const token = await getToken();
       const data = await apiGet("/api/quiz/my", null, token);
       setQuizzes(Array.isArray(data) ? data : []);
-    } catch (err) {
-      console.error(err);
+    } catch {
       setError("Nie udało się pobrać listy quizów.");
     } finally {
       setLoading(false);

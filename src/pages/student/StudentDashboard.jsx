@@ -1,12 +1,33 @@
 import React, { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { apiGet } from "../../services/api";
+
+const getLessonLabel = (timeStr) => {
+  if (!timeStr || !timeStr.includes(" - ")) return null;
+  const [startStr, endStr] = timeStr.split(" - ");
+  const [sH, sM] = startStr.split(":").map(Number);
+  const [eH, eM] = endStr.split(":").map(Number);
+  const now = new Date();
+  const cur = now.getHours() * 60 + now.getMinutes();
+  const start = sH * 60 + sM;
+  const end = eH * 60 + eM;
+  if (cur >= start && cur <= end) return { text: "Teraz", style: "primary" };
+  if (cur < start) {
+    const diff = start - cur;
+    if (diff <= 60) return { text: `Za ${diff} min`, style: "primary" };
+    return { text: `Za ${Math.floor(diff / 60)}h ${diff % 60}min`, style: "secondary" };
+  }
+  return null;
+};
 
 const StudentDashboard = () => {
-  const { user } = useContext(AuthContext);
+  const { user, getToken } = useContext(AuthContext);
   const navigate = useNavigate();
 
   const [attendanceStatus, setAttendanceStatus] = useState(null);
+  const [upcomingLessons, setUpcomingLessons] = useState([]);
+  const [loadingSchedule, setLoadingSchedule] = useState(true);
 
   useEffect(() => {
     const loadAttendanceStatus = () => {
@@ -27,8 +48,7 @@ const StudentDashboard = () => {
   }
 
   setAttendanceStatus(parsed);
-} catch (err) {
-        console.error("Błąd odczytu statusu obecności:", err);
+} catch {
         localStorage.removeItem("student_attendance_status");
         setAttendanceStatus(null);
       }
@@ -44,6 +64,48 @@ const StudentDashboard = () => {
       window.removeEventListener("storage", loadAttendanceStatus);
     };
   }, []);
+
+  useEffect(() => {
+    const fetchSchedule = async () => {
+      try {
+        const now = new Date();
+        const startOfDay = new Date(now);
+        startOfDay.setHours(0, 0, 0, 0);
+        const endOfDay = new Date(now);
+        endOfDay.setHours(23, 59, 59, 999);
+
+        const token = await getToken();
+        const data = await apiGet("/api/schedule", {
+          start: startOfDay.toISOString(),
+          end: endOfDay.toISOString(),
+        }, token);
+
+        if (!data || data.length === 0) {
+          setUpcomingLessons([]);
+          return;
+        }
+
+        const curMins = now.getHours() * 60 + now.getMinutes();
+
+        const upcoming = data
+          .filter(l => {
+            if (!l.time || !l.time.includes(" - ")) return false;
+            const endStr = l.time.split(" - ")[1];
+            const [eH, eM] = endStr.split(":").map(Number);
+            return eH * 60 + eM >= curMins;
+          })
+          .slice(0, 3);
+
+        setUpcomingLessons(upcoming);
+      } catch {
+        setUpcomingLessons([]);
+      } finally {
+        setLoadingSchedule(false);
+      }
+    };
+
+    if (user) fetchSchedule();
+  }, [user, getToken]);
 
   const clearAttendanceStatus = () => {
     localStorage.removeItem("student_attendance_status");
@@ -185,89 +247,56 @@ const StudentDashboard = () => {
         />
       </div>
 
-      <div className="stats-card">
-        <div className="stats-header">
-          <p className="stats-title">
-            <span className="material-symbols-outlined text-primary">
-              analytics
-            </span>
-            Total Attendance
-          </p>
-          <p className="stats-value">92%</p>
-        </div>
-        <div className="progress-track">
-          <div className="progress-fill" style={{ width: "92%" }}></div>
-        </div>
-        <div className="stats-footer">
-          <p className="stats-target">Target: 85%</p>
-          <p className="stats-above">+7% above goal</p>
-        </div>
-      </div>
-
-      <h3 className="section-title">Next Classes</h3>
-      <div className="list-container">
-        <div className="list-item">
-          <div className="list-item-content">
-            <div className="list-item-top">
-              <span
-                className="material-symbols-outlined list-item-tag primary"
-                style={{ fontSize: "14px" }}
-              >
-                schedule
-              </span>
-              <p className="list-item-tag primary">Starts in 15 mins</p>
-            </div>
-            <h4 className="list-item-title">Advanced Calculus</h4>
-            <div className="list-item-details">
-              <div className="detail-pill">
-                <span className="material-symbols-outlined">alarm</span>
-                <p style={{ margin: 0 }}>10:30 AM</p>
+      {loadingSchedule ? (
+        <div style={{ padding: "0 1rem" }}>
+          <h3 className="section-title">Next Classes</h3>
+          <div className="list-container">
+            {[1, 2].map(i => (
+              <div key={i} className="list-item" style={{ opacity: 0.4 }}>
+                <div className="list-item-content">
+                  <div style={{ height: "0.85rem", width: "60%", background: "var(--border-light)", borderRadius: "4px", marginBottom: "0.5rem" }} />
+                  <div style={{ height: "0.75rem", width: "40%", background: "var(--border-light)", borderRadius: "4px" }} />
+                </div>
               </div>
-              <div className="detail-pill">
-                <span className="material-symbols-outlined">location_on</span>
-                <p style={{ margin: 0 }}>Room 402</p>
-              </div>
-            </div>
-          </div>
-          <div className="list-item-action">
-            <span className="material-symbols-outlined">chevron_right</span>
+            ))}
           </div>
         </div>
-
-        <div className="list-item" style={{ opacity: 0.8 }}>
-          <div className="list-item-content">
-            <div className="list-item-top">
-              <span
-                className="material-symbols-outlined list-item-tag secondary"
-                style={{ fontSize: "14px" }}
-              >
-                schedule
-              </span>
-              <p className="list-item-tag secondary">Starts in 1 hour</p>
-            </div>
-            <h4 className="list-item-title">Data Structures</h4>
-            <div className="list-item-details">
-              <div className="detail-pill">
-                <span className="material-symbols-outlined">alarm</span>
-                <p style={{ margin: 0 }}>11:45 AM</p>
-              </div>
-              <div className="detail-pill">
-                <span className="material-symbols-outlined">location_on</span>
-                <p style={{ margin: 0 }}>Lab 03</p>
-              </div>
-            </div>
-          </div>
-          <div
-            className="list-item-action"
-            style={{
-              background: "rgba(0,0,0,0.05)",
-              color: "var(--text-tertiary)"
-            }}
-          >
-            <span className="material-symbols-outlined">chevron_right</span>
+      ) : upcomingLessons.length > 0 ? (
+        <div style={{ padding: "0 1rem" }}>
+          <h3 className="section-title">Next Classes</h3>
+          <div className="list-container">
+            {upcomingLessons.map((lesson, i) => {
+              const label = getLessonLabel(lesson.time);
+              return (
+                <div key={i} className="list-item" onClick={goToSchedule} style={{ cursor: "pointer" }}>
+                  <div className="list-item-content">
+                    {label && (
+                      <div className="list-item-top">
+                        <span className="material-symbols-outlined list-item-tag primary" style={{ fontSize: "14px" }}>schedule</span>
+                        <p className={`list-item-tag ${label.style}`}>{label.text}</p>
+                      </div>
+                    )}
+                    <h4 className="list-item-title">{lesson.subject}</h4>
+                    <div className="list-item-details">
+                      <div className="detail-pill">
+                        <span className="material-symbols-outlined">alarm</span>
+                        <p style={{ margin: 0 }}>{lesson.time}</p>
+                      </div>
+                      <div className="detail-pill">
+                        <span className="material-symbols-outlined">location_on</span>
+                        <p style={{ margin: 0 }}>{lesson.room || "TBD"}</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="list-item-action">
+                    <span className="material-symbols-outlined">chevron_right</span>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
-      </div>
+      ) : null}
 
       <nav className="bottom-nav-stitch">
         <button className="nav-item active" onClick={() => navigate("/student")}>

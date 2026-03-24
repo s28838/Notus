@@ -19,8 +19,7 @@ const QuizViewPage = () => {
         const token = await getToken();
         const data = await apiGet(`/api/quiz/${quizId}`, null, token);
         setQuiz(data);
-      } catch (err) {
-        console.error(err);
+      } catch {
         setError("Nie udało się pobrać szczegółów quizu.");
       } finally {
         setLoading(false);

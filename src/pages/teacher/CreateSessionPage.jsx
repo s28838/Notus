@@ -60,8 +60,7 @@ const CreateSessionPage = () => {
           }
           setCurrentLesson(active || data[0]);
         }
-      } catch (err) {
-         console.error("Fetch schedule error:", err);
+      } catch {
          setError("Nie udało się pobrać planu zajęć.");
       } finally {
          setLoading(false);
