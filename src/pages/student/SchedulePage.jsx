@@ -6,8 +6,8 @@ import { apiGet } from "../../services/api";
 
 // --- Helpers ---
 const formatDateHeader = (date) => {
-    return date.toLocaleDateString('en-US', { 
-        year: 'numeric', 
+    return date.toLocaleDateString('pl-PL', {
+        year: 'numeric',
         month: 'long'
     });
 };
@@ -45,6 +45,7 @@ const SchedulePage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [schedule, setSchedule] = useState([]);
+  const [assignmentMap, setAssignmentMap] = useState({});
   
   const today = useMemo(() => new Date(), []);
   
@@ -66,14 +67,16 @@ const SchedulePage = () => {
           end: endOfDay.toISOString()
         };
 
-        if (user?.role === 'teacher' && user?.name) {
-          params.teacherName = user.name;
+        if (user?.role === 'teacher') {
+          if (user.id) params.teacherId = user.id;
+          else if (user.name) params.teacherName = user.name;
         }
 
         const data = await apiGet("/api/schedule", params, token);
           
         // Map the database rows to the expected format for our UI components.
         const formattedData = (data || []).map(row => ({
+          id: row.id,
           subject: row.subject || "Unknown Subject",
           teacher: row.teacher || "Unknown Teacher",
           type: row.type || "Lecture",
@@ -81,10 +84,29 @@ const SchedulePage = () => {
           time: row.time || "00:00",
           room: row.room || "TBD",
         }));
-        
+
         setSchedule(formattedData);
+
+        // Fetch quiz assignments for these lessons
+        const ids = formattedData.map(l => l.id).filter(Boolean);
+        if (ids.length > 0) {
+          try {
+            const assignments = await apiGet(
+              "/api/quiz-assignments/by-schedules",
+              { scheduleIds: ids.join(",") },
+              token
+            );
+            const map = {};
+            (assignments || []).forEach(a => { map[a.scheduleId] = a; });
+            setAssignmentMap(map);
+          } catch {
+            // non-critical — badges just won't show
+          }
+        } else {
+          setAssignmentMap({});
+        }
       } catch {
-        setError("Failed to load schedule. Please try again.");
+        setError("Nie udało się załadować planu. Spróbuj ponownie.");
       } finally {
         setIsLoading(false);
       }
@@ -113,18 +135,18 @@ const SchedulePage = () => {
   };
   
   const getDayShortName = (dayIndex) => {
-    const names = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const names = ['Pon', 'Wt', 'Śr', 'Czw', 'Pt', 'Sob', 'Nd'];
     return names[dayIndex];
   };
 
   return (
-    <div className="app-container" style={{ paddingBottom: '0' }}>
+    <div className="app-container">
       {/* Header */}
       <div className="top-bar">
-        <button className="icon-btn" onClick={handleBack} style={{ background: 'var(--surface-light)', border: '1px solid var(--border-light)' }}>
+        <button className="icon-btn" onClick={handleBack} style={{ background: 'transparent', color: 'var(--text-primary)' }}>
           <span className="material-symbols-outlined text-primary">arrow_back</span>
         </button>
-        <h2 className="top-bar-title">My Schedule</h2>
+        <h2 className="top-bar-title">Mój Plan</h2>
         <button className="icon-btn" style={{ background: 'var(--color-primary)', color: 'white' }}>
           <span className="material-symbols-outlined">calendar_add_on</span>
         </button>
@@ -138,7 +160,7 @@ const SchedulePage = () => {
              <h2 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0 }}>{dateHeader}</h2>
              <button onClick={() => changeMonth(1)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text-tertiary)' }}>{'>'}</button>
           </div>
-          <span className="text-primary font-medium" style={{ fontSize: '0.875rem' }}>Today</span>
+          <span className="text-primary font-medium" style={{ fontSize: '0.875rem' }}>Dziś</span>
         </div>
         
         {/* Horizontal Scroll Days */}
@@ -174,27 +196,26 @@ const SchedulePage = () => {
       </div>
 
       {/* Timeline Section */}
-      <div style={{ padding: '0 1rem', paddingBottom: '6rem' }}>
+      <div style={{ padding: '0 1rem' }}>
         <h3 style={{ fontWeight: 700, color: 'var(--text-secondary)', fontSize: '0.875rem', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '1rem', marginTop: 0 }}>
-          {selectedDate.toDateString() === today.toDateString() ? "Today's Timeline" : "Timeline"}
+          {selectedDate.toDateString() === today.toDateString() ? "Plan na dziś" : "Plan"}
         </h3>
         
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           {isLoading ? (
-            <div style={{ textAlign: 'center', padding: '3rem 1rem', color: 'var(--text-secondary)' }}>
-              <div className="loading-spinner" style={{ margin: '0 auto 1rem', width: '32px', height: '32px', border: '3px solid var(--border-light)', borderTopColor: 'var(--color-primary)', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
-              <p style={{ margin: 0, fontWeight: 500 }}>Loading schedule...</p>
-              <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
+            <div className="loading-state">
+              <div className="loading-spinner"></div>
+              Ładowanie planu...
             </div>
           ) : error ? (
-            <div className="glass-card" style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-secondary)', border: '1px solid rgba(239, 68, 68, 0.3)', background: 'rgba(239, 68, 68, 0.05)' }}>
-              <span className="material-symbols-outlined" style={{ fontSize: '2rem', marginBottom: '0.5rem', color: '#ef4444' }}>error</span>
-              <p style={{ margin: 0, fontWeight: 500, color: '#ef4444' }}>{error}</p>
-              <button 
-                onClick={() => setSelectedDate(new Date(selectedDate))} 
-                style={{ marginTop: '1rem', padding: '0.5rem 1rem', background: '#ef4444', border: 'none', borderRadius: '0.5rem', color: 'white', cursor: 'pointer', fontWeight: 600 }}
+            <div className="error-state">
+              <span className="material-symbols-outlined" style={{ fontSize: '2rem' }}>error</span>
+              <p style={{ margin: 0 }}>{error}</p>
+              <button
+                onClick={() => setSelectedDate(new Date(selectedDate))}
+                style={{ padding: '0.5rem 1rem', background: '#ef4444', border: 'none', borderRadius: '0.5rem', color: 'white', cursor: 'pointer', fontWeight: 600 }}
               >
-                Try Again
+                Spróbuj ponownie
               </button>
             </div>
           ) : schedule.length > 0 ? (
@@ -211,10 +232,10 @@ const SchedulePage = () => {
                       <h4 style={{ fontWeight: 700, fontSize: '1.125rem', margin: '0 0 0.25rem' }}>{lesson.subject}</h4>
                       <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', fontWeight: 500, margin: 0 }}>{lesson.teacher}</p>
                     </div>
-                    <span style={{ 
-                        background: lesson.color === 'emerald' ? '#d1fae5' : 'rgba(244, 89, 37, 0.1)', 
-                        color: lesson.color === 'emerald' ? '#059669' : 'var(--color-primary)', 
-                        padding: '0.25rem 0.75rem', borderRadius: '999px', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase' 
+                    <span style={{
+                        background: lesson.color === 'emerald' ? '#d1fae5' : 'rgba(244, 89, 37, 0.1)',
+                        color: lesson.color === 'emerald' ? '#059669' : 'var(--color-primary)',
+                        padding: '0.25rem 0.75rem', borderRadius: '999px', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase'
                     }}>{lesson.type}</span>
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', paddingTop: '0.5rem', borderTop: '1px solid var(--border-light)' }}>
@@ -227,14 +248,45 @@ const SchedulePage = () => {
                       <span style={{ fontSize: '0.875rem' }}>{lesson.room}</span>
                     </div>
                   </div>
+                  {user?.role === 'teacher' ? (
+                    assignmentMap[lesson.id] ? (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', paddingTop: '0.25rem', borderTop: '1px solid var(--border-light)' }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: '1rem', color: 'var(--color-primary)' }}>quiz</span>
+                        <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--color-primary)', flex: 1 }}>{assignmentMap[lesson.id].quizTitle}</span>
+                        <button
+                          onClick={() => navigate(`/teacher/assign-quiz/${lesson.id}`)}
+                          style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', background: 'none', border: 'none', cursor: 'pointer', padding: '0.25rem' }}
+                        >
+                          Zmień
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => navigate(`/teacher/assign-quiz/${lesson.id}`)}
+                        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', paddingTop: '0.5rem', borderTop: '1px solid var(--border-light)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-tertiary)', fontSize: '0.8rem', fontWeight: 600 }}
+                      >
+                        <span className="material-symbols-outlined" style={{ fontSize: '1rem' }}>add</span>
+                        Przypisz quiz
+                      </button>
+                    )
+                  ) : assignmentMap[lesson.id] ? (
+                    <button
+                      onClick={() => navigate(`/student/quiz/${assignmentMap[lesson.id].assignmentId}`)}
+                      style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', paddingTop: '0.5rem', borderTop: '1px solid var(--border-light)', background: 'none', border: 'none', cursor: 'pointer', width: '100%' }}
+                    >
+                      <span className="material-symbols-outlined" style={{ fontSize: '1rem', color: 'var(--color-primary)' }}>quiz</span>
+                      <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--color-primary)' }}>Quiz dostępny</span>
+                      <span className="material-symbols-outlined" style={{ fontSize: '1rem', color: 'var(--color-primary)', marginLeft: 'auto' }}>chevron_right</span>
+                    </button>
+                  ) : null}
                 </div>
               </div>
             ))
           ) : (
-            <div className="glass-card" style={{ textAlign: 'center', padding: '3rem 2rem', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
+            <div className="empty-state">
               <span className="material-symbols-outlined" style={{ fontSize: '3rem', color: 'var(--border-light)' }}>event_busy</span>
-              <p style={{ margin: 0, fontWeight: 500, fontSize: '1.125rem' }}>No classes scheduled</p>
-              <p style={{ margin: 0, fontSize: '0.875rem', opacity: 0.8 }}>Enjoy your free time or check another date.</p>
+              <p style={{ margin: 0, fontWeight: 600, fontSize: '1.125rem', color: 'var(--text-primary)' }}>Brak zajęć</p>
+              <p style={{ margin: 0, fontSize: '0.875rem' }}>Ciesz się wolnym czasem lub sprawdź inny dzień.</p>
             </div>
           )}
         </div>
@@ -246,19 +298,19 @@ const SchedulePage = () => {
         <nav className="bottom-nav-stitch">
           <button className="nav-item" onClick={goToHome}>
             <span className="material-symbols-outlined">home</span>
-            Home
+            Główna
           </button>
           <button className="nav-item active">
             <span className="material-symbols-outlined fill">calendar_month</span>
-            Schedule
+            Plan
           </button>
           <button className="nav-item" onClick={goToStats}>
             <span className="material-symbols-outlined">bar_chart</span>
-            Stats
+            Statystyki
           </button>
           <button className="nav-item" onClick={goToProfile}>
             <span className="material-symbols-outlined">person</span>
-            Profile
+            Profil
           </button>
         </nav>
       )}

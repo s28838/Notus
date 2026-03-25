@@ -30,7 +30,9 @@ const CreateSessionPage = () => {
           end: endOfDay.toISOString()
         };
 
-        if (user?.name) {
+        if (user?.id) {
+          params.teacherId = user.id;
+        } else if (user?.name) {
           params.teacherName = user.name;
         }
 

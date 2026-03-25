@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
 import { apiGet, apiDelete } from "../../services/api";
@@ -63,23 +63,24 @@ const QuizzesPage = () => {
 
       <div style={{ padding: "1rem" }}>
         {loading ? (
-          <div className="glass-card" style={{ padding: "1.5rem", textAlign: "center" }}>
+          <div className="loading-state">
+            <div className="loading-spinner"></div>
             Ładowanie quizów...
           </div>
         ) : error ? (
-          <div className="glass-card" style={{ padding: "1.5rem", color: "#dc2626", textAlign: "center" }}>
+          <div className="error-state">
+            <span className="material-symbols-outlined" style={{ fontSize: "2rem" }}>error</span>
             {error}
           </div>
         ) : quizzes.length === 0 ? (
-          <div className="glass-card" style={{ padding: "2rem", textAlign: "center" }}>
-            <span className="material-symbols-outlined" style={{ fontSize: "3rem", opacity: 0.2, marginBottom: "1rem" }}>
-              quiz
-            </span>
-            <p style={{ color: "var(--text-secondary)" }}>Nie masz jeszcze żadnych quizów.</p>
+          <div className="empty-state">
+            <span className="material-symbols-outlined" style={{ fontSize: "3rem", color: "var(--border-light)" }}>quiz</span>
+            <p style={{ margin: 0, fontWeight: 600, color: "var(--text-primary)" }}>Brak quizów</p>
+            <p style={{ margin: 0, fontSize: "0.875rem" }}>Nie masz jeszcze żadnych quizów.</p>
             <button
               className="btn-primary"
               onClick={() => navigate("/teacher/create-quiz")}
-              style={{ marginTop: "1rem" }}
+              style={{ width: "auto", padding: "0.75rem 1.5rem" }}
             >
               Stwórz pierwszy quiz
             </button>

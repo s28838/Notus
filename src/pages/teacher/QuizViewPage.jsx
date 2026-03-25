@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
 import { apiGet } from "../../services/api";
@@ -38,20 +38,24 @@ const QuizViewPage = () => {
         >
           <span className="material-symbols-outlined">arrow_back</span>
         </button>
-        <h2 className="top-bar-title">Szczegóły Quizu</h2>
+        <h2 className="top-bar-title" style={{ marginRight: '2.5rem' }}>Szczegóły Quizu</h2>
       </div>
 
-      <div style={{ padding: "1rem" }}>
-        {loading ? (
-          <div className="glass-card" style={{ padding: "2rem", textAlign: "center" }}>
-            Ładowanie...
-          </div>
-        ) : error ? (
-          <div className="glass-card" style={{ padding: "2rem", color: "#dc2626" }}>
+      {loading ? (
+        <div className="loading-state">
+          <div className="loading-spinner"></div>
+          Ładowanie...
+        </div>
+      ) : error ? (
+        <div style={{ padding: "1rem" }}>
+          <div className="error-state">
+            <span className="material-symbols-outlined" style={{ fontSize: "2rem" }}>error</span>
             {error}
           </div>
-        ) : quiz ? (
-          <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+        </div>
+      ) : quiz ? (
+        <>
+          <div style={{ padding: "1rem" }}>
             <div className="glass-card" style={{ padding: "1.5rem" }}>
               <h1 style={{ margin: "0 0 0.5rem 0", fontSize: "1.5rem" }}>{quiz.title}</h1>
               <p style={{ margin: 0, color: "var(--text-secondary)", fontSize: "0.9rem" }}>
@@ -68,8 +72,10 @@ const QuizViewPage = () => {
                 </div>
               </div>
             </div>
+          </div>
 
-            <h3 className="section-title">Pytania</h3>
+          <h3 className="section-title">Pytania</h3>
+          <div className="list-container">
             {quiz.questions?.map((q, idx) => (
               <div key={q.id} className="glass-card" style={{ padding: "1.25rem" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.75rem" }}>
@@ -112,8 +118,8 @@ const QuizViewPage = () => {
               </div>
             ))}
           </div>
-        ) : null}
-      </div>
+        </>
+      ) : null}
     </div>
   );
 };

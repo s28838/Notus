@@ -1,81 +1,254 @@
-import React from "react";
+import { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { AuthContext } from "../../context/AuthContext";
+import { apiGet } from "../../services/api";
 import TeacherBottomNav from "../../components/teacher/TeacherBottomNav";
 
 const TeacherStatsPage = () => {
+  const { getToken } = useContext(AuthContext);
   const navigate = useNavigate();
 
-  const goToHome = () => navigate("/teacher");
-  const goToCreateSession = () => navigate("/teacher/create-session");
-  const goToSchedule = () => navigate("/teacher/schedule");
-  const goToProfile = () => navigate("/teacher/profile");
+  const [assignments, setAssignments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
+  const [selected, setSelected] = useState(null);
+  const [results, setResults] = useState(null);
+  const [loadingResults, setLoadingResults] = useState(false);
+
+  useEffect(() => {
+    const fetch = async () => {
+      try {
+        const token = await getToken();
+        const data = await apiGet("/api/quiz-assignments/my", null, token);
+        setAssignments(Array.isArray(data) ? data : []);
+      } catch {
+        setError("Nie udało się pobrać historii.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetch();
+  }, [getToken]);
+
+  const openResults = async (assignment) => {
+    setSelected(assignment);
+    setResults(null);
+    setLoadingResults(true);
+    try {
+      const token = await getToken();
+      const data = await apiGet(`/api/quiz-assignments/${assignment.id}/results`, null, token);
+      setResults(data);
+    } catch {
+      setResults({ error: true });
+    } finally {
+      setLoadingResults(false);
+    }
+  };
+
+  const handleDownloadPdf = async (quizId) => {
+    try {
+      const token = await getToken();
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL || ""}/api/quiz/${quizId}/pdf`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      if (!response.ok) throw new Error();
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `quiz-${quizId}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      alert("Nie udało się pobrać PDF.");
+    }
+  };
+
+  // --- Results detail view ---
+  if (selected) {
+    return (
+      <div className="app-container">
+        <div className="top-bar">
+          <button
+            className="icon-btn"
+            onClick={() => { setSelected(null); setResults(null); }}
+            style={{ background: "transparent", color: "var(--text-primary)" }}
+          >
+            <span className="material-symbols-outlined">arrow_back</span>
+          </button>
+          <h2 className="top-bar-title" style={{ marginRight: "2.5rem" }}>Wyniki</h2>
+        </div>
+
+        <div style={{ padding: "1rem", display: "flex", flexDirection: "column", gap: "1rem" }}>
+          <div className="glass-card">
+            <p style={{ margin: "0 0 0.25rem", fontWeight: 700, fontSize: "1rem" }}>{selected.quizTitle}</p>
+            <p style={{ margin: 0, fontSize: "0.85rem", color: "var(--text-secondary)" }}>
+              {selected.scheduleSubject} · {selected.scheduleDate} · {selected.scheduleTime}
+            </p>
+          </div>
+
+          {loadingResults ? (
+            <div className="loading-state">
+              <div className="loading-spinner"></div>
+              Ładowanie wyników...
+            </div>
+          ) : results?.error ? (
+            <div className="error-state">
+              <span className="material-symbols-outlined" style={{ fontSize: "1.5rem" }}>error</span>
+              Nie udało się pobrać wyników.
+            </div>
+          ) : results?.submissions?.length === 0 ? (
+            <div className="empty-state">
+              <span className="material-symbols-outlined" style={{ fontSize: "2.5rem", color: "var(--border-light)" }}>person_off</span>
+              <p style={{ margin: 0, fontWeight: 600, color: "var(--text-primary)" }}>Brak odpowiedzi</p>
+              <p style={{ margin: 0, fontSize: "0.875rem" }}>Żaden student jeszcze nie odpowiedział.</p>
+            </div>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+              {(results?.submissions || []).map((s, i) => {
+                const pct = s.total > 0 ? Math.round((s.score / s.total) * 100) : 0;
+                return (
+                  <div key={i} className="glass-card" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "1rem" }}>
+                    <div style={{ minWidth: 0, flex: 1 }}>
+                      <p style={{ margin: "0 0 0.15rem", fontWeight: 700, fontSize: "0.95rem" }}>{s.studentName}</p>
+                      <p style={{ margin: 0, fontSize: "0.8rem", color: "var(--text-secondary)" }}>
+                        {s.indexNumber || "Brak indeksu"} · {s.submittedAt ? new Date(s.submittedAt).toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" }) : "–"}
+                      </p>
+                      {s.pendingOpenReview && (
+                        <div style={{ marginTop: "0.5rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                          <span style={{
+                            display: "inline-flex", alignItems: "center", gap: "0.3rem",
+                            padding: "0.2rem 0.6rem", borderRadius: "999px", fontSize: "0.72rem", fontWeight: 700,
+                            background: "rgba(234,179,8,0.12)", color: "#b45309", border: "1px solid rgba(234,179,8,0.3)"
+                          }}>
+                            <span className="material-symbols-outlined" style={{ fontSize: "0.85rem" }}>pending</span>
+                            Wymaga oceny
+                          </span>
+                          <button
+                            className="btn-primary"
+                            onClick={() => navigate(`/teacher/review/${s.submissionId}`)}
+                            style={{ padding: "0.25rem 0.75rem", fontSize: "0.78rem", width: "auto", borderRadius: "999px" }}
+                          >
+                            Oceń
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                    <div style={{ textAlign: "right", flexShrink: 0 }}>
+                      <p style={{ margin: "0 0 0.1rem", fontWeight: 800, fontSize: "1.1rem", color: pct >= 50 ? "var(--color-primary)" : "#ef4444" }}>
+                        {s.score}/{s.total}
+                      </p>
+                      <p style={{ margin: 0, fontSize: "0.75rem", fontWeight: 600, color: "var(--text-secondary)" }}>{pct}%</p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          <button
+            className="btn-primary"
+            onClick={() => handleDownloadPdf(selected.quizId)}
+            style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: "1.1rem" }}>download</span>
+            Pobierz PDF quizu
+          </button>
+        </div>
+
+        <TeacherBottomNav />
+      </div>
+    );
+  }
+
+  // --- Assignments list view ---
   return (
-    <div className="app-container" style={{ paddingBottom: '0' }}>
-      {/* Header */}
+    <div className="app-container">
       <div className="top-bar">
-        <button className="icon-btn" onClick={() => navigate(-1)} style={{ background: 'transparent', color: 'var(--text-primary)' }}>
+        <button
+          className="icon-btn"
+          onClick={() => navigate("/teacher")}
+          style={{ background: "transparent", color: "var(--text-primary)" }}
+        >
           <span className="material-symbols-outlined">arrow_back</span>
         </button>
-        <h2 className="top-bar-title" style={{ marginRight: '2.5rem' }}>Raporty i Statystyki</h2>
+        <h2 className="top-bar-title" style={{ marginRight: "2.5rem" }}>Historia Quizów</h2>
       </div>
 
-      {/* Overview Cards */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', padding: '1rem' }}>
-        <div style={{ flex: '1', minWidth: '150px', display: 'flex', flexDirection: 'column', gap: '0.5rem', borderRadius: '0.75rem', padding: '1.25rem', background: 'rgba(244, 89, 37, 0.05)', border: '1px solid rgba(244, 89, 37, 0.1)' }}>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', fontWeight: 500, margin: 0 }}>Średnia Frekwencja</p>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.25rem' }}>
-            <p style={{ color: 'var(--color-primary)', fontSize: '1.875rem', fontWeight: 700, margin: 0 }}>84%</p>
-            <span style={{ color: '#16a34a', fontSize: '0.75rem', fontWeight: 700 }}>+9.0%</span>
+      {loading ? (
+        <div className="loading-state">
+          <div className="loading-spinner"></div>
+          Ładowanie historii...
+        </div>
+      ) : error ? (
+        <div style={{ padding: "1rem" }}>
+          <div className="error-state">
+            <span className="material-symbols-outlined" style={{ fontSize: "2rem" }}>error</span>
+            {error}
           </div>
         </div>
-        
-        <div className="glass-card" style={{ flex: '1', minWidth: '150px', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', fontWeight: 500, margin: 0 }}>Zagrożeni Studenci</p>
-          <p style={{ color: '#ef4444', fontSize: '1.875rem', fontWeight: 700, margin: 0 }}>12</p>
-        </div>
-        
-        <div className="glass-card" style={{ flex: '1', minWidth: '150px', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', fontWeight: 500, margin: 0 }}>Przeprowadzone Zajęcia</p>
-          <p style={{ color: 'var(--text-primary)', fontSize: '1.875rem', fontWeight: 700, margin: 0 }}>28</p>
-        </div>
-      </div>
-
-
-      {/* Subject Breakdown */}
-      <section style={{ padding: '1rem', paddingBottom: '6rem' }}>
-        <h3 style={{ fontSize: '1.125rem', fontWeight: 700, marginBottom: '1rem', marginTop: 0 }}>Frekwencja na Przedmiotach</h3>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-          
-          {/* Subject Items */}
-          {[
-            { name: "Bazy Danych (L)", att: "128/150", pct: 85, icon: "dataset", color: "#f97316", bg: "#ffedd5" },
-            { name: "Algorytmy (W)", att: "210/250", pct: 84, icon: "account_tree", color: "#2563eb", bg: "#dbeafe" },
-            { name: "Sieci Komputerowe (C)", att: "28/30", pct: 93, icon: "router", color: "#16a34a", bg: "#dcfce3" },
-            { name: "Podstawy Programowania", att: "180/200", pct: 90, icon: "terminal", color: "#9333ea", bg: "#f3e8ff" }
-          ].map((subj, i) => (
-            <div key={i} className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                  <div style={{ width: '2.5rem', height: '2.5rem', borderRadius: '0.5rem', background: subj.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <span className="material-symbols-outlined" style={{ color: subj.color }}>{subj.icon}</span>
+      ) : assignments.length === 0 ? (
+        <>
+          <h3 className="section-title">Przypisane Quizy</h3>
+          <div style={{ padding: "0 1rem" }}>
+            <div className="empty-state">
+              <span className="material-symbols-outlined" style={{ fontSize: "3rem", color: "var(--border-light)" }}>history_edu</span>
+              <p style={{ margin: 0, fontWeight: 600, color: "var(--text-primary)" }}>Brak historii</p>
+              <p style={{ margin: 0, fontSize: "0.875rem" }}>Przypisz quiz do zajęć z poziomu planu lekcji.</p>
+            </div>
+          </div>
+        </>
+      ) : (
+        <>
+          <h3 className="section-title">Przypisane Quizy</h3>
+          <div className="list-container">
+            {assignments.map((a) => (
+              <div
+                key={a.id}
+                className="list-item"
+                onClick={() => openResults(a)}
+                style={{ cursor: "pointer" }}
+              >
+                <div className="list-item-content">
+                  <div className="list-item-top">
+                    <span className="material-symbols-outlined list-item-tag primary" style={{ fontSize: "14px" }}>quiz</span>
+                    <p className="list-item-tag secondary">{a.scheduleDate}</p>
                   </div>
-                  <div>
-                    <p style={{ margin: 0, fontWeight: 700 }}>{subj.name}</p>
-                    <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Obecnych: {subj.att}</p>
+                  <h4 className="list-item-title">{a.quizTitle}</h4>
+                  <div className="list-item-details">
+                    <div className="detail-pill">
+                      <span className="material-symbols-outlined">school</span>
+                      <p style={{ margin: 0 }}>{a.scheduleSubject}</p>
+                    </div>
+                    <div className="detail-pill">
+                      <span className="material-symbols-outlined">alarm</span>
+                      <p style={{ margin: 0 }}>{a.scheduleTime}</p>
+                    </div>
+                  </div>
+                  <div style={{ display: "flex", gap: "1rem", marginTop: "0.5rem" }}>
+                    <div className="detail-pill">
+                      <span className="material-symbols-outlined">group</span>
+                      <p style={{ margin: 0 }}>{a.submissionCount} odpowiedzi</p>
+                    </div>
+                    {a.submissionCount > 0 && (
+                      <div className="detail-pill">
+                        <span className="material-symbols-outlined">trending_up</span>
+                        <p style={{ margin: 0, color: "var(--color-primary)", fontWeight: 700 }}>{a.avgScore}% śr.</p>
+                      </div>
+                    )}
                   </div>
                 </div>
-                <span style={{ color: 'var(--color-primary)', fontWeight: 700 }}>{subj.pct}%</span>
+                <div className="list-item-action">
+                  <span className="material-symbols-outlined">chevron_right</span>
+                </div>
               </div>
-              <div style={{ width: '100%', background: 'var(--border-light)', height: '0.5rem', borderRadius: '999px', overflow: 'hidden' }}>
-                <div style={{ background: 'var(--color-primary)', height: '100%', width: `${subj.pct}%`, borderRadius: '999px' }}></div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
+            ))}
+          </div>
+        </>
+      )}
 
-      {/* Bottom Nav */}
       <TeacherBottomNav />
     </div>
   );

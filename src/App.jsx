@@ -16,15 +16,20 @@ import AttendanceListPage from "./pages/teacher/AttendanceListPage";
 import QuizzesPage from "./pages/teacher/QuizzesPage";
 import CreateQuizPage from "./pages/teacher/CreateQuizPage";
 import QuizViewPage from "./pages/teacher/QuizViewPage";
+import TeacherAssignQuizPage from "./pages/teacher/TeacherAssignQuizPage";
+import StudentQuizPage from "./pages/student/StudentQuizPage";
+import TeacherReviewPage from "./pages/teacher/TeacherReviewPage";
 
-const RequireRole = ({ role, user, children }) => {
+const RequireRole = ({ role, children }) => {
+  const { user, isAuthReady } = useContext(AuthContext);
+  if (!isAuthReady) return null;
   if (!user) return <Navigate to="/login" />;
   if (user.role !== role) return <Navigate to="/" />;
   return children;
 };
 
 const AppRoutes = () => {
-  const { user } = useContext(AuthContext);
+  const { user, isAuthReady } = useContext(AuthContext);
 
   return (
     <Routes>
@@ -34,7 +39,7 @@ const AppRoutes = () => {
       <Route
         path="/student"
         element={
-          <RequireRole role="student" user={user}>
+          <RequireRole role="student">
             <StudentDashboard />
           </RequireRole>
         }
@@ -44,7 +49,7 @@ const AppRoutes = () => {
       <Route
         path="/student/profile"
         element={
-          <RequireRole role="student" user={user}>
+          <RequireRole role="student">
             <ProfilePage />
           </RequireRole>
         }
@@ -54,7 +59,7 @@ const AppRoutes = () => {
       <Route
         path="/student/schedule"
         element={
-          <RequireRole role="student" user={user}>
+          <RequireRole role="student">
             <SchedulePage />
           </RequireRole>
         }
@@ -64,7 +69,7 @@ const AppRoutes = () => {
       <Route
         path="/student/scan-qr"
         element={
-          <RequireRole role="student" user={user}>
+          <RequireRole role="student">
             <ScanQRPage />
           </RequireRole>
         }
@@ -74,7 +79,7 @@ const AppRoutes = () => {
       <Route
         path="/student/stats"
         element={
-          <RequireRole role="student" user={user}>
+          <RequireRole role="student">
             <StatsPage />
           </RequireRole>
         }
@@ -84,7 +89,7 @@ const AppRoutes = () => {
       <Route
         path="/teacher"
         element={
-          <RequireRole role="teacher" user={user}>
+          <RequireRole role="teacher">
             <TeacherDashboard />
           </RequireRole>
         }
@@ -94,7 +99,7 @@ const AppRoutes = () => {
       <Route
         path="/teacher/profile"
         element={
-          <RequireRole role="teacher" user={user}>
+          <RequireRole role="teacher">
             <ProfilePage />
           </RequireRole>
         }
@@ -104,7 +109,7 @@ const AppRoutes = () => {
       <Route
         path="/teacher/schedule"
         element={
-          <RequireRole role="teacher" user={user}>
+          <RequireRole role="teacher">
             <SchedulePage />
           </RequireRole>
         }
@@ -114,7 +119,7 @@ const AppRoutes = () => {
       <Route
         path="/teacher/stats"
         element={
-          <RequireRole role="teacher" user={user}>
+          <RequireRole role="teacher">
             <TeacherStatsPage />
           </RequireRole>
         }
@@ -129,7 +134,7 @@ const AppRoutes = () => {
       <Route
         path="/"
         element={
-          user ? (
+          !isAuthReady ? null : user ? (
             <Navigate to={user.role === "student" ? "/student" : "/teacher"} />
           ) : (
             <Navigate to="/login" />
@@ -141,7 +146,7 @@ const AppRoutes = () => {
       <Route
         path="/teacher/create-session"
         element={
-          <RequireRole role="teacher" user={user}>
+          <RequireRole role="teacher">
             <CreateSessionPage />
           </RequireRole>
         }
@@ -151,7 +156,7 @@ const AppRoutes = () => {
       <Route
         path="/teacher/quizzes"
         element={
-          <RequireRole role="teacher" user={user}>
+          <RequireRole role="teacher">
             <QuizzesPage />
           </RequireRole>
         }
@@ -159,7 +164,7 @@ const AppRoutes = () => {
       <Route
         path="/teacher/create-quiz"
         element={
-          <RequireRole role="teacher" user={user}>
+          <RequireRole role="teacher">
             <CreateQuizPage />
           </RequireRole>
         }
@@ -167,8 +172,32 @@ const AppRoutes = () => {
       <Route
         path="/teacher/quiz/:quizId"
         element={
-          <RequireRole role="teacher" user={user}>
+          <RequireRole role="teacher">
             <QuizViewPage />
+          </RequireRole>
+        }
+      />
+      <Route
+        path="/teacher/assign-quiz/:scheduleId"
+        element={
+          <RequireRole role="teacher">
+            <TeacherAssignQuizPage />
+          </RequireRole>
+        }
+      />
+      <Route
+        path="/student/quiz/:assignmentId"
+        element={
+          <RequireRole role="student">
+            <StudentQuizPage />
+          </RequireRole>
+        }
+      />
+      <Route
+        path="/teacher/review/:submissionId"
+        element={
+          <RequireRole role="teacher">
+            <TeacherReviewPage />
           </RequireRole>
         }
       />

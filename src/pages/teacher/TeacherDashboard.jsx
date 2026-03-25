@@ -23,6 +23,9 @@ const TeacherDashboard = () => {
   const [attendanceLoading, setAttendanceLoading] = useState(false);
   const [showAttendance, setShowAttendance] = useState(false);
 
+  const [lessonAssignment, setLessonAssignment] = useState(null);
+  const [activatingQuiz, setActivatingQuiz] = useState(false);
+
   useEffect(() => {
     if (qr) {
       localStorage.setItem("active_qr_session", JSON.stringify(qr));
@@ -45,8 +48,9 @@ const TeacherDashboard = () => {
           end: endOfDay.toISOString(),
         };
 
-        if (user?.role === "teacher" && user?.name) {
-          params.teacherName = user.name;
+        if (user?.role === "teacher") {
+          if (!user.id) return; // Wait for backend synchronization
+          params.teacherId = user.id;
         }
 
         const data = await apiGet("/api/schedule", params, token);
@@ -93,6 +97,60 @@ const TeacherDashboard = () => {
       fetchTodaySchedule();
     }
   }, [user, getToken]);
+
+  useEffect(() => {
+    if (!currentLesson?.id) return;
+    const fetchAssignment = async () => {
+      try {
+        const token = await getToken();
+        const data = await apiGet(
+          "/api/quiz-assignments/by-schedules",
+          { scheduleIds: currentLesson.id },
+          token
+        );
+        setLessonAssignment(Array.isArray(data) && data.length > 0 ? data[0] : null);
+      } catch {
+        setLessonAssignment(null);
+      }
+    };
+    fetchAssignment();
+  }, [currentLesson?.id, getToken]);
+
+  const handleActivateQuiz = async () => {
+    if (!lessonAssignment || !qr?.sessionId) return;
+    setActivatingQuiz(true);
+    try {
+      const token = await getToken();
+      await apiPost(
+        `/api/quiz-assignments/${lessonAssignment.assignmentId}/activate`,
+        { sessionId: qr.sessionId },
+        token
+      );
+      setLessonAssignment(prev => ({ ...prev, active: true }));
+    } catch {
+      // silent — button stays enabled
+    } finally {
+      setActivatingQuiz(false);
+    }
+  };
+
+  const handleDeactivateQuiz = async () => {
+    if (!lessonAssignment) return;
+    setActivatingQuiz(true);
+    try {
+      const token = await getToken();
+      await apiPost(
+        `/api/quiz-assignments/${lessonAssignment.assignmentId}/deactivate`,
+        {},
+        token
+      );
+      setLessonAssignment(prev => ({ ...prev, active: false }));
+    } catch {
+      // silent
+    } finally {
+      setActivatingQuiz(false);
+    }
+  };
 
   const fetchAttendance = async (sessionId) => {
     if (!sessionId) return;
@@ -180,317 +238,147 @@ const TeacherDashboard = () => {
 
   return (
     <div className="app-container">
-      <div className="top-bar">
-        <div
-          className="icon-btn"
-          style={{ background: "rgba(244, 89, 37, 0.1)", cursor: "default" }}
-        >
-          <span className="material-symbols-outlined text-primary">shield_person</span>
-        </div>
-        <h2 className="top-bar-title">Teacher Hub</h2>
-        <button
-          className="icon-btn"
-          style={{ background: "transparent", color: "var(--text-primary)" }}
-        >
-          <span className="material-symbols-outlined">notifications</span>
+      <header className="top-bar">
+        <button className="icon-btn" onClick={() => navigate("/teacher/profile")}>
+          <span className="material-symbols-outlined">shield_person</span>
         </button>
-      </div>
+        <h2 className="top-bar-title">Panel Nauczyciela</h2>
+        <div style={{ width: "2.5rem" }} />
+      </header>
 
-      <div
-        className="hero-card"
-        style={{ padding: "2rem", display: "flex", flexDirection: "column", gap: "1.5rem" }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: "1rem", width: "100%" }}>
-          <div className="hero-card-icon" style={{ margin: 0, flexShrink: 0 }}>
-            <span className="material-symbols-outlined" style={{ fontSize: "2rem" }}>
-              {qr ? "qr_code_2" : "add_box"}
-            </span>
-          </div>
-          <div style={{ flex: 1 }}>
-            <h1 className="hero-card-title" style={{ fontSize: "1.25rem", marginBottom: "0.25rem" }}>
-              {qr ? "Aktywna Sesja QR" : "Pokaż kod dla zajęć"}
-            </h1>
-            <p className="hero-card-subtitle" style={{ margin: 0 }}>
-              {loadingSchedule ? (
-                "Ładowanie planu..."
-              ) : currentLesson ? (
-                (() => {
-                  const now = new Date();
-                  const currentTime = now.getHours() * 60 + now.getMinutes();
-                  const [startStr, endStr] = currentLesson.time.split(" - ");
-                  const [sH, sM] = startStr.split(":").map(Number);
-                  const [eH, eM] = endStr.split(":").map(Number);
-                  const startMins = sH * 60 + sM;
-                  const endMins = eH * 60 + eM;
-
-                  const isActive = currentTime >= startMins && currentTime <= endMins;
-
-                  return (
-                    <>
-                      <span style={{ fontWeight: 700, opacity: 0.9 }}>
-                        {isActive ? "Teraz: " : "Następne: "}
-                      </span>
-                      {currentLesson.subject} ({currentLesson.time})
-                    </>
-                  );
-                })()
-              ) : (
-                "Brak zajęć na dziś"
-              )}
-            </p>
-          </div>
+      <div className="hero-card">
+        <div className="hero-card-icon">
+          <span className="material-symbols-outlined" style={{ fontSize: "2rem" }}>
+            {qr ? "qr_code_2" : "add_box"}
+          </span>
         </div>
 
-        {qr ? (
-          <div
-            style={{
-              width: "100%",
-              display: "flex",
-              flexDirection: "column",
-              gap: "1rem",
-              alignItems: "center",
-              padding: "0.5rem 0",
-            }}
-          >
-            <div
-              style={{
-                background: "white",
-                padding: "0.75rem",
-                borderRadius: "1rem",
-                boxShadow: "0 8px 16px rgba(0,0,0,0.1)",
-              }}
-            >
-              <img
-                src={`data:image/png;base64,${qr.qrPngBase64}`}
-                alt="QR"
-                style={{ width: "140px", height: "140px", display: "block" }}
-              />
-            </div>
-
-            <p
-              style={{
-                marginTop: "0.25rem",
-                fontWeight: 800,
-                fontSize: "0.875rem",
-                color: "white",
-                letterSpacing: "0.05em",
-                textAlign: "center",
-                width: "100%",
-                wordBreak: "break-all",
-                padding: "0 1rem",
-                boxSizing: "border-box",
-              }}
-            >
-              KOD: {qr.shortCode}
-            </p>
-
-            <div
-              style={{
-                display: "flex",
-                gap: "0.75rem",
-                width: "100%",
-                justifyContent: "center",
-                flexWrap: "wrap",
-              }}
-            >
-              <button
-                onClick={() => navigate("/teacher/quizzes")}
-                style={{
-                  background: "white",
-                  border: "none",
-                  color: "var(--color-primary)",
-                  padding: "0.6rem 1rem",
-                  borderRadius: "99px",
-                  fontSize: "0.85rem",
-                  fontWeight: 700,
-                  cursor: "pointer",
-                  boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
-                }}
-              >
-                Wybierz quiz
-              </button>
-
-              <button
-                onClick={handleCloseSession}
-                style={{
-                  background: "white",
-                  border: "none",
-                  color: "var(--color-primary)",
-                  padding: "0.6rem 1rem",
-                  borderRadius: "99px",
-                  fontSize: "0.85rem",
-                  fontWeight: 700,
-                  cursor: "pointer",
-                  boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
-                }}
-              >
-                Zamknij sesję
-              </button>
-
-              <button
-                onClick={() => navigate(`/teacher/attendance/${qr.sessionId}`)}
-                style={{
-                  background: "white",
-                  border: "none",
-                  color: "var(--color-primary)",
-                  padding: "0.6rem 1rem",
-                  borderRadius: "99px",
-                  fontSize: "0.85rem",
-                  fontWeight: 700,
-                  cursor: "pointer",
-                  boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
-                }}
-              >
-                Lista obecności
-              </button>
-            </div>
-
-            {showAttendance && (
-              <div
-                style={{
-                  width: "100%",
-                  background: "white",
-                  borderRadius: "1rem",
-                  padding: "1rem",
-                  boxSizing: "border-box",
-                }}
-              >
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    marginBottom: "0.75rem",
-                  }}
-                >
-                  <h3
-                    style={{
-                      margin: 0,
-                      fontSize: "1rem",
-                      fontWeight: 700,
-                      color: "var(--text-primary)",
-                    }}
-                  >
-                    Lista obecności
-                  </h3>
-                  <span
-                    style={{
-                      fontSize: "0.85rem",
-                      color: "var(--text-secondary)",
-                      fontWeight: 600,
-                    }}
-                  >
-                    {attendanceList.length} os.
-                  </span>
-                </div>
-
-                {attendanceLoading ? (
-                  <div
-                    style={{
-                      padding: "0.75rem",
-                      textAlign: "center",
-                      color: "var(--text-secondary)",
-                    }}
-                  >
-                    Ładowanie obecności...
-                  </div>
-                ) : attendanceList.length === 0 ? (
-                  <div
-                    style={{
-                      padding: "0.75rem",
-                      textAlign: "center",
-                      background: "#f8fafc",
-                      borderRadius: "0.75rem",
-                      color: "var(--text-secondary)",
-                    }}
-                  >
-                    Na razie nikt się nie odbił.
-                  </div>
-                ) : (
-                  <div
-                    style={{
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: "0.5rem",
-                    }}
-                  >
-                    {attendanceList.map((item, index) => (
-                      <div
-                        key={`${item.studentUid}-${index}`}
-                        style={{
-                          padding: "0.75rem",
-                          borderRadius: "0.75rem",
-                          background: "#f8fafc",
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "center",
-                          gap: "0.75rem",
-                        }}
-                      >
-                        <div style={{ minWidth: 0 }}>
-                          <div
-                            style={{
-                              fontWeight: 700,
-                              wordBreak: "break-all",
-                              fontSize: "0.9rem",
-                              color: "var(--text-primary)",
-                            }}
-                          >
-                            {item.studentName}
-                          </div>
-                          <div
-                            style={{
-                              fontSize: "0.78rem",
-                              color: "var(--text-secondary)",
-                            }}
-                          >
-                            {item.indexNumber || "Brak indeksu"}
-                          </div>
-                        </div>
-
-                        <div
-                          style={{
-                            whiteSpace: "nowrap",
-                            fontSize: "0.8rem",
-                            color: "var(--text-secondary)",
-                            fontWeight: 600,
-                          }}
-                        >
-                          {item.checkedInAt
-                            ? new Date(item.checkedInAt).toLocaleTimeString()
-                            : "-"}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
+        <div className="hero-card-inner">
+          <h1 className="hero-card-title">
+            {qr ? "Aktywna Sesja QR" : "Pokaż kod dla zajęć"}
+          </h1>
+          <p className="hero-card-subtitle">
+            {loadingSchedule ? (
+              "Ładowanie planu..."
+            ) : currentLesson ? (
+              (() => {
+                const now = new Date();
+                const currentTime = now.getHours() * 60 + now.getMinutes();
+                const [startStr, endStr] = currentLesson.time.split(" - ");
+                const [sH, sM] = startStr.split(":").map(Number);
+                const [eH, eM] = endStr.split(":").map(Number);
+                const startMins = sH * 60 + sM;
+                const endMins = eH * 60 + eM;
+                const isActive = currentTime >= startMins && currentTime <= endMins;
+                return (
+                  <>
+                    <span style={{ fontWeight: 700, opacity: 0.9 }}>
+                      {isActive ? "Teraz: " : "Następne: "}
+                    </span>
+                    {currentLesson.subject} ({currentLesson.time})
+                  </>
+                );
+              })()
+            ) : (
+              "Brak zajęć na dziś"
             )}
-          </div>
-        ) : (
-          <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+          </p>
+        </div>
+
+        <div className="hero-card-button-group">
+          {qr ? (
+            <div className="hero-card-inner" style={{ alignItems: "center", gap: "1rem" }}>
+              <div className="hero-qr-container">
+                <img
+                  src={`data:image/png;base64,${qr.qrPngBase64}`}
+                  alt="QR"
+                  style={{ width: "140px", height: "140px", display: "block" }}
+                />
+              </div>
+
+              <p className="hero-qr-code-text">
+                KOD: {qr.shortCode}
+              </p>
+
+              <div style={{ display: "flex", gap: "0.75rem", width: "100%", justifyContent: "center", flexWrap: "wrap" }}>
+                {lessonAssignment ? (
+                  lessonAssignment.active ? (
+                    <button
+                      className="hero-pill-btn"
+                      onClick={handleDeactivateQuiz}
+                      disabled={activatingQuiz}
+                      style={{ background: "#22c55e", color: "white" }}
+                    >
+                      {activatingQuiz ? "..." : "✓ Quiz aktywny"}
+                    </button>
+                  ) : (
+                    <button
+                      className="hero-pill-btn"
+                      onClick={handleActivateQuiz}
+                      disabled={activatingQuiz}
+                    >
+                      {activatingQuiz ? "..." : "Aktywuj quiz"}
+                    </button>
+                  )
+                ) : (
+                  <button className="hero-pill-btn" onClick={() => navigate(`/teacher/assign-quiz/${currentLesson?.id}`)}>
+                    Dodaj quiz
+                  </button>
+                )}
+                <button className="hero-pill-btn" onClick={handleCloseSession}>
+                  Zamknij sesję
+                </button>
+                <button className="hero-pill-btn" onClick={() => navigate(`/teacher/attendance/${qr.sessionId}`)}>
+                  Lista obecności
+                </button>
+              </div>
+
+              {showAttendance && (
+                <div className="attendance-list-overlay">
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
+                    <h3 style={{ margin: 0, fontSize: "1rem", fontWeight: 700 }}>Lista obecności</h3>
+                    <span style={{ fontSize: "0.85rem", color: "var(--text-secondary)", fontWeight: 600 }}>
+                      {attendanceList.length} os.
+                    </span>
+                  </div>
+
+                  {attendanceLoading ? (
+                    <div style={{ padding: "0.75rem", textAlign: "center" }}>Ładowanie...</div>
+                  ) : attendanceList.length === 0 ? (
+                    <div className="empty-state" style={{ padding: "1rem" }}>Na razie nikt się nie odbił.</div>
+                  ) : (
+                    <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                      {attendanceList.map((item, index) => (
+                         <div key={`${item.studentUid}-${index}`} className="attendance-row">
+                          <div style={{ minWidth: 0 }}>
+                            <div style={{ fontWeight: 700, fontSize: "0.9rem" }}>{item.studentName}</div>
+                            <div style={{ fontSize: "0.78rem", color: "var(--text-secondary)" }}>{item.indexNumber || "Brak indeksu"}</div>
+                          </div>
+                          <div style={{ whiteSpace: "nowrap", fontSize: "0.8rem", fontWeight: 600 }}>
+                            {item.checkedInAt ? new Date(item.checkedInAt).toLocaleTimeString() : "-"}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          ) : (
             <button
-              className="btn-white"
+              className="btn-white btn-hero"
               onClick={handleGenerateQr}
               disabled={loadingQr || !currentLesson}
-              style={{ width: "100%", justifyContent: "center", height: "3.5rem", fontSize: "1rem" }}
             >
               {loadingQr ? "Generuję..." : "Generuj kod QR"}
             </button>
-            {errorQr && (
-              <p
-                style={{
-                  textAlign: "center",
-                  fontSize: "0.875rem",
-                  color: "rgba(255,255,255,0.9)",
-                  margin: 0,
-                }}
-              >
-                {errorQr}
-              </p>
-            )}
-          </div>
-        )}
+          )}
+          {errorQr && (
+            <p style={{ textAlign: "center", fontSize: "0.875rem", color: "rgba(255,255,255,0.9)", margin: 0 }}>
+              {errorQr}
+            </p>
+          )}
+        </div>
 
         <div
           style={{

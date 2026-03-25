@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import { useContext } from "react";
 import { AuthContext } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import TeacherBottomNav from "../../components/teacher/TeacherBottomNav";
@@ -15,16 +15,15 @@ const ProfilePage = () => {
     logout();
   };
   
-  const handleBack = () => navigate(-1);
   const goToSchedule = () => navigate(user?.role === "teacher" ? "/teacher/schedule" : "/student/schedule");
   const goToStats = () => navigate(user?.role === "teacher" ? "/teacher/stats" : "/student/stats");
   const goToHome = () => navigate(user?.role === "teacher" ? "/teacher" : "/student");
 
   return (
-    <div className="app-container" style={{ paddingBottom: '0' }}>
+    <div className="app-container">
       {/* Header */}
       <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '2rem 1.5rem 1rem' }}>
-        <h1 style={{ fontSize: '1.5rem', fontWeight: 800, margin: 0 }}>Profile</h1>
+        <h1 style={{ fontSize: '1.5rem', fontWeight: 800, margin: 0 }}>Profil</h1>
         <button className="icon-btn" style={{ background: 'rgba(244, 89, 37, 0.1)' }}>
           <span className="material-symbols-outlined">settings</span>
         </button>
@@ -33,49 +32,20 @@ const ProfilePage = () => {
       {/* Profile Info Section */}
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '1.5rem' }}>
         <h2 style={{ fontSize: '1.25rem', fontWeight: 700, margin: '1rem 0 0' }}>{userName}</h2>
-        <p style={{ color: 'var(--text-secondary)', fontWeight: 500, margin: 0 }}>{userRole === 'Student' ? `Student ID: ${userIndex}` : userRole}</p>
+        <p style={{ color: 'var(--text-secondary)', fontWeight: 500, margin: 0 }}>{userRole === 'Student' ? `Nr indeksu: ${userIndex}` : userRole}</p>
       </div>
 
-      {/* Academic Information */}
-      {userRole === 'Student' && (
-        <div style={{ padding: '0 1.5rem', marginBottom: '2rem' }}>
-          <h3 style={{ fontSize: '0.875rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-tertiary)', marginBottom: '0.75rem', marginLeft: '0.25rem', marginTop: 0 }}>Academic Information</h3>
-          <div style={{ display: 'grid', gap: '0.75rem' }}>
-            
-            <div className="glass-card" style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem' }}>
-              <div style={{ width: '2.5rem', height: '2.5rem', borderRadius: '0.5rem', background: 'rgba(244, 89, 37, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-primary)' }}>
-                <span className="material-symbols-outlined">school</span>
-              </div>
-              <div>
-                <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 500, margin: 0 }}>Department</p>
-                <p style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>Computer Science & AI</p>
-              </div>
-            </div>
-
-            <div className="glass-card" style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem' }}>
-              <div style={{ width: '2.5rem', height: '2.5rem', borderRadius: '0.5rem', background: 'rgba(244, 89, 37, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-primary)' }}>
-                <span className="material-symbols-outlined">calendar_today</span>
-              </div>
-              <div>
-                <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 500, margin: 0 }}>Academic Year</p>
-                <p style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>3rd Year, Semester 2</p>
-              </div>
-            </div>
-
-          </div>
-        </div>
-      )}
 
       {/* Preferences */}
       <div style={{ padding: '0 1.5rem', marginBottom: '2rem' }}>
-        <h3 style={{ fontSize: '0.875rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-tertiary)', marginBottom: '0.75rem', marginLeft: '0.25rem', marginTop: 0 }}>Preferences</h3>
+        <h3 style={{ fontSize: '0.875rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-tertiary)', marginBottom: '0.75rem', marginLeft: '0.25rem', marginTop: 0 }}>Ustawienia</h3>
         <div className="glass-card" style={{ padding: 0, overflow: 'hidden' }}>
           
           {[
-            { icon: "person", text: "Account Settings" },
-            { icon: "notifications", text: "Notification Preferences" },
-            { icon: "verified_user", text: "Privacy Policy" },
-            { icon: "help", text: "Help & Support" }
+            { icon: "person", text: "Ustawienia konta" },
+            { icon: "notifications", text: "Powiadomienia" },
+            { icon: "verified_user", text: "Polityka prywatności" },
+            { icon: "help", text: "Pomoc i wsparcie" }
           ].map((pref, i) => (
             <button key={i} style={{ 
               width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', 
@@ -95,14 +65,14 @@ const ProfilePage = () => {
       </div>
 
       {/* Logout */}
-      <div style={{ padding: '0 1.5rem', marginBottom: '8rem' }}>
+      <div style={{ padding: '0 1.5rem', marginBottom: '2rem' }}>
         <button className="btn-white" onClick={handleLogout} style={{ 
           background: 'var(--color-primary)', color: 'white', display: 'flex', 
           alignItems: 'center', justifyContent: 'center', gap: '0.5rem', padding: '1rem',
           boxShadow: '0 10px 15px -3px rgba(244, 89, 37, 0.2)'
         }}>
           <span className="material-symbols-outlined">logout</span>
-          <span>Log Out</span>
+          <span>Wyloguj się</span>
         </button>
       </div>
 
@@ -112,19 +82,19 @@ const ProfilePage = () => {
         <nav className="bottom-nav-stitch">
           <button className="nav-item" onClick={goToHome}>
             <span className="material-symbols-outlined">home</span>
-            Home
+            Główna
           </button>
           <button className="nav-item" onClick={goToSchedule}>
             <span className="material-symbols-outlined">calendar_month</span>
-            Schedule
+            Plan
           </button>
           <button className="nav-item" onClick={goToStats}>
             <span className="material-symbols-outlined">bar_chart</span>
-            Stats
+            Statystyki
           </button>
           <button className="nav-item active">
             <span className="material-symbols-outlined fill">person</span>
-            Profile
+            Profil
           </button>
         </nav>
       )}

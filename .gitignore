@@ -47,5 +47,7 @@ android/app/src/main/assets/public/
 ios/App/App/DerivedData/
 ios/App/public/
 
-# --- EXPORTS ---
+# --- EXPORTS & TRACES ---
 stitch_exports/
+browser_recordings/
+trace/

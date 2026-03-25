@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useUser, useAuth, useClerk } from "@clerk/react";
+import { apiGet } from "../services/api";
 
 export const AuthContext = React.createContext(null);
 
@@ -9,6 +10,7 @@ export const AuthProvider = ({ children }) => {
   const { signOut } = useClerk();
   const { getToken } = useAuth();
   const [user, setUser] = useState(null);
+  const [isAuthReady, setIsAuthReady] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -35,30 +37,21 @@ export const AuthProvider = ({ children }) => {
   }, [isLoaded, isSignedIn, getToken]);
 
   useEffect(() => {
-    const handleAuthError = (e) => {
-      console.warn("Global auth error detected:", e.detail);
-      if (e.detail.status === 401 || e.detail.status === 403) {
-        logout();
-      }
-    };
-
-    window.addEventListener("auth:error", handleAuthError);
-    return () => window.removeEventListener("auth:error", handleAuthError);
-  }, []);
-
-  useEffect(() => {
     const syncUserToBackend = async () => {
       try {
         if (isLoaded && isSignedIn && clerkUser) {
           const token = await getToken();
-          const name = clerkUser.fullName || 
+          const name = clerkUser.fullName ||
                        (clerkUser.firstName && clerkUser.lastName ? `${clerkUser.firstName} ${clerkUser.lastName}` : null) ||
                        clerkUser.firstName ||
-                       clerkUser.username || 
-                       clerkUser.primaryEmailAddress?.emailAddress || 
+                       clerkUser.username ||
+                       clerkUser.primaryEmailAddress?.emailAddress ||
                        "";
           // This call triggers findOrCreate in the backend
-          await apiGet("/api/me", { name }, token);
+          const backendUser = await apiGet("/api/me", { name }, token);
+          if (backendUser && backendUser.id) {
+            setUser(prev => ({ ...prev, id: backendUser.id }));
+          }
         }
       } catch (err) {
         console.error("Backend user sync failed:", err);
@@ -95,6 +88,8 @@ export const AuthProvider = ({ children }) => {
       }
     } catch (err) {
       console.error("Error in AuthContext useEffect:", err);
+    } finally {
+      if (isLoaded) setIsAuthReady(true);
     }
   }, [isLoaded, isSignedIn, clerkUser, getToken]);
 
@@ -110,11 +105,19 @@ export const AuthProvider = ({ children }) => {
 
   const login = (email) => {
     const role = email.trim().toLowerCase().startsWith("s") ? "student" : "teacher";
-    setUser({ email, role, name: "Dev Mode User", index: email.split('@')[0], isDev: true });
+    // For Dev Mode, we assign ID 1 by default so the dashboard can fetch data
+    setUser({ 
+      id: 1, 
+      email, 
+      role, 
+      name: "Dev Mode User", 
+      index: email.split('@')[0], 
+      isDev: true 
+    });
     navigate(role === "student" ? "/student" : "/teacher");
   };
 
-  const authValue = { user, login, logout, isLoaded, getToken };
+  const authValue = { user, login, logout, isLoaded, isAuthReady, getToken };
 
   // Don't render until Clerk is loaded to avoid flashes or context errors
   if (!isLoaded) {

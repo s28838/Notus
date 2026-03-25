@@ -9,19 +9,19 @@ const StatsPage = () => {
   const goToHome = () => navigate("/student");
 
   return (
-    <div className="app-container" style={{ paddingBottom: '0' }}>
+    <div className="app-container">
       {/* Header */}
       <div className="top-bar">
         <button className="icon-btn" onClick={() => navigate(-1)} style={{ background: 'transparent', color: 'var(--text-primary)' }}>
           <span className="material-symbols-outlined">arrow_back</span>
         </button>
-        <h2 className="top-bar-title" style={{ marginRight: '2.5rem' }}>Attendance Stats</h2>
+        <h2 className="top-bar-title" style={{ marginRight: '2.5rem' }}>Statystyki Obecności</h2>
       </div>
 
       {/* Overview Cards */}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', padding: '1rem' }}>
         <div style={{ flex: '1', minWidth: '150px', display: 'flex', flexDirection: 'column', gap: '0.5rem', borderRadius: '0.75rem', padding: '1.25rem', background: 'rgba(244, 89, 37, 0.05)', border: '1px solid rgba(244, 89, 37, 0.1)' }}>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', fontWeight: 500, margin: 0 }}>Overall Attendance</p>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', fontWeight: 500, margin: 0 }}>Łączna Frekwencja</p>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.25rem' }}>
             <p style={{ color: 'var(--color-primary)', fontSize: '1.875rem', fontWeight: 700, margin: 0 }}>92%</p>
             <span style={{ color: '#16a34a', fontSize: '0.75rem', fontWeight: 700 }}>+2.4%</span>
@@ -29,21 +29,21 @@ const StatsPage = () => {
         </div>
         
         <div className="glass-card" style={{ flex: '1', minWidth: '150px', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', fontWeight: 500, margin: 0 }}>Classes Attended</p>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', fontWeight: 500, margin: 0 }}>Zaliczone Zajęcia</p>
           <p style={{ color: 'var(--text-primary)', fontSize: '1.875rem', fontWeight: 700, margin: 0 }}>46</p>
         </div>
         
         <div className="glass-card" style={{ flex: '1', minWidth: '150px', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', fontWeight: 500, margin: 0 }}>Classes Missed</p>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', fontWeight: 500, margin: 0 }}>Nieobecności</p>
           <p style={{ color: 'var(--text-primary)', fontSize: '1.875rem', fontWeight: 700, margin: 0 }}>4</p>
         </div>
       </div>
 
 
       {/* Subject Breakdown */}
-      <section style={{ padding: '1rem', paddingBottom: '6rem' }}>
-        <h3 style={{ fontSize: '1.125rem', fontWeight: 700, marginBottom: '1rem', marginTop: 0 }}>Subject Breakdown</h3>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+      <section>
+        <h3 className="section-title">Podział Przedmiotowy</h3>
+        <div className="list-container">
           
           {/* Subject Items */}
           {[
@@ -60,7 +60,7 @@ const StatsPage = () => {
                   </div>
                   <div>
                     <p style={{ margin: 0, fontWeight: 700 }}>{subj.name}</p>
-                    <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{subj.att} classes attended</p>
+                    <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{subj.att} zajęć zaliczonych</p>
                   </div>
                 </div>
                 <span style={{ color: 'var(--color-primary)', fontWeight: 700 }}>{subj.pct}%</span>
@@ -73,23 +73,24 @@ const StatsPage = () => {
         </div>
       </section>
 
+
       {/* Bottom Nav */}
       <nav className="bottom-nav-stitch">
         <button className="nav-item" onClick={goToHome}>
           <span className="material-symbols-outlined">home</span>
-          Home
+          Główna
         </button>
         <button className="nav-item" onClick={goToSchedule}>
           <span className="material-symbols-outlined">calendar_month</span>
-          Schedule
+          Plan
         </button>
         <button className="nav-item active">
           <span className="material-symbols-outlined fill">bar_chart</span>
-          Stats
+          Statystyki
         </button>
         <button className="nav-item" onClick={goToProfile}>
           <span className="material-symbols-outlined">person</span>
-          Profile
+          Profil
         </button>
       </nav>
     </div>

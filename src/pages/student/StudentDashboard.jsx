@@ -1,7 +1,7 @@
-import React, { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { AuthContext } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { apiGet } from "../../services/api";
+import { apiGet, apiPost } from "../../services/api";
 
 const getLessonLabel = (timeStr) => {
   if (!timeStr || !timeStr.includes(" - ")) return null;
@@ -28,6 +28,10 @@ const StudentDashboard = () => {
   const [attendanceStatus, setAttendanceStatus] = useState(null);
   const [upcomingLessons, setUpcomingLessons] = useState([]);
   const [loadingSchedule, setLoadingSchedule] = useState(true);
+  const [activeQuiz, setActiveQuiz] = useState(null);
+  const [reviewNotifications, setReviewNotifications] = useState([]);
+  const pollRef = useRef(null);
+  const reviewPollRef = useRef(null);
 
   useEffect(() => {
     const loadAttendanceStatus = () => {
@@ -107,9 +111,60 @@ const StudentDashboard = () => {
     if (user) fetchSchedule();
   }, [user, getToken]);
 
+  useEffect(() => {
+    const sessionId = attendanceStatus?.sessionId;
+
+    const check = async () => {
+      if (!sessionId) { setActiveQuiz(null); return; }
+      try {
+        const token = await getToken();
+        const data = await apiGet(
+          "/api/quiz-assignments/active-for-session",
+          { sessionId },
+          token
+        );
+        setActiveQuiz(data?.assignmentId ? data : null);
+      } catch {
+        setActiveQuiz(null);
+      }
+    };
+
+    check();
+    pollRef.current = setInterval(check, 5000);
+    return () => clearInterval(pollRef.current);
+  }, [attendanceStatus?.sessionId, getToken]);
+
+  useEffect(() => {
+    const checkReviews = async () => {
+      try {
+        const token = await getToken();
+        if (!token) return;
+        const data = await apiGet("/api/quiz-assignments/new-reviews", null, token);
+        setReviewNotifications(Array.isArray(data) ? data : []);
+      } catch {
+        // silently ignore
+      }
+    };
+
+    checkReviews();
+    reviewPollRef.current = setInterval(checkReviews, 5000);
+    return () => clearInterval(reviewPollRef.current);
+  }, [getToken]);
+
+  const dismissReview = async (submissionId) => {
+    try {
+      const token = await getToken();
+      await apiPost(`/api/quiz-assignments/submissions/${submissionId}/mark-seen`, {}, token);
+      setReviewNotifications(prev => prev.filter(n => n.submissionId !== submissionId));
+    } catch {
+      // silently ignore
+    }
+  };
+
   const clearAttendanceStatus = () => {
     localStorage.removeItem("student_attendance_status");
     setAttendanceStatus(null);
+    setActiveQuiz(null);
   };
 
   const goToProfile = () => navigate("/student/profile");
@@ -119,20 +174,13 @@ const StudentDashboard = () => {
 
   return (
     <div className="app-container">
-      <div className="top-bar">
-        <div
-          className="icon-btn"
-          style={{ background: "rgba(244, 89, 37, 0.1)", cursor: "default" }}
-        >
-          <span className="material-symbols-outlined text-primary">
-            account_circle
-          </span>
-        </div>
-        <h2 className="top-bar-title">Attendance Hub</h2>
-        <button className="icon-btn">
-          <span className="material-symbols-outlined">notifications</span>
+      <header className="top-bar">
+        <button className="icon-btn" onClick={() => navigate("/student/profile")}>
+          <span className="material-symbols-outlined">account_circle</span>
         </button>
-      </div>
+        <h2 className="top-bar-title">Centrum Obecności</h2>
+        <div style={{ width: "2.5rem" }} />
+      </header>
 
       <div className="hero-card">
         <div className="hero-card-icon">
@@ -141,79 +189,49 @@ const StudentDashboard = () => {
           </span>
         </div>
 
-        <div style={{ zIndex: 2 }}>
+        <div className="hero-card-inner">
           {attendanceStatus ? (
-            <>
+            <div className="hero-card-details">
               <h1 className="hero-card-title">Jesteś obecny</h1>
-              <p
-                className="hero-card-subtitle"
-                style={{ marginBottom: "0.35rem", fontWeight: 700 }}
-              >
+              <p className="hero-card-subtitle" style={{ fontWeight: 700 }}>
                 {attendanceStatus.sessionTitle || "Aktywna sesja"}
               </p>
-              <p
-                style={{
-                  margin: 0,
-                  color: "rgba(255,255,255,0.92)",
-                  fontSize: "0.85rem",
-                  fontWeight: 600
-                }}
-              >
-                Zapisano:{" "}
-                {attendanceStatus.checkedInAt
-                  ? new Date(attendanceStatus.checkedInAt).toLocaleTimeString()
-                  : "-"}
+              <p style={{ margin: 0, color: "rgba(255,255,255,0.92)", fontSize: "0.85rem", fontWeight: 600 }}>
+                Zapisano: {attendanceStatus.checkedInAt ? new Date(attendanceStatus.checkedInAt).toLocaleTimeString() : "-"}
               </p>
-
               {attendanceStatus.indexNumber && (
-                <p
-                  style={{
-                    margin: "0.3rem 0 0 0",
-                    color: "rgba(255,255,255,0.82)",
-                    fontSize: "0.8rem",
-                    fontWeight: 500
-                  }}
-                >
+                <p style={{ margin: "0.3rem 0 0 0", color: "rgba(255,255,255,0.82)", fontSize: "0.8rem", fontWeight: 500 }}>
                   Nr indeksu: {attendanceStatus.indexNumber}
                 </p>
               )}
-            </>
+            </div>
           ) : (
             <>
-              <h1 className="hero-card-title">Quick Scan</h1>
-              <p className="hero-card-subtitle">
-                Tap to mark attendance via QR code
-              </p>
+              <h1 className="hero-card-title">Szybki Skan</h1>
+              <p className="hero-card-subtitle">Zeskanuj kod QR, aby potwierdzić obecność</p>
             </>
           )}
         </div>
 
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: "0.65rem",
-            zIndex: 2
-          }}
-        >
-          <button className="btn-white" onClick={goToScanQR}>
-            {attendanceStatus ? "Otwórz skaner" : "Open Scanner"}
-          </button>
-
-          {attendanceStatus && (
+        <div className="hero-card-button-group">
+          {activeQuiz && !activeQuiz.alreadySubmitted ? (
             <button
-              onClick={clearAttendanceStatus}
-              style={{
-                border: "1px solid rgba(255,255,255,0.45)",
-                background: "rgba(255,255,255,0.12)",
-                color: "white",
-                padding: "0.8rem 1rem",
-                borderRadius: "0.9rem",
-                fontWeight: 700,
-                cursor: "pointer",
-                backdropFilter: "blur(4px)"
-              }}
+              className="btn-white btn-hero"
+              onClick={() => navigate(`/student/quiz/${activeQuiz.assignmentId}`)}
+              style={{ background: "white", color: "#16a34a", fontWeight: 800 }}
             >
+              <span style={{ display: "flex", alignItems: "center", gap: "0.5rem", justifyContent: "center" }}>
+                <span className="material-symbols-outlined" style={{ fontSize: "1.25rem" }}>quiz</span>
+                Weź Quiz
+              </span>
+            </button>
+          ) : (
+            <button className="btn-white btn-hero" onClick={goToScanQR}>
+              Otwórz skaner
+            </button>
+          )}
+          {attendanceStatus && (
+            <button className="btn-outline-white" onClick={clearAttendanceStatus}>
               Wyczyść status
             </button>
           )}
@@ -247,9 +265,83 @@ const StudentDashboard = () => {
         />
       </div>
 
+      {activeQuiz && (
+        <div
+          style={{
+            margin: "0 1rem",
+            borderRadius: "0.75rem",
+            padding: "0.75rem 1rem",
+            display: "flex",
+            alignItems: "center",
+            gap: "0.75rem",
+            background: activeQuiz.alreadySubmitted ? "rgba(34,197,94,0.08)" : "rgba(244,89,37,0.07)",
+            border: `1px solid ${activeQuiz.alreadySubmitted ? "rgba(34,197,94,0.25)" : "rgba(244,89,37,0.2)"}`,
+            cursor: activeQuiz.alreadySubmitted ? "default" : "pointer",
+          }}
+          onClick={() => !activeQuiz.alreadySubmitted && navigate(`/student/quiz/${activeQuiz.assignmentId}`)}
+        >
+          <span
+            className="material-symbols-outlined"
+            style={{ fontSize: "1.25rem", color: activeQuiz.alreadySubmitted ? "#16a34a" : "var(--color-primary)", flexShrink: 0 }}
+          >
+            {activeQuiz.alreadySubmitted ? "check_circle" : "quiz"}
+          </span>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <p style={{ margin: 0, fontWeight: 700, fontSize: "0.875rem", color: "var(--text-primary)" }}>
+              {activeQuiz.quizTitle}
+            </p>
+            <p style={{ margin: 0, fontSize: "0.75rem", color: "var(--text-secondary)" }}>
+              {activeQuiz.alreadySubmitted
+                ? `Ukończono · ${activeQuiz.myScore}/${activeQuiz.myTotal} pkt`
+                : "Quiz aktywny — kliknij, aby wypełnić"}
+            </p>
+          </div>
+          {!activeQuiz.alreadySubmitted && (
+            <span className="material-symbols-outlined" style={{ fontSize: "1.1rem", color: "var(--color-primary)" }}>
+              chevron_right
+            </span>
+          )}
+        </div>
+      )}
+
+      {reviewNotifications.length > 0 && (
+        <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", margin: "0 1rem" }}>
+          {reviewNotifications.map(n => (
+            <div
+              key={n.submissionId}
+              style={{
+                borderRadius: "0.75rem", padding: "0.75rem 1rem",
+                display: "flex", alignItems: "center", gap: "0.75rem",
+                background: "rgba(22,163,74,0.08)", border: "1px solid rgba(22,163,74,0.25)",
+                cursor: "pointer"
+              }}
+              onClick={() => { navigate(`/student/quiz/${n.assignmentId}`); dismissReview(n.submissionId); }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: "1.25rem", color: "#16a34a", flexShrink: 0 }}>
+                mark_email_read
+              </span>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <p style={{ margin: 0, fontWeight: 700, fontSize: "0.875rem", color: "var(--text-primary)" }}>
+                  Quiz oceniony: {n.quizTitle}
+                </p>
+                <p style={{ margin: 0, fontSize: "0.75rem", color: "var(--text-secondary)" }}>
+                  Wynik: {n.score}/{n.total} pkt — kliknij, aby zobaczyć
+                </p>
+              </div>
+              <button
+                onClick={e => { e.stopPropagation(); dismissReview(n.submissionId); }}
+                style={{ background: "none", border: "none", cursor: "pointer", padding: "0.25rem", color: "var(--text-secondary)" }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: "1.1rem" }}>close</span>
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
       {loadingSchedule ? (
-        <div style={{ padding: "0 1rem" }}>
-          <h3 className="section-title">Next Classes</h3>
+        <>
+          <h3 className="section-title">Następne Zajęcia</h3>
           <div className="list-container">
             {[1, 2].map(i => (
               <div key={i} className="list-item" style={{ opacity: 0.4 }}>
@@ -260,10 +352,10 @@ const StudentDashboard = () => {
               </div>
             ))}
           </div>
-        </div>
+        </>
       ) : upcomingLessons.length > 0 ? (
-        <div style={{ padding: "0 1rem" }}>
-          <h3 className="section-title">Next Classes</h3>
+        <>
+          <h3 className="section-title">Następne Zajęcia</h3>
           <div className="list-container">
             {upcomingLessons.map((lesson, i) => {
               const label = getLessonLabel(lesson.time);
@@ -295,25 +387,25 @@ const StudentDashboard = () => {
               );
             })}
           </div>
-        </div>
+        </>
       ) : null}
 
       <nav className="bottom-nav-stitch">
         <button className="nav-item active" onClick={() => navigate("/student")}>
           <span className="material-symbols-outlined fill">home</span>
-          Home
+          Główna
         </button>
         <button className="nav-item" onClick={goToSchedule}>
           <span className="material-symbols-outlined">calendar_month</span>
-          Schedule
+          Plan
         </button>
         <button className="nav-item" onClick={goToStats}>
           <span className="material-symbols-outlined">bar_chart</span>
-          Stats
+          Statystyki
         </button>
         <button className="nav-item" onClick={goToProfile}>
           <span className="material-symbols-outlined">person</span>
-          Profile
+          Profil
         </button>
       </nav>
     </div>

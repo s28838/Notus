@@ -96,7 +96,7 @@ const CreateQuizPage = () => {
         >
           <span className="material-symbols-outlined">arrow_back</span>
         </button>
-        <h2 className="top-bar-title">Stwórz Quiz</h2>
+        <h2 className="top-bar-title" style={{ marginRight: '2.5rem' }}>Stwórz Quiz</h2>
       </div>
 
       <div style={{ padding: "1rem" }}>

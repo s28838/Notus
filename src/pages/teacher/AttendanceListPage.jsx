@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
 import { apiGet } from "../../services/api";
@@ -64,16 +64,17 @@ const AttendanceListPage = () => {
                 </div>
 
                 {loading ? (
-                    <div className="glass-card" style={{ padding: "1rem", textAlign: "center" }}>
+                    <div className="loading-state">
+                        <div className="loading-spinner"></div>
                         Ładowanie...
                     </div>
                 ) : error ? (
-                    <div className="glass-card" style={{ padding: "1rem", color: "#dc2626" }}>
-                        {error}
-                    </div>
+                    <div className="error-state">{error}</div>
                 ) : attendanceList.length === 0 ? (
-                    <div className="glass-card" style={{ padding: "1rem", textAlign: "center" }}>
-                        Na razie nikt się nie odbił.
+                    <div className="empty-state">
+                        <span className="material-symbols-outlined" style={{ fontSize: "2.5rem", color: "var(--border-light)" }}>group_off</span>
+                        <p style={{ margin: 0, fontWeight: 600, color: "var(--text-primary)" }}>Brak obecności</p>
+                        <p style={{ margin: 0, fontSize: "0.875rem" }}>Na razie nikt się nie odbił.</p>
                     </div>
                 ) : (
                     <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
