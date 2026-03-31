@@ -302,24 +302,32 @@ const TeacherDashboard = () => {
 
               <div style={{ display: "flex", gap: "0.75rem", width: "100%", justifyContent: "center", flexWrap: "wrap" }}>
                 {lessonAssignment ? (
-                  lessonAssignment.active ? (
+                  <>
+                    {lessonAssignment.active ? (
+                      <button
+                        className="hero-pill-btn"
+                        onClick={handleDeactivateQuiz}
+                        disabled={activatingQuiz}
+                        style={{ background: "#22c55e", color: "white" }}
+                      >
+                        {activatingQuiz ? "..." : "✓ Quiz aktywny"}
+                      </button>
+                    ) : (
+                      <button
+                        className="hero-pill-btn"
+                        onClick={handleActivateQuiz}
+                        disabled={activatingQuiz}
+                      >
+                        {activatingQuiz ? "..." : "Aktywuj quiz"}
+                      </button>
+                    )}
                     <button
                       className="hero-pill-btn"
-                      onClick={handleDeactivateQuiz}
-                      disabled={activatingQuiz}
-                      style={{ background: "#22c55e", color: "white" }}
+                      onClick={() => navigate(`/teacher/assign-quiz/${currentLesson?.id}`)}
                     >
-                      {activatingQuiz ? "..." : "✓ Quiz aktywny"}
+                      Zmień quiz
                     </button>
-                  ) : (
-                    <button
-                      className="hero-pill-btn"
-                      onClick={handleActivateQuiz}
-                      disabled={activatingQuiz}
-                    >
-                      {activatingQuiz ? "..." : "Aktywuj quiz"}
-                    </button>
-                  )
+                  </>
                 ) : (
                   <button className="hero-pill-btn" onClick={() => navigate(`/teacher/assign-quiz/${currentLesson?.id}`)}>
                     Dodaj quiz
@@ -408,25 +416,6 @@ const TeacherDashboard = () => {
         />
       </div>
 
-      <div
-        className="stats-card glass-card"
-        style={{ margin: "0 1rem", padding: "1rem", border: "1px solid var(--border-light)" }}
-      >
-        <div className="stats-header">
-          <p className="stats-title">
-            <span className="material-symbols-outlined text-primary">groups</span>
-            Średnia Frekwencja
-          </p>
-          <p className="stats-value">84%</p>
-        </div>
-        <div className="progress-track" style={{ marginBottom: "0.75rem" }}>
-          <div className="progress-fill" style={{ width: "84%" }}></div>
-        </div>
-        <div className="stats-footer">
-          <p className="stats-target" style={{ margin: 0 }}>Oczekiwana: 75%</p>
-          <p className="stats-above" style={{ margin: 0, color: "#16a34a" }}>+9% powyżej normy</p>
-        </div>
-      </div>
 
       <h3 className="section-title">Narzędzia</h3>
       <div className="list-container">

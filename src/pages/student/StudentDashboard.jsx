@@ -192,17 +192,41 @@ const StudentDashboard = () => {
         <div className="hero-card-inner">
           {attendanceStatus ? (
             <div className="hero-card-details">
-              <h1 className="hero-card-title">Jesteś obecny</h1>
+              <h1 className="hero-card-title">
+                {activeQuiz && !activeQuiz.alreadySubmitted ? "Quiz jest aktywny!" : "Jesteś obecny"}
+              </h1>
               <p className="hero-card-subtitle" style={{ fontWeight: 700 }}>
-                {attendanceStatus.sessionTitle || "Aktywna sesja"}
+                {activeQuiz && !activeQuiz.alreadySubmitted ? activeQuiz.quizTitle : (attendanceStatus.sessionTitle || "Aktywna sesja")}
               </p>
               <p style={{ margin: 0, color: "rgba(255,255,255,0.92)", fontSize: "0.85rem", fontWeight: 600 }}>
-                Zapisano: {attendanceStatus.checkedInAt ? new Date(attendanceStatus.checkedInAt).toLocaleTimeString() : "-"}
+                {activeQuiz && !activeQuiz.alreadySubmitted 
+                  ? "Możesz już wypełnić quiz" 
+                  : `Zapisano: ${attendanceStatus.checkedInAt ? new Date(attendanceStatus.checkedInAt).toLocaleTimeString() : "-"}`}
               </p>
               {attendanceStatus.indexNumber && (
                 <p style={{ margin: "0.3rem 0 0 0", color: "rgba(255,255,255,0.82)", fontSize: "0.8rem", fontWeight: 500 }}>
                   Nr indeksu: {attendanceStatus.indexNumber}
                 </p>
+              )}
+              
+              {/* Moved Quiz Button here for better visibility within the card flow */}
+              {activeQuiz && !activeQuiz.alreadySubmitted && (
+                <button
+                  className="btn-white btn-hero pulse-animation"
+                  onClick={() => navigate(`/student/quiz/${activeQuiz.assignmentId}`)}
+                  style={{ 
+                    marginTop: "1rem",
+                    background: "white", 
+                    color: "#16a34a", 
+                    fontWeight: 800,
+                    boxShadow: "0 4px 12px rgba(0,0,0,0.15)"
+                  }}
+                >
+                  <span style={{ display: "flex", alignItems: "center", gap: "0.5rem", justifyContent: "center" }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: "1.25rem" }}>quiz</span>
+                    Weź Quiz
+                  </span>
+                </button>
               )}
             </div>
           ) : (
@@ -214,24 +238,14 @@ const StudentDashboard = () => {
         </div>
 
         <div className="hero-card-button-group">
-          {activeQuiz && !activeQuiz.alreadySubmitted ? (
-            <button
-              className="btn-white btn-hero"
-              onClick={() => navigate(`/student/quiz/${activeQuiz.assignmentId}`)}
-              style={{ background: "white", color: "#16a34a", fontWeight: 800 }}
-            >
-              <span style={{ display: "flex", alignItems: "center", gap: "0.5rem", justifyContent: "center" }}>
-                <span className="material-symbols-outlined" style={{ fontSize: "1.25rem" }}>quiz</span>
-                Weź Quiz
-              </span>
-            </button>
-          ) : (
+          {(!activeQuiz || activeQuiz.alreadySubmitted) && (
             <button className="btn-white btn-hero" onClick={goToScanQR}>
               Otwórz skaner
             </button>
           )}
+          
           {attendanceStatus && (
-            <button className="btn-outline-white" onClick={clearAttendanceStatus}>
+            <button className="btn-outline-white" onClick={clearAttendanceStatus} style={{ marginTop: activeQuiz && !activeQuiz.alreadySubmitted ? "0" : "0.5rem" }}>
               Wyczyść status
             </button>
           )}
