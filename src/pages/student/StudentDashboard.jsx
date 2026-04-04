@@ -27,6 +27,7 @@ const StudentDashboard = () => {
 
   const [attendanceStatus, setAttendanceStatus] = useState(null);
   const [upcomingLessons, setUpcomingLessons] = useState([]);
+  const [upcomingIsNextDay, setUpcomingIsNextDay] = useState(false);
   const [loadingSchedule, setLoadingSchedule] = useState(true);
   const [activeQuiz, setActiveQuiz] = useState(null);
   const [reviewNotifications, setReviewNotifications] = useState([]);
@@ -79,30 +80,61 @@ const StudentDashboard = () => {
         endOfDay.setHours(23, 59, 59, 999);
 
         const token = await getToken();
-        const data = await apiGet("/api/schedule", {
+        const data = await apiGet("/api/student/schedule/range", {
           start: startOfDay.toISOString(),
           end: endOfDay.toISOString(),
         }, token);
 
-        if (!data || data.length === 0) {
-          setUpcomingLessons([]);
-          return;
-        }
-
         const curMins = now.getHours() * 60 + now.getMinutes();
 
-        const upcoming = data
+        const upcoming = (data || [])
           .filter(l => {
             if (!l.time || !l.time.includes(" - ")) return false;
             const endStr = l.time.split(" - ")[1];
             const [eH, eM] = endStr.split(":").map(Number);
             return eH * 60 + eM >= curMins;
           })
+          .sort((a, b) => {
+            const [aH, aM] = a.time.split(" - ")[0].split(":").map(Number);
+            const [bH, bM] = b.time.split(" - ")[0].split(":").map(Number);
+            return (aH * 60 + aM) - (bH * 60 + bM);
+          })
           .slice(0, 3);
 
-        setUpcomingLessons(upcoming);
+        if (upcoming.length > 0) {
+          setUpcomingLessons(upcoming);
+          setUpcomingIsNextDay(false);
+        } else {
+          // No remaining lessons today — try tomorrow
+          const tomorrow = new Date();
+          tomorrow.setDate(tomorrow.getDate() + 1);
+          const startOfTomorrow = new Date(tomorrow);
+          startOfTomorrow.setHours(0, 0, 0, 0);
+          const endOfTomorrow = new Date(tomorrow);
+          endOfTomorrow.setHours(23, 59, 59, 999);
+          const tomorrowData = await apiGet("/api/student/schedule/range", {
+            start: startOfTomorrow.toISOString(),
+            end: endOfTomorrow.toISOString(),
+          }, token);
+          if (tomorrowData && tomorrowData.length > 0) {
+            const tomorrowUpcoming = tomorrowData
+              .filter(l => l.time && l.time.includes(" - "))
+              .sort((a, b) => {
+                const [aH, aM] = a.time.split(" - ")[0].split(":").map(Number);
+                const [bH, bM] = b.time.split(" - ")[0].split(":").map(Number);
+                return (aH * 60 + aM) - (bH * 60 + bM);
+              })
+              .slice(0, 3);
+            setUpcomingLessons(tomorrowUpcoming);
+            setUpcomingIsNextDay(true);
+          } else {
+            setUpcomingLessons([]);
+            setUpcomingIsNextDay(false);
+          }
+        }
       } catch {
         setUpcomingLessons([]);
+        setUpcomingIsNextDay(false);
       } finally {
         setLoadingSchedule(false);
       }
@@ -369,10 +401,10 @@ const StudentDashboard = () => {
         </>
       ) : upcomingLessons.length > 0 ? (
         <>
-          <h3 className="section-title">Następne Zajęcia</h3>
+          <h3 className="section-title">{upcomingIsNextDay ? "Jutrzejsze Zajęcia" : "Następne Zajęcia"}</h3>
           <div className="list-container">
             {upcomingLessons.map((lesson, i) => {
-              const label = getLessonLabel(lesson.time);
+              const label = upcomingIsNextDay ? { text: "Jutro", style: "secondary" } : getLessonLabel(lesson.time);
               return (
                 <div key={i} className="list-item" onClick={goToSchedule} style={{ cursor: "pointer" }}>
                   <div className="list-item-content">
@@ -414,8 +446,8 @@ const StudentDashboard = () => {
           Plan
         </button>
         <button className="nav-item" onClick={goToStats}>
-          <span className="material-symbols-outlined">bar_chart</span>
-          Statystyki
+          <span className="material-symbols-outlined">history</span>
+          Historia
         </button>
         <button className="nav-item" onClick={goToProfile}>
           <span className="material-symbols-outlined">person</span>

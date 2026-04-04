@@ -305,8 +305,8 @@ const SchedulePage = () => {
             Plan
           </button>
           <button className="nav-item" onClick={goToStats}>
-            <span className="material-symbols-outlined">bar_chart</span>
-            Statystyki
+            <span className="material-symbols-outlined">history</span>
+            Historia
           </button>
           <button className="nav-item" onClick={goToProfile}>
             <span className="material-symbols-outlined">person</span>

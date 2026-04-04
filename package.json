@@ -12,6 +12,7 @@
     "@capacitor/core": "^8.2.0",
     "@clerk/react": "^6.1.0",
     "@supabase/supabase-js": "^2.99.3",
+    "jsqr": "^1.4.0",
     "react": "^18.3.0",
     "react-dom": "^18.3.0",
     "react-router-dom": "^6.27.0"

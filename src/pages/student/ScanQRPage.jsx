@@ -2,52 +2,26 @@ import React, { useState, useEffect, useRef, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
 import { apiPost } from "../../services/api";
+import jsQR from "jsqr";
 
 const ScanQRPage = () => {
   const { getToken } = useContext(AuthContext);
   const navigate = useNavigate();
   const videoRef = useRef(null);
+  const canvasRef = useRef(null);
+  const isProcessingRef = useRef(false);
 
   const [hasPermission, setHasPermission] = useState(null);
   const [isFlashlightOn, setIsFlashlightOn] = useState(false);
+  const [showScanEffect, setShowScanEffect] = useState(false);
 
   const [manualCode, setManualCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState(""); // success | error
 
-  useEffect(() => {
-    const startCamera = async () => {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: "environment" },
-        });
-
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          setHasPermission(true);
-        }
-      } catch {
-        setHasPermission(false);
-      }
-    };
-
-    startCamera();
-
-    return () => {
-      if (videoRef.current && videoRef.current.srcObject) {
-        const tracks = videoRef.current.srcObject.getTracks();
-        tracks.forEach((track) => track.stop());
-      }
-    };
-  }, []);
-
-  const handleBack = () => {
-    navigate(-1);
-  };
-
-  const handleManualCode = async () => {
-    if (!manualCode.trim()) {
+  const submitCode = async (codeToSubmit, isQrToken = false) => {
+    if (!codeToSubmit || !codeToSubmit.trim()) {
       setMessage("Wpisz kod zajęć.");
       setMessageType("error");
       return;
@@ -64,9 +38,13 @@ const ScanQRPage = () => {
         throw new Error("Brak tokena logowania. Zaloguj się ponownie.");
       }
 
+      const body = isQrToken
+        ? { qrToken: codeToSubmit.trim() }
+        : { shortCode: codeToSubmit.trim().toUpperCase() };
+
       const resp = await apiPost(
         "/api/attendance/check-in",
-        { shortCode: manualCode.trim().toUpperCase() },
+        body,
         token
       );
 
@@ -97,9 +75,102 @@ const ScanQRPage = () => {
     } catch (err) {
       setMessage(err.message || "Wystąpił błąd podczas zapisu obecności.");
       setMessageType("error");
+      
+      // Allow trying again after error
+      setTimeout(() => {
+          isProcessingRef.current = false;
+          setShowScanEffect(false);
+      }, 3000); // 3 second cool-down before trying to process another frame
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleManualCode = () => {
+    isProcessingRef.current = true;
+    submitCode(manualCode, false); // Manual = shortCode
+  };
+
+  useEffect(() => {
+    let animationFrameId;
+    let streamRef = null;
+
+    const startCamera = async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: "environment" },
+        });
+
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          streamRef = stream;
+          setHasPermission(true);
+
+          videoRef.current.onloadedmetadata = () => {
+             videoRef.current.play();
+             animationFrameId = requestAnimationFrame(tick);
+          };
+        }
+      } catch {
+        setHasPermission(false);
+      }
+    };
+
+    const tick = () => {
+      if (!videoRef.current) return;
+
+      if (videoRef.current.readyState === videoRef.current.HAVE_ENOUGH_DATA && !isProcessingRef.current) {
+        if (!canvasRef.current) {
+           canvasRef.current = document.createElement("canvas");
+        }
+        const canvas = canvasRef.current;
+        const ctx = canvas.getContext("2d", { willReadFrequently: true });
+        
+        canvas.width = videoRef.current.videoWidth;
+        canvas.height = videoRef.current.videoHeight;
+        
+        if (canvas.width > 0 && canvas.height > 0) {
+          ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
+          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          
+          const code = jsQR(imageData.data, imageData.width, imageData.height, {
+            inversionAttempts: "dontInvert",
+          });
+
+          if (code && code.data) {
+            isProcessingRef.current = true;
+            setShowScanEffect(true);
+            setTimeout(() => {
+                submitCode(code.data, true); // Pass true = this is a QR token, not a short code
+            }, 1200);
+          }
+        }
+      }
+      
+      if (!isProcessingRef.current) {
+         animationFrameId = requestAnimationFrame(tick);
+      } else {
+         // Keep polling but slower if processing, allowing UI to update
+         setTimeout(() => {
+            animationFrameId = requestAnimationFrame(tick);
+         }, 500);
+      }
+    };
+
+    startCamera();
+
+    return () => {
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+      }
+      if (streamRef) {
+        streamRef.getTracks().forEach((track) => track.stop());
+      }
+    };
+  }, []);
+
+  const handleBack = () => {
+    navigate(-1);
   };
 
   return (
@@ -121,7 +192,6 @@ const ScanQRPage = () => {
         style={{
           flex: 1,
           display: "flex",
-          flexDirection: "column",
           position: "relative",
           overflow: "hidden",
           background: "#000",
@@ -130,10 +200,16 @@ const ScanQRPage = () => {
         {hasPermission !== false ? (
           <video
             ref={videoRef}
-            autoPlay
             playsInline
             muted
-            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+            style={{ 
+              position: "absolute", 
+              top: 0, 
+              left: 0, 
+              width: "100%", 
+              height: "100%", 
+              objectFit: "cover" 
+            }}
           />
         ) : (
           <div
@@ -141,6 +217,7 @@ const ScanQRPage = () => {
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
+              width: "100%",
               height: "100%",
               color: "white",
             }}
@@ -171,7 +248,11 @@ const ScanQRPage = () => {
             }}
           >
             <div
-              style={{
+              className={showScanEffect ? "scan-line" : ""}
+              style={showScanEffect ? {
+                background: "var(--color-primary)",
+                boxShadow: "0 0 8px var(--color-primary)",
+              } : {
                 position: "absolute",
                 top: "50%",
                 left: 0,
@@ -179,6 +260,7 @@ const ScanQRPage = () => {
                 height: "2px",
                 background: "var(--color-primary)",
                 boxShadow: "0 0 8px var(--color-primary)",
+                opacity: 0.5
               }}
             />
           </div>
@@ -270,7 +352,7 @@ const ScanQRPage = () => {
           }}
         >
           <span className="material-symbols-outlined">keyboard</span>
-          <span>{loading ? "Zapisywanie..." : "Wpisz kod ręcznie"}</span>
+          <span>{loading ? "Odczytywanie..." : "Wpisz kod ręcznie"}</span>
         </button>
 
         {message && (

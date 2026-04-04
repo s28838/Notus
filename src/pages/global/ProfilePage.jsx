@@ -89,8 +89,8 @@ const ProfilePage = () => {
             Plan
           </button>
           <button className="nav-item" onClick={goToStats}>
-            <span className="material-symbols-outlined">bar_chart</span>
-            Statystyki
+            <span className="material-symbols-outlined">history</span>
+            Historia
           </button>
           <button className="nav-item active">
             <span className="material-symbols-outlined fill">person</span>

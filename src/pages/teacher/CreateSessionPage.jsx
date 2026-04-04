@@ -86,8 +86,7 @@ const CreateSessionPage = () => {
 
     try {
       const token = await getToken();
-      const sessionTitle = `${currentLesson.subject} (${currentLesson.time})`;
-      const created = await apiPost("/api/attendance/sessions", { title: sessionTitle }, token);
+      const created = await apiPost("/api/attendance/sessions", { scheduleId: currentLesson.id }, token);
       const qrResp = await apiGet(`/api/attendance/sessions/${created.sessionId}/qr`, token);
       setQr(qrResp);
     } catch (e) {

@@ -4,6 +4,23 @@ import { useNavigate } from "react-router-dom";
 import { apiGet, apiPost } from "../../services/api";
 import TeacherBottomNav from "../../components/teacher/TeacherBottomNav";
 
+const getLessonLabel = (timeStr) => {
+  if (!timeStr || !timeStr.includes(" - ")) return null;
+  const [startStr, endStr] = timeStr.split(" - ");
+  const [sH, sM] = startStr.split(":").map(Number);
+  const [eH, eM] = endStr.split(":").map(Number);
+  const now = new Date();
+  const cur = now.getHours() * 60 + now.getMinutes();
+  const start = sH * 60 + sM;
+  const end = eH * 60 + eM;
+  if (cur >= start && cur <= end) return { text: "Teraz", style: "primary" };
+  if (cur < start) {
+    const diff = start - cur;
+    if (diff <= 60) return { text: `Za ${diff} min`, style: "primary" };
+    return { text: `Za ${Math.floor(diff / 60)}h ${diff % 60}min`, style: "secondary" };
+  }
+  return null;
+};
 
 const TeacherDashboard = () => {
   const { user, getToken } = useContext(AuthContext);
@@ -11,6 +28,8 @@ const TeacherDashboard = () => {
 
   const [currentLesson, setCurrentLesson] = useState(null);
   const [loadingSchedule, setLoadingSchedule] = useState(true);
+  const [upcomingLessons, setUpcomingLessons] = useState([]);
+  const [upcomingIsNextDay, setUpcomingIsNextDay] = useState(false);
 
   const [qr, setQr] = useState(() => {
     const saved = localStorage.getItem("active_qr_session");
@@ -83,11 +102,62 @@ const TeacherDashboard = () => {
           }
 
           setCurrentLesson(active || next);
+
+          const upcoming = data
+            .filter(l => {
+              if (!l.time || !l.time.includes(" - ")) return false;
+              const endStr = l.time.split(" - ")[1];
+              const [eH, eM] = endStr.split(":").map(Number);
+              return eH * 60 + eM >= currentTime;
+            })
+            .sort((a, b) => {
+              const [aH, aM] = a.time.split(" - ")[0].split(":").map(Number);
+              const [bH, bM] = b.time.split(" - ")[0].split(":").map(Number);
+              return (aH * 60 + aM) - (bH * 60 + bM);
+            })
+            .slice(0, 3);
+
+          if (upcoming.length > 0) {
+            setUpcomingLessons(upcoming);
+            setUpcomingIsNextDay(false);
+          } else {
+            // No remaining lessons today — try tomorrow
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            const startOfTomorrow = new Date(tomorrow);
+            startOfTomorrow.setHours(0, 0, 0, 0);
+            const endOfTomorrow = new Date(tomorrow);
+            endOfTomorrow.setHours(23, 59, 59, 999);
+            const tomorrowParams = {
+              start: startOfTomorrow.toISOString(),
+              end: endOfTomorrow.toISOString(),
+              ...(user?.id ? { teacherId: user.id } : {}),
+            };
+            const tomorrowData = await apiGet("/api/schedule", tomorrowParams, token);
+            if (tomorrowData && tomorrowData.length > 0) {
+              const tomorrowUpcoming = tomorrowData
+                .filter(l => l.time && l.time.includes(" - "))
+                .sort((a, b) => {
+                  const [aH, aM] = a.time.split(" - ")[0].split(":").map(Number);
+                  const [bH, bM] = b.time.split(" - ")[0].split(":").map(Number);
+                  return (aH * 60 + aM) - (bH * 60 + bM);
+                })
+                .slice(0, 3);
+              setUpcomingLessons(tomorrowUpcoming);
+              setUpcomingIsNextDay(true);
+            } else {
+              setUpcomingLessons([]);
+              setUpcomingIsNextDay(false);
+            }
+          }
         } else {
           setCurrentLesson(null);
+          setUpcomingLessons([]);
+          setUpcomingIsNextDay(false);
         }
       } catch {
         // schedule unavailable, currentLesson stays null
+        setUpcomingLessons([]);
       } finally {
         setLoadingSchedule(false);
       }
@@ -193,12 +263,13 @@ const TeacherDashboard = () => {
 
       const created = await apiPost(
         "/api/attendance/sessions",
-        { title: sessionTitle },
+        { scheduleId: currentLesson.id },
         token
       );
 
       const qrResp = await apiGet(
         `/api/attendance/sessions/${created.sessionId}/qr`,
+        null,
         token
       );
 
@@ -240,7 +311,7 @@ const TeacherDashboard = () => {
     <div className="app-container">
       <header className="top-bar">
         <button className="icon-btn" onClick={() => navigate("/teacher/profile")}>
-          <span className="material-symbols-outlined">shield_person</span>
+          <span className="material-symbols-outlined">account_circle</span>
         </button>
         <h2 className="top-bar-title">Panel Nauczyciela</h2>
         <div style={{ width: "2.5rem" }} />
@@ -417,68 +488,56 @@ const TeacherDashboard = () => {
       </div>
 
 
-      <h3 className="section-title">Narzędzia</h3>
-      <div className="list-container">
-        <div className="list-item" onClick={goToSchedule} style={{ cursor: "pointer" }}>
-          <div className="list-item-content">
-            <h4 className="list-item-title" style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-              <span className="material-symbols-outlined text-primary" style={{ fontSize: "1.25rem" }}>
-                calendar_month
-              </span>
-              Twój Plan Zajęć
-            </h4>
-            <div className="list-item-details">
-              <div className="detail-pill">
-                <span className="material-symbols-outlined" style={{ fontSize: "1rem" }}>schedule</span>
-                <p style={{ margin: 0 }}>Zobacz harmonogram</p>
+      {loadingSchedule ? (
+        <>
+          <h3 className="section-title">Następne Zajęcia</h3>
+          <div className="list-container">
+            {[1, 2].map(i => (
+              <div key={i} className="list-item" style={{ opacity: 0.4 }}>
+                <div className="list-item-content">
+                  <div style={{ height: "0.85rem", width: "60%", background: "var(--border-light)", borderRadius: "4px", marginBottom: "0.5rem" }} />
+                  <div style={{ height: "0.75rem", width: "40%", background: "var(--border-light)", borderRadius: "4px" }} />
+                </div>
               </div>
-            </div>
+            ))}
           </div>
-          <div className="list-item-action">
-            <span className="material-symbols-outlined">chevron_right</span>
+        </>
+      ) : upcomingLessons.length > 0 ? (
+        <>
+          <h3 className="section-title">{upcomingIsNextDay ? "Jutrzejsze Zajęcia" : "Następne Zajęcia"}</h3>
+          <div className="list-container">
+            {upcomingLessons.map((lesson, i) => {
+              const label = upcomingIsNextDay ? { text: "Jutro", style: "secondary" } : getLessonLabel(lesson.time);
+              return (
+                <div key={i} className="list-item" onClick={goToSchedule} style={{ cursor: "pointer" }}>
+                  <div className="list-item-content">
+                    {label && (
+                      <div className="list-item-top">
+                        <span className="material-symbols-outlined list-item-tag primary" style={{ fontSize: "14px" }}>schedule</span>
+                        <p className={`list-item-tag ${label.style}`}>{label.text}</p>
+                      </div>
+                    )}
+                    <h4 className="list-item-title">{lesson.subject}</h4>
+                    <div className="list-item-details">
+                      <div className="detail-pill">
+                        <span className="material-symbols-outlined">alarm</span>
+                        <p style={{ margin: 0 }}>{lesson.time}</p>
+                      </div>
+                      <div className="detail-pill">
+                        <span className="material-symbols-outlined">location_on</span>
+                        <p style={{ margin: 0 }}>{lesson.room || "TBD"}</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="list-item-action">
+                    <span className="material-symbols-outlined">chevron_right</span>
+                  </div>
+                </div>
+              );
+            })}
           </div>
-        </div>
-
-        <div className="list-item" onClick={() => navigate("/teacher/quizzes")} style={{ cursor: "pointer" }}>
-          <div className="list-item-content">
-            <h4 className="list-item-title" style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-              <span className="material-symbols-outlined text-primary" style={{ fontSize: "1.25rem" }}>
-                quiz
-              </span>
-              Zarządzaj Quizami
-            </h4>
-            <div className="list-item-details">
-              <div className="detail-pill">
-                <span className="material-symbols-outlined" style={{ fontSize: "1rem" }}>auto_awesome</span>
-                <p style={{ margin: 0 }}>Stwórz lub generuj z AI</p>
-              </div>
-            </div>
-          </div>
-          <div className="list-item-action">
-            <span className="material-symbols-outlined">chevron_right</span>
-          </div>
-        </div>
-
-        <div className="list-item" onClick={goToHistory} style={{ cursor: "pointer" }}>
-          <div className="list-item-content">
-            <h4 className="list-item-title" style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-              <span className="material-symbols-outlined text-slate-500" style={{ fontSize: "1.25rem" }}>
-                history
-              </span>
-              Historia Sesji
-            </h4>
-            <div className="list-item-details">
-              <div className="detail-pill">
-                <span className="material-symbols-outlined" style={{ fontSize: "1rem" }}>fact_check</span>
-                <p style={{ margin: 0 }}>Przeglądaj frekwencję</p>
-              </div>
-            </div>
-          </div>
-          <div className="list-item-action" style={{ background: "var(--border-light)", color: "var(--text-secondary)" }}>
-            <span className="material-symbols-outlined">chevron_right</span>
-          </div>
-        </div>
-      </div>
+        </>
+      ) : null}
 
       <TeacherBottomNav />
     </div>

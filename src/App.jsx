@@ -18,6 +18,7 @@ import CreateQuizPage from "./pages/teacher/CreateQuizPage";
 import QuizViewPage from "./pages/teacher/QuizViewPage";
 import TeacherAssignQuizPage from "./pages/teacher/TeacherAssignQuizPage";
 import StudentQuizPage from "./pages/student/StudentQuizPage";
+import StudentQuizReviewPage from "./pages/student/StudentQuizReviewPage";
 import TeacherReviewPage from "./pages/teacher/TeacherReviewPage";
 
 const RequireRole = ({ role, children }) => {
@@ -190,6 +191,14 @@ const AppRoutes = () => {
         element={
           <RequireRole role="student">
             <StudentQuizPage />
+          </RequireRole>
+        }
+      />
+      <Route
+        path="/student/quiz-review/:assignmentId"
+        element={
+          <RequireRole role="student">
+            <StudentQuizReviewPage />
           </RequireRole>
         }
       />
