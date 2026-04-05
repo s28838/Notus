@@ -89,6 +89,39 @@ export async function apiPost(path, body, overrideToken) {
   }
 }
 
+export async function apiPut(path, body, overrideToken) {
+  const token = overrideToken || localStorage.getItem("clerkToken");
+
+  const res = await fetch(`${BASE}${path}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (res.status === 401) {
+    window.dispatchEvent(
+      new CustomEvent("auth:error", {
+        detail: { status: res.status, path },
+      })
+    );
+  }
+
+  const text = await res.text();
+
+  if (!res.ok) {
+    throw new Error(extractErrorMessage(text, res.status));
+  }
+
+  try {
+    return JSON.parse(text);
+  } catch {
+    return text;
+  }
+}
+
 export async function apiDelete(path, overrideToken) {
   const token = overrideToken || localStorage.getItem("clerkToken");
 

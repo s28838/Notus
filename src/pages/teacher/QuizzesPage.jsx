@@ -101,7 +101,14 @@ const QuizzesPage = () => {
                 }}
               >
                 <div>
-                  <h3 style={{ margin: "0 0 0.25rem 0", fontSize: "1.1rem" }}>{quiz.title}</h3>
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                    <h3 style={{ margin: "0 0 0.25rem 0", fontSize: "1.1rem" }}>{quiz.title}</h3>
+                    {quiz.version > 1 && (
+                      <span className="list-item-tag secondary" style={{ fontSize: "0.7rem", padding: "2px 8px" }}>
+                        v{quiz.version}
+                      </span>
+                    )}
+                  </div>
                   <p style={{ margin: 0, fontSize: "0.85rem", color: "var(--text-secondary)" }}>
                     {quiz.questions?.length || 0} pytań • {new Date(quiz.createdAt).toLocaleDateString()}
                   </p>
