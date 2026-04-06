@@ -1,10 +1,12 @@
 import { useContext } from "react";
 import { AuthContext } from "../../context/AuthContext";
+import { useTheme } from "../../context/ThemeContext";
 import { useNavigate } from "react-router-dom";
 import TeacherBottomNav from "../../components/teacher/TeacherBottomNav";
 
 const ProfilePage = () => {
   const { user, logout } = useContext(AuthContext);
+  const { isDark, toggleTheme } = useTheme();
   const navigate = useNavigate();
 
   const userName = user?.name || "Student User";
@@ -60,6 +62,23 @@ const ProfilePage = () => {
               <span className="material-symbols-outlined text-slate-500">chevron_right</span>
             </button>
           ))}
+
+          <button onClick={toggleTheme} style={{
+            width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            padding: '1rem', background: 'transparent', border: 'none',
+            borderTop: '1px solid var(--border-light)',
+            cursor: 'pointer'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <span className="material-symbols-outlined text-slate-500">
+                {isDark ? 'light_mode' : 'dark_mode'}
+              </span>
+              <span style={{ fontWeight: 500, color: 'var(--text-primary)' }}>Tryb ciemny</span>
+            </div>
+            <span className="material-symbols-outlined" style={{ color: isDark ? 'var(--color-primary)' : 'var(--text-tertiary)', fontSize: '2rem' }}>
+              {isDark ? 'toggle_on' : 'toggle_off'}
+            </span>
+          </button>
 
         </div>
       </div>

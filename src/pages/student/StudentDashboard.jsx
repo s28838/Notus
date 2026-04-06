@@ -246,10 +246,9 @@ const StudentDashboard = () => {
                 <button
                   className="btn-white btn-hero pulse-animation"
                   onClick={() => navigate(`/student/quiz/${activeQuiz.assignmentId}`)}
-                  style={{ 
+                  style={{
                     marginTop: "1rem",
-                    background: "white", 
-                    color: "#16a34a", 
+                    color: "#16a34a",
                     fontWeight: 800,
                     boxShadow: "0 4px 12px rgba(0,0,0,0.15)"
                   }}

@@ -1019,3 +1019,17 @@ html, body {
 [data-theme="dark"] .attendance-list-overlay {
   background: #1e293b;
 }
+
+[data-theme="dark"] .hero-qr-container {
+  background: var(--surface-light);
+}
+
+[data-theme="dark"] .hero-pill-btn {
+  background: var(--surface-light);
+  color: var(--color-primary);
+}
+
+[data-theme="dark"] .btn-white {
+  background-color: var(--surface-light);
+  color: var(--text-primary);
+}

@@ -189,7 +189,7 @@ const CreateSessionPage = () => {
               Sesja #{qr.sessionId}
             </h2>
 
-            <div style={{ background: 'white', padding: '1rem', borderRadius: '1rem', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}>
+            <div style={{ background: 'var(--surface-light)', padding: '1rem', borderRadius: '1rem', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}>
               <img
                 alt="QR Code"
                 src={`data:image/png;base64,${qr.qrPngBase64}`}
