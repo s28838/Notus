@@ -147,9 +147,17 @@ const SchedulePage = () => {
           <span className="material-symbols-outlined text-primary">arrow_back</span>
         </button>
         <h2 className="top-bar-title">Mój Plan</h2>
-        <button className="icon-btn" style={{ background: 'var(--color-primary)', color: 'white' }}>
-          <span className="material-symbols-outlined">calendar_add_on</span>
-        </button>
+        {user?.role === 'teacher' ? (
+          <button
+            className="icon-btn"
+            onClick={() => navigate('/teacher/create-lesson')}
+            style={{ background: 'var(--color-primary)', color: 'white' }}
+          >
+            <span className="material-symbols-outlined">calendar_add_on</span>
+          </button>
+        ) : (
+          <div style={{ width: '2.5rem' }} />
+        )}
       </div>
 
       {/* Date Picker Section */}
@@ -226,7 +234,11 @@ const SchedulePage = () => {
                 {/* Timeline Dot */}
                 <div style={{ position: 'absolute', left: '0.375rem', top: '1.5rem', width: '14px', height: '14px', borderRadius: '50%', border: `2px solid ${index === 0 ? 'var(--color-primary)' : 'var(--border-light)'}`, background: 'white', zIndex: 10 }}></div>
                 
-                <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', opacity: index > 0 && selectedDate.toDateString() === today.toDateString() ? 0.8 : 1 }}>
+                <div
+                  className="glass-card"
+                  onClick={() => navigate(user?.role === 'teacher' ? `/teacher/lesson/${lesson.id}` : `/student/lesson/${lesson.id}`)}
+                  style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', cursor: 'pointer', opacity: index > 0 && selectedDate.toDateString() === today.toDateString() ? 0.8 : 1 }}
+                >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                     <div>
                       <h4 style={{ fontWeight: 700, fontSize: '1.125rem', margin: '0 0 0.25rem' }}>{lesson.subject}</h4>
