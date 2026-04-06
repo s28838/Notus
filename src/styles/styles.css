@@ -981,3 +981,11 @@ html, body {
 .manual-code-btn:hover {
     color: #ffffff;
 }
+
+@keyframes pageEnter {
+  from { transform: scale(0.96); opacity: 0; }
+  to   { transform: scale(1);    opacity: 1; }
+}
+.page-enter {
+  animation: pageEnter 0.2s ease-out;
+}
