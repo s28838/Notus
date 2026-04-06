@@ -20,6 +20,10 @@ import TeacherAssignQuizPage from "./pages/teacher/TeacherAssignQuizPage";
 import StudentQuizPage from "./pages/student/StudentQuizPage";
 import StudentQuizReviewPage from "./pages/student/StudentQuizReviewPage";
 import TeacherReviewPage from "./pages/teacher/TeacherReviewPage";
+import CreateLessonPage from "./pages/teacher/CreateLessonPage";
+import EditLessonPage from "./pages/teacher/EditLessonPage";
+import TeacherLessonDetailPage from "./pages/teacher/LessonDetailPage";
+import StudentLessonDetailPage from "./pages/student/LessonDetailPage";
 
 const RequireRole = ({ role, children }) => {
   const { user, isAuthReady } = useContext(AuthContext);
@@ -112,6 +116,38 @@ const AppRoutes = () => {
         element={
           <RequireRole role="teacher">
             <SchedulePage />
+          </RequireRole>
+        }
+      />
+      <Route
+        path="/teacher/create-lesson"
+        element={
+          <RequireRole role="teacher">
+            <CreateLessonPage />
+          </RequireRole>
+        }
+      />
+      <Route
+        path="/teacher/lesson/:id"
+        element={
+          <RequireRole role="teacher">
+            <TeacherLessonDetailPage />
+          </RequireRole>
+        }
+      />
+      <Route
+        path="/teacher/edit-lesson/:id"
+        element={
+          <RequireRole role="teacher">
+            <EditLessonPage />
+          </RequireRole>
+        }
+      />
+      <Route
+        path="/student/lesson/:id"
+        element={
+          <RequireRole role="student">
+            <StudentLessonDetailPage />
           </RequireRole>
         }
       />
