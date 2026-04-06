@@ -989,3 +989,32 @@ html, body {
 .page-enter {
   animation: pageEnter 0.2s ease-out;
 }
+
+/* =========================================
+   DARK MODE OVERRIDES
+========================================= */
+
+[data-theme="dark"] {
+  --bg-light: #0f172a;
+  --surface-light: #1e293b;
+  --border-light: #334155;
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-tertiary: #64748b;
+}
+
+[data-theme="dark"] .top-bar {
+  background-color: rgba(15, 23, 42, 0.9);
+}
+
+[data-theme="dark"] .bottom-nav-stitch {
+  background-color: rgba(30, 41, 59, 0.9);
+}
+
+[data-theme="dark"] .attendance-row {
+  background: #1e293b;
+}
+
+[data-theme="dark"] .attendance-list-overlay {
+  background: #1e293b;
+}
