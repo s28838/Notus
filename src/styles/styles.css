@@ -999,9 +999,10 @@ html, body {
   --surface-light: #1e293b;
   --border-light: #334155;
   --text-primary: #f1f5f9;
-  --text-secondary: #94a3b8;
-  --text-tertiary: #64748b;
+  --text-secondary: #94a3b8; /* slate-400 — brighter on dark bg */
+  --text-tertiary: #64748b;  /* slate-500 — muted on dark bg */
 }
+
 
 [data-theme="dark"] .top-bar {
   background-color: rgba(15, 23, 42, 0.9);
