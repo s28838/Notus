@@ -74,7 +74,7 @@ const EditLessonPage = () => {
       const token = await getToken();
       await apiPut(`/api/schedule/${id}`, {
         subject,
-        date: new Date(date).toISOString(),
+        date: new Date(`${date}T12:00:00`).toISOString(),
         time: `${timeStart} - ${timeEnd}`,
         room,
         type,

@@ -53,7 +53,7 @@ const CreateLessonPage = () => {
       const token = await getToken();
       await apiPost("/api/schedule", {
         subject,
-        date: new Date(date).toISOString(),
+        date: new Date(`${date}T12:00:00`).toISOString(),
         time: `${timeStart} - ${timeEnd}`,
         room,
         type,

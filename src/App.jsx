@@ -110,7 +110,7 @@ const AppRoutes = () => {
         }
       />
 
-      {/* 🔥 ŚCIEŻKA PLANU ZAJĘĆ DLA NAUCZYCIELA */}
+      {/* ŚCIEŻKA PLANU ZAJĘĆ DLA NAUCZYCIELA */}
       <Route
         path="/teacher/schedule"
         element={

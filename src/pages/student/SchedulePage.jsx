@@ -228,7 +228,7 @@ const SchedulePage = () => {
             </div>
           ) : schedule.length > 0 ? (
             schedule.map((lesson, index) => (
-              <div key={index} style={{ position: 'relative', paddingLeft: '2rem' }}>
+              <div key={lesson.id} style={{ position: 'relative', paddingLeft: '2rem' }}>
                 {/* Timeline Line */}
                 <div style={{ position: 'absolute', left: '0.75rem', top: 0, bottom: index === schedule.length - 1 ? '50%' : '-1rem', width: '2px', background: 'rgba(244, 89, 37, 0.2)' }}></div>
                 {/* Timeline Dot */}
