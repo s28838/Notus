@@ -33,7 +33,13 @@ const TeacherDashboard = () => {
 
   const [qr, setQr] = useState(() => {
     const saved = localStorage.getItem("active_qr_session");
-    return saved ? JSON.parse(saved) : null;
+    if (!saved) return null;
+    const parsed = JSON.parse(saved);
+    if (parsed.sessionEndsAt && parsed.sessionEndsAt * 1000 < Date.now()) {
+      localStorage.removeItem("active_qr_session");
+      return null;
+    }
+    return parsed;
   });
   const [loadingQr, setLoadingQr] = useState(false);
   const [errorQr, setErrorQr] = useState("");
