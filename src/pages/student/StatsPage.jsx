@@ -9,7 +9,7 @@ const StatsPage = () => {
 
   const goToHome = () => navigate("/student");
   const goToSchedule = () => navigate("/student/schedule");
-  const goToProfile = () => navigate("/student/profile");
+  const goToProfile = () => navigate("/student/settings");
 
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);

@@ -125,6 +125,27 @@
     box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 }
 
+/* Interactive cards with hover animations */
+.interactive-card {
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1), filter 0.2s;
+}
+.interactive-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08) !important;
+    filter: brightness(0.96);
+}
+body.dark .interactive-card:hover {
+    filter: brightness(1.2);
+}
+.interactive-card:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05) !important;
+    filter: brightness(0.92);
+}
+body.dark .interactive-card:active {
+    filter: brightness(0.9);
+}
+
 /* Primary Card (Quick Scan / Hero) */
 .hero-card {
     position: relative;
@@ -160,10 +181,17 @@
     border: none;
     cursor: pointer;
     box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
-    transition: transform 0.1s, background-color 0.2s;
+    transition: transform 0.2s, background-color 0.2s, box-shadow 0.2s;
 }
-.btn-white:hover { background-color: #f8fafc; }
-.btn-white:active { transform: scale(0.98); }
+.btn-white:hover { 
+    transform: translateY(-2px);
+    box-shadow: 0 8px 15px rgba(0,0,0,0.15);
+    background-color: #f8fafc; 
+}
+.btn-white:active { 
+    transform: translateY(1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
 
 /* Progress / Stats Card */
 .stats-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; }

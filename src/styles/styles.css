@@ -1033,3 +1033,7 @@ html, body {
   background-color: var(--surface-light);
   color: var(--text-primary);
 }
+
+[data-theme="dark"] .btn-white:hover {
+  background-color: var(--border-dark);
+}

@@ -105,7 +105,9 @@ export const AuthProvider = ({ children }) => {
 
   const login = (email) => {
     const role = email.trim().toLowerCase().startsWith("s") ? "student" : "teacher";
-    // For Dev Mode, we assign ID 1 by default so the dashboard can fetch data
+    const mockToken = `mock-dev-token:${email}`;
+    localStorage.setItem("clerkToken", mockToken);
+    
     setUser({ 
       id: 1, 
       email, 
@@ -117,7 +119,14 @@ export const AuthProvider = ({ children }) => {
     navigate(role === "student" ? "/student" : "/teacher");
   };
 
-  const authValue = { user, login, logout, isLoaded, isAuthReady, getToken };
+  const getLocalToken = async () => {
+    if (user?.isDev) {
+      return localStorage.getItem("clerkToken");
+    }
+    return await getToken();
+  };
+
+  const authValue = { user, login, logout, isLoaded, isAuthReady, getToken: getLocalToken };
 
   // Don't render until Clerk is loaded to avoid flashes or context errors
   if (!isLoaded) {

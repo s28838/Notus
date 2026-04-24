@@ -6,20 +6,21 @@ import TeacherBottomNav from "../../components/teacher/TeacherBottomNav";
 
 const ProfilePage = () => {
   const { user, logout } = useContext(AuthContext);
-  const { isDark, toggleTheme } = useTheme();
+  const { isDark, mode, toggleTheme } = useTheme();
   const navigate = useNavigate();
 
-  const userName = user?.name || "Student User";
+  const userName = user?.name || "Student User"; Ś
   const userRole = user?.role === "student" ? "Student" : "Teacher";
-  const userIndex = user?.index || "20230541"; 
+  const userIndex = user?.index || "20230541";
 
   const handleLogout = () => {
     logout();
   };
-  
+
   const goToSchedule = () => navigate(user?.role === "teacher" ? "/teacher/schedule" : "/student/schedule");
   const goToStats = () => navigate(user?.role === "teacher" ? "/teacher/stats" : "/student/stats");
   const goToHome = () => navigate(user?.role === "teacher" ? "/teacher" : "/student");
+  const goToSettings = () => navigate(user?.role === "teacher" ? "/teacher/settings" : "/student/settings");
 
   return (
     <div className="app-container">
@@ -42,16 +43,16 @@ const ProfilePage = () => {
       <div style={{ padding: '0 1.5rem', marginBottom: '2rem' }}>
         <h3 style={{ fontSize: '0.875rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-tertiary)', marginBottom: '0.75rem', marginLeft: '0.25rem', marginTop: 0 }}>Ustawienia</h3>
         <div className="glass-card" style={{ padding: 0, overflow: 'hidden' }}>
-          
+
           {[
-            { icon: "person", text: "Ustawienia konta" },
-            { icon: "notifications", text: "Powiadomienia" },
-            { icon: "verified_user", text: "Polityka prywatności" },
-            { icon: "help", text: "Pomoc i wsparcie" }
+            { icon: "person", text: "Ustawienia konta", action: goToSettings },
+            { icon: "notifications", text: "Powiadomienia", action: goToSettings },
+            { icon: "verified_user", text: "Polityka prywatności", action: () => { } },
+            { icon: "help", text: "Pomoc i wsparcie", action: () => { } }
           ].map((pref, i) => (
-            <button key={i} style={{ 
-              width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', 
-              padding: '1rem', background: 'transparent', border: 'none', 
+            <button key={i} onClick={pref.action} style={{
+              width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              padding: '1rem', background: 'transparent', border: 'none',
               borderBottom: i < 3 ? '1px solid var(--border-light)' : 'none',
               cursor: 'pointer'
             }}>
@@ -63,6 +64,7 @@ const ProfilePage = () => {
             </button>
           ))}
 
+
           <button onClick={toggleTheme} style={{
             width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             padding: '1rem', background: 'transparent', border: 'none',
@@ -71,11 +73,13 @@ const ProfilePage = () => {
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
               <span className="material-symbols-outlined text-slate-500">
-                {isDark ? 'light_mode' : 'dark_mode'}
+                {mode === 'system' ? 'brightness_auto' : isDark ? 'dark_mode' : 'light_mode'}
               </span>
-              <span style={{ fontWeight: 500, color: 'var(--text-primary)' }}>Tryb ciemny</span>
+              <span style={{ fontWeight: 500, color: 'var(--text-primary)' }}>
+                Motyw: {mode === 'system' ? 'Systemowy' : isDark ? 'Ciemny' : 'Jasny'}
+              </span>
             </div>
-            <span className="material-symbols-outlined" style={{ color: isDark ? 'var(--color-primary)' : 'var(--text-tertiary)', fontSize: '2rem' }}>
+            <span className="material-symbols-outlined" style={{ color: 'var(--color-primary)', fontSize: '2rem' }}>
               {isDark ? 'toggle_on' : 'toggle_off'}
             </span>
           </button>
@@ -85,8 +89,8 @@ const ProfilePage = () => {
 
       {/* Logout */}
       <div style={{ padding: '0 1.5rem', marginBottom: '2rem' }}>
-        <button className="btn-white" onClick={handleLogout} style={{ 
-          background: 'var(--color-primary)', color: 'white', display: 'flex', 
+        <button className="btn-white" onClick={handleLogout} style={{
+          background: 'var(--color-primary)', color: 'white', display: 'flex',
           alignItems: 'center', justifyContent: 'center', gap: '0.5rem', padding: '1rem',
           boxShadow: '0 10px 15px -3px rgba(244, 89, 37, 0.2)'
         }}>
