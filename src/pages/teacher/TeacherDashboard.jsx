@@ -309,14 +309,14 @@ const TeacherDashboard = () => {
     navigate("/teacher/create-quiz");
   };
 
-  const goToProfile = () => navigate("/teacher/profile");
+  const goToProfile = () => navigate("/teacher/settings");
   const goToSchedule = () => navigate("/teacher/schedule");
   const goToHistory = () => navigate("/teacher/stats");
 
   return (
     <div className="app-container">
       <header className="top-bar">
-        <button className="icon-btn" onClick={() => navigate("/teacher/profile")}>
+        <button className="icon-btn" onClick={() => navigate("/teacher/settings")}>
           <span className="material-symbols-outlined">account_circle</span>
         </button>
         <h2 className="top-bar-title">Panel Nauczyciela</h2>

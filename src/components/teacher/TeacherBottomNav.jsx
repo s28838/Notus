@@ -10,7 +10,7 @@ const TeacherBottomNav = () => {
     { label: "Plan", icon: "calendar_month", path: "/teacher/schedule" },
     { label: "Historia", icon: "history", path: "/teacher/stats" },
     { label: "Quizy", icon: "quiz", path: "/teacher/quizzes" },
-    { label: "Profil", icon: "person", path: "/teacher/profile" },
+    { label: "Profil", icon: "person", path: "/teacher/settings" },
   ];
 
   return (

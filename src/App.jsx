@@ -25,6 +25,7 @@ import CreateLessonPage from "./pages/teacher/CreateLessonPage";
 import EditLessonPage from "./pages/teacher/EditLessonPage";
 import TeacherLessonDetailPage from "./pages/teacher/LessonDetailPage";
 import StudentLessonDetailPage from "./pages/student/LessonDetailPage";
+import SettingsPage from "./pages/global/SettingsPage";
 
 const RequireRole = ({ role, children }) => {
   const { user, isAuthReady } = useContext(AuthContext);
@@ -57,6 +58,16 @@ const AppRoutes = () => {
         element={
           <RequireRole role="student">
             <ProfilePage />
+          </RequireRole>
+        }
+      />
+
+      {/* ŚCIEŻKA USTAWIEŃ DLA STUDENTA */}
+      <Route
+        path="/student/settings"
+        element={
+          <RequireRole role="student">
+            <SettingsPage />
           </RequireRole>
         }
       />
@@ -107,6 +118,16 @@ const AppRoutes = () => {
         element={
           <RequireRole role="teacher">
             <ProfilePage />
+          </RequireRole>
+        }
+      />
+
+      {/* ŚCIEŻKA USTAWIEŃ DLA NAUCZYCIELA */}
+      <Route
+        path="/teacher/settings"
+        element={
+          <RequireRole role="teacher">
+            <SettingsPage />
           </RequireRole>
         }
       />

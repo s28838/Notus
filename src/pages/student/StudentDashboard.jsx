@@ -31,6 +31,7 @@ const StudentDashboard = () => {
   const [loadingSchedule, setLoadingSchedule] = useState(true);
   const [activeQuiz, setActiveQuiz] = useState(null);
   const [reviewNotifications, setReviewNotifications] = useState([]);
+  const [latestGrades, setLatestGrades] = useState([]);
   const pollRef = useRef(null);
   const reviewPollRef = useRef(null);
 
@@ -73,64 +74,17 @@ const StudentDashboard = () => {
   useEffect(() => {
     const fetchSchedule = async () => {
       try {
-        const now = new Date();
-        const startOfDay = new Date(now);
-        startOfDay.setHours(0, 0, 0, 0);
-        const endOfDay = new Date(now);
-        endOfDay.setHours(23, 59, 59, 999);
-
         const token = await getToken();
-        const data = await apiGet("/api/student/schedule/range", {
-          start: startOfDay.toISOString(),
-          end: endOfDay.toISOString(),
-        }, token);
-
-        const curMins = now.getHours() * 60 + now.getMinutes();
-
-        const upcoming = (data || [])
-          .filter(l => {
-            if (!l.time || !l.time.includes(" - ")) return false;
-            const endStr = l.time.split(" - ")[1];
-            const [eH, eM] = endStr.split(":").map(Number);
-            return eH * 60 + eM >= curMins;
-          })
-          .sort((a, b) => {
-            const [aH, aM] = a.time.split(" - ")[0].split(":").map(Number);
-            const [bH, bM] = b.time.split(" - ")[0].split(":").map(Number);
-            return (aH * 60 + aM) - (bH * 60 + bM);
-          })
-          .slice(0, 3);
-
-        if (upcoming.length > 0) {
-          setUpcomingLessons(upcoming);
-          setUpcomingIsNextDay(false);
+        const data = await apiGet("/api/schedule/next", null, token);
+        
+        if (data && data.id) {
+          setUpcomingLessons([data]);
+          const todayStr = new Date().toDateString();
+          const lessonDateStr = new Date(data.date).toDateString();
+          setUpcomingIsNextDay(todayStr !== lessonDateStr);
         } else {
-          // No remaining lessons today — try tomorrow
-          const tomorrow = new Date();
-          tomorrow.setDate(tomorrow.getDate() + 1);
-          const startOfTomorrow = new Date(tomorrow);
-          startOfTomorrow.setHours(0, 0, 0, 0);
-          const endOfTomorrow = new Date(tomorrow);
-          endOfTomorrow.setHours(23, 59, 59, 999);
-          const tomorrowData = await apiGet("/api/student/schedule/range", {
-            start: startOfTomorrow.toISOString(),
-            end: endOfTomorrow.toISOString(),
-          }, token);
-          if (tomorrowData && tomorrowData.length > 0) {
-            const tomorrowUpcoming = tomorrowData
-              .filter(l => l.time && l.time.includes(" - "))
-              .sort((a, b) => {
-                const [aH, aM] = a.time.split(" - ")[0].split(":").map(Number);
-                const [bH, bM] = b.time.split(" - ")[0].split(":").map(Number);
-                return (aH * 60 + aM) - (bH * 60 + bM);
-              })
-              .slice(0, 3);
-            setUpcomingLessons(tomorrowUpcoming);
-            setUpcomingIsNextDay(true);
-          } else {
-            setUpcomingLessons([]);
-            setUpcomingIsNextDay(false);
-          }
+          setUpcomingLessons([]);
+          setUpcomingIsNextDay(false);
         }
       } catch {
         setUpcomingLessons([]);
@@ -140,7 +94,33 @@ const StudentDashboard = () => {
       }
     };
 
-    if (user) fetchSchedule();
+    const fetchGrades = async () => {
+      try {
+        if (user?.role !== 'teacher') {
+          const token = await getToken();
+          const res = await apiGet("/api/grades/recent", null, token);
+          
+          const now = new Date();
+          const mappedGrades = (res || []).map(grade => {
+            const issueDate = new Date(grade.issueDate);
+            const is24h = (now - issueDate) < 24 * 60 * 60 * 1000;
+            return {
+              ...grade,
+              isRecent24h: is24h
+            };
+          });
+          
+          setLatestGrades(mappedGrades);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    if (user) {
+      fetchSchedule();
+      fetchGrades();
+    }
   }, [user, getToken]);
 
   useEffect(() => {
@@ -199,7 +179,7 @@ const StudentDashboard = () => {
     setActiveQuiz(null);
   };
 
-  const goToProfile = () => navigate("/student/profile");
+  const goToProfile = () => navigate("/student/settings");
   const goToSchedule = () => navigate("/student/schedule");
   const goToScanQR = () => navigate("/student/scan-qr");
   const goToStats = () => navigate("/student/stats");
@@ -207,10 +187,10 @@ const StudentDashboard = () => {
   return (
     <div className="app-container">
       <header className="top-bar">
-        <button className="icon-btn" onClick={() => navigate("/student/profile")}>
+        <button className="icon-btn" onClick={() => navigate("/student/settings")}>
           <span className="material-symbols-outlined">account_circle</span>
         </button>
-        <h2 className="top-bar-title">Centrum Obecności</h2>
+        <h2 className="top-bar-title">Strona Główna</h2>
         <div style={{ width: "2.5rem" }} />
       </header>
 
@@ -262,8 +242,8 @@ const StudentDashboard = () => {
             </div>
           ) : (
             <>
-              <h1 className="hero-card-title">Szybki Skan</h1>
-              <p className="hero-card-subtitle">Zeskanuj kod QR, aby potwierdzić obecność</p>
+              <h1 className="hero-card-title" style={{ fontSize: "1.5rem" }}>Zeskanuj kod QR</h1>
+              <p className="hero-card-subtitle">Zeskanuj kod w sali, aby zalogować obecność</p>
             </>
           )}
         </div>
@@ -309,6 +289,55 @@ const StudentDashboard = () => {
           }}
         />
       </div>
+
+      {!loadingSchedule && (
+        <div className="interactive-card" style={{ margin: "0 1rem", padding: "1rem", borderRadius: "1rem", background: "var(--surface-light)", border: "1px solid var(--border-light)", display: "flex", alignItems: "center", gap: "1rem", boxShadow: "0 4px 12px rgba(0,0,0,0.05)", cursor: "pointer" }} onClick={goToSchedule}>
+           <div style={{ background: "rgba(244,89,37,0.1)", padding: "0.75rem", borderRadius: "0.75rem", display: "flex", alignItems: "center", justifyContent: "center" }}>
+             <span className="material-symbols-outlined" style={{ color: "var(--color-primary)", fontSize: "1.5rem" }}>schedule</span>
+           </div>
+           <div style={{ flex: 1, minWidth: 0 }}>
+             <p style={{ margin: "0 0 0.25rem", fontSize: "0.7rem", fontWeight: 800, color: "var(--color-primary)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+               {upcomingLessons.length > 0 ? (upcomingIsNextDay ? "Jutrzejsze zajęcia" : "Następne zajęcia") : "Najbliższe zajęcia"}
+             </p>
+             <p style={{ margin: "0 0 0.25rem", fontSize: "0.95rem", fontWeight: 700, color: "var(--text-primary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+               {upcomingLessons.length > 0 ? upcomingLessons[0].subject : "Brak zaplanowanych zajęć"}
+             </p>
+             <p style={{ margin: 0, fontSize: "0.8rem", color: "var(--text-secondary)", display: "flex", alignItems: "center", gap: "0.25rem" }}>
+               {upcomingLessons.length > 0 ? (
+                 <>
+                   <span className="material-symbols-outlined" style={{ fontSize: "1rem" }}>schedule</span> {upcomingLessons[0].time}
+                   <span className="material-symbols-outlined" style={{ fontSize: "1rem", marginLeft: "0.5rem" }}>location_on</span> {upcomingLessons[0].room || "TBD"}
+                 </>
+               ) : (
+                 "Sprawdź swój pełny plan"
+               )}
+             </p>
+           </div>
+           <span className="material-symbols-outlined" style={{ color: "var(--text-tertiary)" }}>chevron_right</span>
+        </div>
+      )}
+
+      {user?.role !== "teacher" && latestGrades.length > 0 && (
+        <div className="interactive-card" style={{ margin: "1rem 1rem 0 1rem", padding: "1rem", borderRadius: "1rem", background: "var(--surface-light)", border: "1px solid var(--border-light)", boxShadow: "0 4px 12px rgba(0,0,0,0.05)", cursor: "pointer" }} onClick={() => navigate("/student/schedule")}>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.75rem" }}>
+            <span className="material-symbols-outlined" style={{ color: "#16a34a", fontSize: "1.25rem" }}>school</span>
+            <h3 style={{ margin: 0, fontSize: "0.95rem", fontWeight: 700, color: "var(--text-primary)" }}>Ostatnie Oceny</h3>
+            {latestGrades.filter(g => g.isRecent24h).length > 0 && (
+              <span style={{ background: "#16a34a", color: "white", padding: "0.1rem 0.4rem", borderRadius: "999px", fontSize: "0.7rem", fontWeight: 800, marginLeft: "auto" }}>
+                +{latestGrades.filter(g => g.isRecent24h).length} nowe
+              </span>
+            )}
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
+            {latestGrades.map(grade => (
+              <div key={grade.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0.3rem 0", borderBottom: "1px solid rgba(22, 163, 74, 0.1)" }}>
+                <span style={{ fontSize: "0.85rem", fontWeight: 600, color: "var(--text-secondary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginRight: "1rem" }}>{grade.subject}</span>
+                <span style={{ fontSize: "0.95rem", fontWeight: 800, color: grade.isRecent24h ? "#16a34a" : "var(--text-primary)" }}>{grade.value}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {activeQuiz && (
         <div
@@ -384,56 +413,7 @@ const StudentDashboard = () => {
         </div>
       )}
 
-      {loadingSchedule ? (
-        <>
-          <h3 className="section-title">Następne Zajęcia</h3>
-          <div className="list-container">
-            {[1, 2].map(i => (
-              <div key={i} className="list-item" style={{ opacity: 0.4 }}>
-                <div className="list-item-content">
-                  <div style={{ height: "0.85rem", width: "60%", background: "var(--border-light)", borderRadius: "4px", marginBottom: "0.5rem" }} />
-                  <div style={{ height: "0.75rem", width: "40%", background: "var(--border-light)", borderRadius: "4px" }} />
-                </div>
-              </div>
-            ))}
-          </div>
-        </>
-      ) : upcomingLessons.length > 0 ? (
-        <>
-          <h3 className="section-title">{upcomingIsNextDay ? "Jutrzejsze Zajęcia" : "Następne Zajęcia"}</h3>
-          <div className="list-container">
-            {upcomingLessons.map((lesson, i) => {
-              const label = upcomingIsNextDay ? { text: "Jutro", style: "secondary" } : getLessonLabel(lesson.time);
-              return (
-                <div key={i} className="list-item" onClick={goToSchedule} style={{ cursor: "pointer" }}>
-                  <div className="list-item-content">
-                    {label && (
-                      <div className="list-item-top">
-                        <span className="material-symbols-outlined list-item-tag primary" style={{ fontSize: "14px" }}>schedule</span>
-                        <p className={`list-item-tag ${label.style}`}>{label.text}</p>
-                      </div>
-                    )}
-                    <h4 className="list-item-title">{lesson.subject}</h4>
-                    <div className="list-item-details">
-                      <div className="detail-pill">
-                        <span className="material-symbols-outlined">alarm</span>
-                        <p style={{ margin: 0 }}>{lesson.time}</p>
-                      </div>
-                      <div className="detail-pill">
-                        <span className="material-symbols-outlined">location_on</span>
-                        <p style={{ margin: 0 }}>{lesson.room || "TBD"}</p>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="list-item-action">
-                    <span className="material-symbols-outlined">chevron_right</span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </>
-      ) : null}
+
 
       <nav className="bottom-nav-stitch">
         <button className="nav-item active" onClick={() => navigate("/student")}>

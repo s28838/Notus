@@ -54,27 +54,14 @@ const SchedulePage = () => {
       setIsLoading(true);
       setError(null);
       try {
-        // Find the start and end of the selected date for filtering
-        const startOfDay = new Date(selectedDate);
-        startOfDay.setHours(0, 0, 0, 0);
-        
-        const endOfDay = new Date(selectedDate);
-        endOfDay.setHours(23, 59, 59, 999);
-        
         const token = await getToken();
-        let params = {
-          start: startOfDay.toISOString(),
-          end: endOfDay.toISOString()
-        };
+        const year = selectedDate.getFullYear();
+        const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
+        const day = String(selectedDate.getDate()).padStart(2, '0');
+        const formattedDate = `${year}-${month}-${day}`;
 
-        if (user?.role === 'teacher') {
-          if (user.id) params.teacherId = user.id;
-          else if (user.name) params.teacherName = user.name;
-        }
-
-        const data = await apiGet("/api/schedule", params, token);
+        const data = await apiGet(`/api/schedule/day/${formattedDate}`, null, token);
           
-        // Map the database rows to the expected format for our UI components.
         const formattedData = (data || []).map(row => ({
           id: row.id,
           subject: row.subject || "Unknown Subject",
@@ -87,7 +74,6 @@ const SchedulePage = () => {
 
         setSchedule(formattedData);
 
-        // Fetch quiz assignments for these lessons
         const ids = formattedData.map(l => l.id).filter(Boolean);
         if (ids.length > 0) {
           try {
@@ -100,7 +86,7 @@ const SchedulePage = () => {
             (assignments || []).forEach(a => { map[a.scheduleId] = a; });
             setAssignmentMap(map);
           } catch {
-            // non-critical — badges just won't show
+            // non-critical
           }
         } else {
           setAssignmentMap({});
@@ -122,7 +108,7 @@ const SchedulePage = () => {
   const handleBack = () => navigate(-1);
   const goToStats = () => navigate(user?.role === "teacher" ? "/teacher/stats" : "/student/stats");
   const goToHome = () => navigate(user?.role === "teacher" ? "/teacher" : "/student");
-  const goToProfile = () => navigate(user?.role === "teacher" ? "/teacher/profile" : "/student/profile");
+  const goToProfile = () => navigate(user?.role === "teacher" ? "/teacher/settings" : "/student/settings");
   
   const handleDaySelect = (date) => {
       if (date) setSelectedDate(date);
@@ -175,7 +161,7 @@ const SchedulePage = () => {
         <div className="no-scrollbar" style={{ display: 'flex', gap: '0.75rem', overflowX: 'auto', paddingBottom: '0.5rem' }}>
           {daysInMonth.map((dayInfo) => {
              const date = dayInfo.date;
-             if (!date) return null; // skip empties for this horizontal view
+             if (!date) return null; 
              
              const isSelected = date.toDateString() === selectedDate.toDateString();
              const dayName = getDayShortName((date.getDay() + 6) % 7);
@@ -229,9 +215,7 @@ const SchedulePage = () => {
           ) : schedule.length > 0 ? (
             schedule.map((lesson, index) => (
               <div key={lesson.id} style={{ position: 'relative', paddingLeft: '2rem' }}>
-                {/* Timeline Line */}
                 <div style={{ position: 'absolute', left: '0.75rem', top: 0, bottom: index === schedule.length - 1 ? '50%' : '-1rem', width: '2px', background: 'rgba(244, 89, 37, 0.2)' }}></div>
-                {/* Timeline Dot */}
                 <div style={{ position: 'absolute', left: '0.375rem', top: '1.5rem', width: '14px', height: '14px', borderRadius: '50%', border: `2px solid ${index === 0 ? 'var(--color-primary)' : 'var(--border-light)'}`, background: 'white', zIndex: 10 }}></div>
                 
                 <div
