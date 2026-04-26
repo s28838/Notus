@@ -181,7 +181,7 @@ const ScanQRPage = () => {
           onClick={handleBack}
           style={{ background: "transparent", color: "var(--text-primary)" }}
         >
-          <span className="material-symbols-outlined">arrow_back</span>
+          <span className="material-symbols-outlined text-primary">arrow_back</span>
         </button>
         <h2 className="top-bar-title" style={{ marginRight: "2.5rem" }}>
           Skanuj QR

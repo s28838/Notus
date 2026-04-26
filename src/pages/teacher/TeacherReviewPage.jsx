@@ -66,7 +66,7 @@ const TeacherReviewPage = () => {
       <div className="app-container">
         <div className="top-bar">
           <button className="icon-btn" onClick={() => navigate(-1)} style={{ background: "transparent", color: "var(--text-primary)" }}>
-            <span className="material-symbols-outlined">arrow_back</span>
+            <span className="material-symbols-outlined text-primary">arrow_back</span>
           </button>
           <h2 className="top-bar-title" style={{ marginRight: "2.5rem" }}>Ocena</h2>
         </div>
@@ -90,7 +90,7 @@ const TeacherReviewPage = () => {
     <div className="app-container">
       <div className="top-bar">
         <button className="icon-btn" onClick={() => navigate(-1)} style={{ background: "transparent", color: "var(--text-primary)" }}>
-          <span className="material-symbols-outlined">arrow_back</span>
+          <span className="material-symbols-outlined text-primary">arrow_back</span>
         </button>
         <h2 className="top-bar-title" style={{ marginRight: "2.5rem" }}>Ocena odpowiedzi</h2>
       </div>

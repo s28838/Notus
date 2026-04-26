@@ -43,7 +43,7 @@ const StudentQuizReviewPage = () => {
       <div className="app-container">
         <div className="top-bar">
           <button className="icon-btn" onClick={() => navigate(-1)} style={{ background: "transparent", color: "var(--text-primary)" }}>
-            <span className="material-symbols-outlined">arrow_back</span>
+            <span className="material-symbols-outlined text-primary">arrow_back</span>
           </button>
           <h2 className="top-bar-title" style={{ marginRight: "2.5rem" }}>Błąd</h2>
         </div>
@@ -61,7 +61,7 @@ const StudentQuizReviewPage = () => {
     <div className="app-container">
       <div className="top-bar">
         <button className="icon-btn" onClick={() => navigate(-1)} style={{ background: "transparent", color: "var(--text-primary)" }}>
-          <span className="material-symbols-outlined">arrow_back</span>
+          <span className="material-symbols-outlined text-primary">arrow_back</span>
         </button>
         <h2 className="top-bar-title" style={{ marginRight: "2.5rem" }}>{review.quizTitle}</h2>
       </div>
@@ -106,8 +106,8 @@ const StudentQuizReviewPage = () => {
               <div style={{
                 padding: "0.75rem",
                 borderRadius: "0.5rem",
-                background: ans.isCorrect === true ? "rgba(22, 163, 74, 0.1)" : (ans.isCorrect === false ? "rgba(239, 68, 68, 0.1)" : "var(--bg-light)"),
-                border: ans.isCorrect === true ? "1px solid rgba(22, 163, 74, 0.3)" : (ans.isCorrect === false ? "1px solid rgba(239, 68, 68, 0.3)" : "1px solid var(--border-light)"),
+                background: ans.isCorrect === true ? "rgba(22, 163, 74, 0.1)" : (ans.isCorrect === false ? "rgba(239, 68, 68, 0.1)" : "rgba(255, 255, 255, 0.05)"),
+                border: ans.isCorrect === true ? "1px solid rgba(22, 163, 74, 0.3)" : (ans.isCorrect === false ? "1px solid rgba(239, 68, 68, 0.3)" : "1px solid rgba(255, 255, 255, 0.1)"),
               }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", marginBottom: "0.25rem" }}>
                   <span className="material-symbols-outlined" style={{ fontSize: "1rem", color: ans.isCorrect === true ? "#16a34a" : (ans.isCorrect === false ? "#ef4444" : "var(--text-tertiary)") }}>

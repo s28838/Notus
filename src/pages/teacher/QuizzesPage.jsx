@@ -49,7 +49,7 @@ const QuizzesPage = () => {
           onClick={() => navigate("/teacher")}
           style={{ background: "transparent", color: "var(--text-primary)" }}
         >
-          <span className="material-symbols-outlined">arrow_back</span>
+          <span className="material-symbols-outlined text-primary">arrow_back</span>
         </button>
         <h2 className="top-bar-title">Twoje Quizy</h2>
         <button

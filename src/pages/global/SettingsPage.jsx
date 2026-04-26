@@ -379,7 +379,7 @@ const SettingsPage = () => {
 
       <header className="top-bar">
         <button className="icon-btn" onClick={() => navigate(-1)} id="btn-back-settings">
-          <span className="material-symbols-outlined">arrow_back</span>
+          <span className="material-symbols-outlined text-primary">arrow_back</span>
         </button>
         <h1 className="top-bar-title">{S.pageTitle}</h1>
         <div style={{ width:"2.5rem" }}/>

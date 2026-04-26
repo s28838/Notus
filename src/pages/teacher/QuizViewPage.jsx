@@ -128,7 +128,7 @@ const QuizViewPage = () => {
           onClick={() => navigate("/teacher/quizzes")}
           style={{ background: "transparent", color: "var(--text-primary)" }}
         >
-          <span className="material-symbols-outlined">arrow_back</span>
+          <span className="material-symbols-outlined text-primary">arrow_back</span>
         </button>
         <h2 className="top-bar-title" style={{ marginRight: isEditing ? 0 : "2.5rem" }}>
           {isEditing ? "Edytuj Quiz" : "Szczegóły Quizu"}
@@ -343,8 +343,8 @@ const QuizViewPage = () => {
                           style={{
                             padding: "0.75rem",
                             borderRadius: "0.75rem",
-                            background: q.correctAnswer === opt ? "rgba(22, 163, 74, 0.1)" : "#f8fafc",
-                            border: q.correctAnswer === opt ? "1px solid #16a34a" : "1px solid transparent",
+                            background: q.correctAnswer === opt ? "rgba(22, 163, 74, 0.1)" : "var(--surface-card, rgba(255,255,255,0.06))",
+                            border: q.correctAnswer === opt ? "1px solid #16a34a" : "1px solid var(--border-light)",
                             fontSize: "0.85rem",
                             display: "flex",
                             justifyContent: "space-between"
@@ -360,7 +360,7 @@ const QuizViewPage = () => {
                       ))}
                     </div>
                   ) : (
-                    <div style={{ padding: "1rem", borderRadius: "0.75rem", background: "#f8fafc", border: "1px dashed #cbd5e1" }}>
+                    <div style={{ padding: "1rem", borderRadius: "0.75rem", background: "var(--surface-card, rgba(255,255,255,0.06))", border: "1px dashed var(--border-light)" }}>
                       <p style={{ margin: 0, fontSize: "0.85rem", color: "var(--text-secondary)", fontStyle: "italic" }}>
                         Miejsce na odpowiedź opisową studenta.
                       </p>

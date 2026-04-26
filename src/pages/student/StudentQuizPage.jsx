@@ -71,7 +71,7 @@ const StudentQuizPage = () => {
       <div className="app-container">
         <div className="top-bar">
           <button className="icon-btn" onClick={() => navigate(-1)} style={{ background: "transparent", color: "var(--text-primary)" }}>
-            <span className="material-symbols-outlined">arrow_back</span>
+            <span className="material-symbols-outlined text-primary">arrow_back</span>
           </button>
           <h2 className="top-bar-title" style={{ marginRight: "2.5rem" }}>Quiz</h2>
         </div>
@@ -89,7 +89,7 @@ const StudentQuizPage = () => {
     <div className="app-container">
       <div className="top-bar">
         <button className="icon-btn" onClick={() => navigate(-1)} style={{ background: "transparent", color: "var(--text-primary)" }}>
-          <span className="material-symbols-outlined">arrow_back</span>
+          <span className="material-symbols-outlined text-primary">arrow_back</span>
         </button>
         <h2 className="top-bar-title" style={{ marginRight: "2.5rem" }}>{quiz?.quizTitle || "Quiz"}</h2>
       </div>
@@ -175,7 +175,7 @@ const StudentQuizPage = () => {
                             display: "flex", alignItems: "center", gap: "0.75rem",
                             padding: "0.75rem", borderRadius: "0.75rem", textAlign: "left",
                             border: selected ? "2px solid var(--color-primary)" : "1.5px solid var(--border-light)",
-                            background: selected ? "rgba(244,89,37,0.06)" : "var(--bg-light)",
+                            background: selected ? "rgba(244,89,37,0.08)" : "rgba(255, 255, 255, 0.05)",
                             cursor: "pointer", fontWeight: selected ? 700 : 500,
                             color: selected ? "var(--color-primary)" : "var(--text-primary)",
                             transition: "all 0.15s"
