@@ -358,7 +358,7 @@ const AboutSection = () => (
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 const SettingsPage = () => {
-  const { user } = useContext(AuthContext);
+  const { user, logout } = useContext(AuthContext);
   const navigate  = useNavigate();
   const [toast, setToast] = useState({ message:"", type:"success" });
   const [backendSettings, setBackendSettings] = useState(null);
@@ -372,6 +372,7 @@ const SettingsPage = () => {
   const goToHome     = () => navigate(user?.role==="teacher" ? "/teacher"          : "/student");
   const goToSchedule = () => navigate(user?.role==="teacher" ? "/teacher/schedule" : "/student/schedule");
   const goToStats    = () => navigate(user?.role==="teacher" ? "/teacher/stats"    : "/student/stats");
+  const handleLogout = () => logout();
 
   return (
     <div className="app-container">
@@ -391,6 +392,14 @@ const SettingsPage = () => {
         <ThemeSection/>
         <AccountManagementSection showToast={showToast} deactivatedStatus={backendSettings?.deactivated} />
         <AboutSection/>
+        <button
+          className="btn-primary"
+          onClick={handleLogout}
+          style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:"0.5rem", padding:"1rem" }}
+        >
+          <span className="material-symbols-outlined">logout</span>
+          Wyloguj się
+        </button>
       </div>
 
       {user?.role === "teacher" ? (
