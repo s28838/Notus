@@ -193,7 +193,7 @@ const QuizViewPage = () => {
             </div>
           )}
 
-          <div style={{ padding: "1rem" }}>
+          <div className="desktop-centered-content" style={{ padding: "1rem" }}>
             <div className="glass-card" style={{ padding: "1.5rem" }}>
               {isEditing ? (
                 <input
@@ -248,7 +248,7 @@ const QuizViewPage = () => {
           <h3 className="section-title">Pytania</h3>
 
           {isEditing ? (
-            <div style={{ padding: "0 1rem", display: "flex", flexDirection: "column", gap: "1rem" }}>
+            <div className="desktop-centered-content" style={{ padding: "0 1rem", display: "flex", flexDirection: "column", gap: "1rem" }}>
               {editQuestions.map((q, qIdx) => (
                 <div key={qIdx} className="glass-card" style={{ padding: "1.25rem" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "1rem" }}>

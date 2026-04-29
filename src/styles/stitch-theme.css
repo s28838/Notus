@@ -424,3 +424,196 @@ body.dark .interactive-card:active {
 .pulse-animation {
     animation: pulse 2s infinite ease-in-out;
 }
+
+/* === DESKTOP ADAPTATION === */
+@media (min-width: 900px) {
+    html,
+    body {
+        min-width: 900px;
+    }
+
+    body {
+        background:
+            radial-gradient(circle at 85% -10%, rgba(244, 89, 37, 0.08), transparent 320px),
+            linear-gradient(180deg, rgba(15, 23, 42, 0.02), transparent 260px),
+            var(--bg-light);
+    }
+
+    .app-container {
+        width: auto;
+        max-width: none;
+        min-height: 100vh;
+        margin: 0 auto;
+        padding: 2rem 3rem 3rem;
+        box-sizing: border-box;
+        overflow-x: visible;
+    }
+
+    .app-container:has(.bottom-nav-stitch) {
+        margin-left: 272px;
+        margin-right: 0;
+    }
+
+    .top-bar {
+        position: static;
+        width: 100%;
+        margin: 0;
+        padding: 0 0 1.25rem;
+        background: transparent;
+        backdrop-filter: none;
+        border-bottom: 1px solid var(--border-light);
+        justify-content: flex-start;
+        gap: 1rem;
+    }
+
+    .top-bar-title {
+        flex: 1;
+        text-align: left;
+        font-size: 1.85rem;
+        line-height: 1.15;
+        letter-spacing: 0;
+    }
+
+    .bottom-nav-stitch {
+        top: 1.5rem;
+        bottom: 1.5rem;
+        left: 1.5rem;
+        right: auto;
+        width: 224px;
+        max-width: none;
+        margin: 0;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: stretch;
+        gap: 0.35rem;
+        padding: 1rem;
+        border: 1px solid var(--border-light);
+        border-radius: 1rem;
+        box-sizing: border-box;
+        box-shadow: 0 18px 50px rgba(15, 23, 42, 0.10);
+    }
+
+    .bottom-nav-stitch::before {
+        content: "Notus";
+        display: block;
+        padding: 0.85rem 0.75rem 1.25rem;
+        color: var(--text-primary);
+        font-size: 1.2rem;
+        font-weight: 800;
+        letter-spacing: 0;
+    }
+
+    .nav-item {
+        flex: 0 0 auto;
+        width: 100%;
+        min-height: 48px;
+        flex-direction: row;
+        justify-content: flex-start;
+        gap: 0.75rem;
+        border-radius: 0.7rem;
+        padding: 0.7rem 0.75rem;
+        box-sizing: border-box;
+        text-align: left;
+        text-transform: none;
+        letter-spacing: 0;
+        font-size: 0.9rem;
+    }
+
+    .nav-item:hover,
+    .nav-item.active {
+        background: rgba(244, 89, 37, 0.10);
+    }
+
+    .nav-item .material-symbols-outlined {
+        font-size: 1.35rem;
+    }
+
+    .hero-card,
+    .section-title,
+    .list-container,
+    .loading-state,
+    .error-state,
+    .empty-state {
+        width: min(100%, 1240px);
+        max-width: none;
+        box-sizing: border-box;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .hero-card {
+        min-height: 260px;
+        margin-top: 2rem;
+        padding: 2.5rem;
+        align-items: stretch;
+        text-align: left;
+        display: grid;
+        grid-template-columns: 4rem minmax(280px, 1fr) minmax(260px, 380px);
+        gap: 1.5rem;
+    }
+
+    .hero-card-icon {
+        align-self: start;
+    }
+
+    .hero-card-inner {
+        align-items: flex-start;
+        justify-content: center;
+    }
+
+    .hero-card-title {
+        font-size: 2rem;
+    }
+
+    .hero-card-subtitle {
+        font-size: 1rem;
+    }
+
+    .hero-card-button-group {
+        width: 100%;
+        align-self: center;
+        justify-self: end;
+    }
+
+    .section-title {
+        padding: 2rem 0 0.75rem;
+        font-size: 1.2rem;
+    }
+
+    .app-container > .interactive-card,
+    .app-container > div:not(.top-bar):not(.hero-card):not(.bottom-nav-stitch) {
+        width: min(100%, 1240px);
+        max-width: 1240px;
+        margin-left: auto !important;
+        margin-right: auto !important;
+        box-sizing: border-box;
+    }
+
+    .desktop-centered-content {
+        width: min(100%, 1040px);
+        max-width: 1040px;
+        margin-left: auto !important;
+        margin-right: auto !important;
+        box-sizing: border-box;
+    }
+
+    .list-container {
+        padding: 0;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 1rem;
+    }
+
+    .list-item {
+        min-height: 104px;
+        padding: 1rem;
+        border-radius: 0.875rem;
+    }
+
+    .glass-card,
+    .interactive-card,
+    .empty-state,
+    .error-state {
+        border-radius: 0.875rem;
+    }
+}

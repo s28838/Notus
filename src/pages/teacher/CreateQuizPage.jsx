@@ -99,7 +99,7 @@ const CreateQuizPage = () => {
         <h2 className="top-bar-title" style={{ marginRight: '2.5rem' }}>Stwórz Quiz</h2>
       </div>
 
-      <div style={{ padding: "1rem" }}>
+      <div className="desktop-centered-content" style={{ padding: "1rem" }}>
         <div className="glass-card" style={{ display: "flex", padding: "0.5rem", marginBottom: "1.5rem" }}>
           <button
             onClick={() => setActiveTab("manual")}

@@ -114,7 +114,7 @@ const EditLessonPage = () => {
         <div style={{ width: '2.5rem' }} />
       </div>
 
-      <div style={{ padding: '1.5rem 1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      <div className="desktop-centered-content" style={{ padding: '1.5rem 1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
         <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <div>
             <label style={labelStyle}>Przedmiot *</label>

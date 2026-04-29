@@ -90,7 +90,7 @@ const LessonDetailPage = () => {
         </button>
       </div>
 
-      <div style={{ padding: '1.5rem 1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      <div className="desktop-centered-content" style={{ padding: '1.5rem 1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
         <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <h2 style={{ fontWeight: 700, fontSize: '1.375rem', margin: 0 }}>{lesson.subject}</h2>

@@ -389,9 +389,7 @@ const SettingsPage = () => {
         <PersonalSection user={user}/>
         <ContactSection showToast={showToast}/>
         <ThemeSection/>
-        <SecuritySection showToast={showToast}/>
         <AccountManagementSection showToast={showToast} deactivatedStatus={backendSettings?.deactivated} />
-        <NotificationsSection showToast={showToast} backendSettings={backendSettings} />
         <AboutSection/>
       </div>
 

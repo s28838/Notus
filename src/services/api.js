@@ -1,4 +1,4 @@
-const BASE = import.meta.env.VITE_API_URL;
+const BASE = (import.meta.env.VITE_API_URL || "http://localhost:8080").replace(/\/+$/, "");
 
 function extractErrorMessage(text, status) {
   try {

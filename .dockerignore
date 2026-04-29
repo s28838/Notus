@@ -1,0 +1,14 @@
+node_modules
+dist
+www
+.vercel
+.git
+.env
+.env.*
+!.env.example
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+Dockerfile
+docker-compose.yml
