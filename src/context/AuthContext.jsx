@@ -19,18 +19,20 @@ export const AuthProvider = ({ children }) => {
 const DevAuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [authError, setAuthError] = useState(null);
+  const [isAuthReady, setIsAuthReady] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
     const token = localStorage.getItem("clerkToken");
     const role = localStorage.getItem("notus:selectedRole");
     if (!token) {
+      setIsAuthReady(true);
       return;
     }
 
     if (token.startsWith("mock-dev-token:") && role) {
       const email = token.split(":").slice(2).join(":");
-      login(email, role);
+      login(email, role, { redirect: false }).finally(() => setIsAuthReady(true));
       return;
     }
 
@@ -45,10 +47,11 @@ const DevAuthProvider = ({ children }) => {
           isLocalAuth: true
         });
       })
-      .catch(() => localStorage.removeItem("clerkToken"));
+      .catch(() => localStorage.removeItem("clerkToken"))
+      .finally(() => setIsAuthReady(true));
   }, []);
 
-  const login = async (email, role = "student") => {
+  const login = async (email, role = "student", options = { redirect: true }) => {
     const mockToken = `mock-dev-token:${role.toUpperCase()}:${email}`;
     localStorage.setItem("notus:selectedRole", role);
 
@@ -73,7 +76,9 @@ const DevAuthProvider = ({ children }) => {
         index: backendUser.indexNumber || null,
         isDev: true
       });
-      navigate(backendRole === "student" ? "/student" : "/teacher");
+      if (options.redirect !== false) {
+        navigate(backendRole === "student" ? "/student" : "/teacher");
+      }
     } catch (err) {
       console.error("Dev login failed:", err);
       localStorage.removeItem("clerkToken");
@@ -193,7 +198,7 @@ const DevAuthProvider = ({ children }) => {
     logout,
     isLoaded: true,
     isSignedIn: Boolean(user),
-    isAuthReady: true,
+    isAuthReady,
     authError,
     retryUserSync,
     getToken: async () => localStorage.getItem("clerkToken"),
@@ -236,12 +241,16 @@ const ClerkAuthProvider = ({ children }) => {
     const backendPayload = selectedRole === "teacher"
       ? await apiPost("/api/auth/teacher/google-register", {
           idToken: token,
-          registrationToken: registrationToken || null
+          registrationToken: registrationToken || null,
+          email: clerkUser.primaryEmailAddress?.emailAddress || null,
+          name,
+          emailVerified: clerkUser.primaryEmailAddress?.verification?.status === "verified"
         })
       : selectedRole
         ? await apiPost("/api/me", {
             role: selectedRole.toUpperCase(),
             name,
+            email: clerkUser.primaryEmailAddress?.emailAddress || null,
             teacherAccessCode: null
           }, token)
         : await apiGet("/api/me", { name }, token);
@@ -272,7 +281,11 @@ const ClerkAuthProvider = ({ children }) => {
           if (t) {
             localStorage.setItem("clerkToken", t);
           }
-        } else if (isLoaded && !isSignedIn && localStorage.getItem("notus:authProvider") !== "local") {
+        } else if (
+          isLoaded &&
+          !isSignedIn &&
+          !["local", "dev"].includes(localStorage.getItem("notus:authProvider"))
+        ) {
           localStorage.removeItem("clerkToken");
         }
       } catch (err) {
@@ -288,16 +301,39 @@ const ClerkAuthProvider = ({ children }) => {
   }, [isLoaded, isSignedIn, getToken]);
 
   useEffect(() => {
+    if (!isLoaded) {
+      return;
+    }
+
+    let cancelled = false;
+    const finish = () => {
+      if (!cancelled) {
+        setIsAuthReady(true);
+      }
+    };
+
+    setIsAuthReady(false);
+
     try {
       if (isLoaded && isSignedIn && clerkUser) {
         syncUserToBackend().catch((err) => {
           console.error("Backend user sync failed:", err);
           setAuthError(err.message || "Nie udało się zsynchronizować konta");
           setUser(null);
-        });
+        }).finally(finish);
       } else if (isLoaded && !isSignedIn) {
         const localToken = localStorage.getItem("clerkToken");
-        if (localToken && !localToken.startsWith("mock-dev-token:")) {
+        if (localToken && localToken.startsWith("mock-dev-token:")) {
+          const role = localStorage.getItem("notus:selectedRole");
+          const email = localToken.split(":").slice(2).join(":");
+          if (role && email) {
+            login(email, role, { redirect: false }).finally(finish);
+          } else {
+            localStorage.removeItem("clerkToken");
+            setUser(null);
+            finish();
+          }
+        } else if (localToken) {
           apiGet("/api/me", null, localToken)
             .then((backendUser) => {
               setUser({
@@ -309,16 +345,21 @@ const ClerkAuthProvider = ({ children }) => {
                 isLocalAuth: true
               });
             })
-            .catch(() => localStorage.removeItem("clerkToken"));
+            .catch(() => localStorage.removeItem("clerkToken"))
+            .finally(finish);
         } else {
           setUser(prev => (prev?.isDev || prev?.isLocalAuth ? prev : null));
+          finish();
         }
       }
     } catch (err) {
       console.error("Error in AuthContext useEffect:", err);
-    } finally {
-      if (isLoaded) setIsAuthReady(true);
+      finish();
     }
+
+    return () => {
+      cancelled = true;
+    };
   }, [isLoaded, isSignedIn, clerkUser, getToken]);
 
   const logout = async () => {
@@ -333,7 +374,7 @@ const ClerkAuthProvider = ({ children }) => {
     }
   };
 
-  const login = async (email, role = "student") => {
+  const login = async (email, role = "student", options = { redirect: true }) => {
     const mockToken = `mock-dev-token:${role.toUpperCase()}:${email}`;
     localStorage.setItem("notus:selectedRole", role);
 
@@ -358,7 +399,9 @@ const ClerkAuthProvider = ({ children }) => {
         index: backendUser.indexNumber || null,
         isDev: true
       });
-      navigate(backendRole === "student" ? "/student" : "/teacher");
+      if (options.redirect !== false) {
+        navigate(backendRole === "student" ? "/student" : "/teacher");
+      }
     } catch (err) {
       console.error("Dev login failed:", err);
       localStorage.removeItem("clerkToken");

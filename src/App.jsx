@@ -31,6 +31,7 @@ import TeacherGroupDetailsPage from "./pages/teacher/groups/TeacherGroupDetailsP
 import StudentAttendancePage from "./pages/teacher/groups/StudentAttendancePage";
 import StudentGradesPage from "./pages/teacher/groups/StudentGradesPage";
 import GroupInviteAcceptPage from "./pages/global/GroupInviteAcceptPage";
+import EmailVerificationPage from "./pages/global/EmailVerificationPage";
 
 const RequireRole = ({ role, children }) => {
   const { user, isAuthReady } = useContext(AuthContext);
@@ -47,6 +48,7 @@ const AppRoutes = () => {
     <Routes>
       <Route path="/login" element={<LoginPage />} />
       <Route path="/invite/group" element={<GroupInviteAcceptPage />} />
+      <Route path="/verify-email" element={<EmailVerificationPage />} />
 
       {/* GŁÓWNA ŚCIEŻKA STUDENTA */}
       <Route

@@ -109,7 +109,7 @@ const TeacherGroupDetailsPage = () => {
       {notice && <div className="success-banner">{notice}</div>}
       {error && <div className="error-banner">{error}</div>}
 
-      <section className="data-panel">
+      <section className="data-panel student-roster-panel">
         <h2>Uczniowie</h2>
         {students.length === 0 ? (
           <div className="empty-state">
@@ -118,7 +118,7 @@ const TeacherGroupDetailsPage = () => {
             <p>Użyj przycisku Dodaj ucznia, żeby wysłać zaproszenie email.</p>
           </div>
         ) : (
-          <div className="responsive-table">
+          <div className="responsive-table student-roster-table">
             <table>
               <thead>
                 <tr>
@@ -136,7 +136,15 @@ const TeacherGroupDetailsPage = () => {
                     <td>{student.email}</td>
                     <td>
                       <button className="table-link" onClick={() => navigate(`/teacher/groups/${groupId}/students/${student.id}/attendance`)}>
-                        {student.attendancePercentage}%
+                        <span className="attendance-meter" aria-label={`Frekwencja ${student.attendancePercentage}%`}>
+                          <span className="attendance-meter-track">
+                            <span
+                              className="attendance-meter-fill"
+                              style={{ width: `${Math.max(0, Math.min(100, Number(student.attendancePercentage) || 0))}%` }}
+                            />
+                          </span>
+                          <strong>{student.attendancePercentage}%</strong>
+                        </span>
                       </button>
                     </td>
                     <td>

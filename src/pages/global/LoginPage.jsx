@@ -74,7 +74,10 @@ const LoginPage = () => {
   const [pending, setPending] = useState(false);
   const [localError, setLocalError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
-  const [devTeacherCode, setDevTeacherCode] = useState(() => localStorage.getItem("notus:teacherAccessCode") || "notus-teacher-dev");
+  const [devTeacherCode, setDevTeacherCode] = useState(() => {
+    const stored = localStorage.getItem("notus:teacherAccessCode");
+    return stored && !stored.startsWith("TEST-") ? stored : "notus-teacher-dev";
+  });
   const [studentLoginForm, setStudentLoginForm] = useState({ email: "", password: "" });
   const [studentRegisterForm, setStudentRegisterForm] = useState({
     name: "",
