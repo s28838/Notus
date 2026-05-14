@@ -9,6 +9,9 @@ const CreateQuizPage = () => {
 
   const [activeTab, setActiveTab] = useState("manual"); // "manual" or "ai"
   const [title, setTitle] = useState("");
+  const [countAsGrade, setCountAsGrade] = useState(false);
+  const [gradeWeight, setGradeWeight] = useState(1);
+  const [semester, setSemester] = useState("2");
   const [questions, setQuestions] = useState([
     { question: "", type: "CLOSED", options: ["", "", "", ""], correctAnswer: "" }
   ]);
@@ -50,7 +53,13 @@ const CreateQuizPage = () => {
     try {
       setLoading(true);
       const token = await getToken();
-      await apiPost("/api/quiz/save", { title, questions }, token);
+      await apiPost("/api/quiz/save", {
+        title,
+        questions,
+        countAsGrade,
+        gradeWeight: countAsGrade ? Number(gradeWeight) : null,
+        semester: countAsGrade ? semester : null,
+      }, token);
       navigate("/teacher/quizzes");
     } catch (err) {
       alert("Błąd: " + err.message);
@@ -76,7 +85,12 @@ const CreateQuizPage = () => {
       // After generation, we can either save automatically or let teacher review.
       // User said "Teacher should be able to create... using a PDF".
       // Let's save it and go back to list.
-      await apiPost("/api/quiz/save", generated, token);
+      await apiPost("/api/quiz/save", {
+        ...generated,
+        countAsGrade,
+        gradeWeight: countAsGrade ? Number(gradeWeight) : null,
+        semester: countAsGrade ? semester : null,
+      }, token);
       navigate("/teacher/quizzes");
     } catch (err) {
       alert("Błąd AI: " + err.message);
@@ -146,6 +160,29 @@ const CreateQuizPage = () => {
                 placeholder="np. Kolokwium z Matematyki"
                 style={{ width: "100%", padding: "0.75rem", boxSizing: "border-box" }}
               />
+            </div>
+
+            <div className="glass-card" style={{ padding: "1.25rem", display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+              <label style={{ display: "flex", alignItems: "center", gap: "0.6rem", fontWeight: 800 }}>
+                <input
+                  type="checkbox"
+                  checked={countAsGrade}
+                  onChange={(e) => setCountAsGrade(e.target.checked)}
+                />
+                Dodaj wynik quizu jako ocenę
+              </label>
+              {countAsGrade && (
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
+                  <label style={{ display: "flex", flexDirection: "column", gap: "0.35rem", fontSize: "0.85rem", fontWeight: 700 }}>
+                    Waga
+                    <input className="form-input" type="number" min="1" value={gradeWeight} onChange={(e) => setGradeWeight(e.target.value)} />
+                  </label>
+                  <label style={{ display: "flex", flexDirection: "column", gap: "0.35rem", fontSize: "0.85rem", fontWeight: 700 }}>
+                    Semestr
+                    <input className="form-input" value={semester} onChange={(e) => setSemester(e.target.value)} />
+                  </label>
+                </div>
+              )}
             </div>
 
             {questions.map((q, qIdx) => (

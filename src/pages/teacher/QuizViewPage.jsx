@@ -16,6 +16,9 @@ const QuizViewPage = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState("");
   const [editQuestions, setEditQuestions] = useState([]);
+  const [editCountAsGrade, setEditCountAsGrade] = useState(false);
+  const [editGradeWeight, setEditGradeWeight] = useState(1);
+  const [editSemester, setEditSemester] = useState("2");
   const [saving, setSaving] = useState(false);
   const [versionBanner, setVersionBanner] = useState("");
   const savingRef = useRef(false);
@@ -47,6 +50,9 @@ const QuizViewPage = () => {
         correctAnswer: q.correctAnswer ?? "",
       }))
     );
+    setEditCountAsGrade(Boolean(quiz.countAsGrade));
+    setEditGradeWeight(quiz.gradeWeight || 1);
+    setEditSemester(quiz.semester || "2");
     setVersionBanner("");
     setIsEditing(true);
   };
@@ -70,6 +76,9 @@ const QuizViewPage = () => {
       const response = await apiPut(`/api/quiz/${quiz.id}`, {
         title: editTitle,
         questions: editQuestions,
+        countAsGrade: editCountAsGrade,
+        gradeWeight: editCountAsGrade ? Number(editGradeWeight) : null,
+        semester: editCountAsGrade ? editSemester : null,
       }, token);
 
       if (response.id !== quiz.id) {
@@ -228,6 +237,35 @@ const QuizViewPage = () => {
                   </div>
                 )}
               </div>
+              {isEditing ? (
+                <div style={{ marginTop: "1rem", paddingTop: "1rem", borderTop: "1px solid var(--border-light)" }}>
+                  <label style={{ display: "flex", alignItems: "center", gap: "0.6rem", fontWeight: 800 }}>
+                    <input
+                      type="checkbox"
+                      checked={editCountAsGrade}
+                      onChange={(e) => setEditCountAsGrade(e.target.checked)}
+                    />
+                    Dodaj wynik quizu jako ocenę
+                  </label>
+                  {editCountAsGrade && (
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem", marginTop: "0.75rem" }}>
+                      <label style={{ display: "flex", flexDirection: "column", gap: "0.35rem", fontSize: "0.85rem", fontWeight: 700 }}>
+                        Waga
+                        <input className="form-input" type="number" min="1" value={editGradeWeight} onChange={(e) => setEditGradeWeight(e.target.value)} />
+                      </label>
+                      <label style={{ display: "flex", flexDirection: "column", gap: "0.35rem", fontSize: "0.85rem", fontWeight: 700 }}>
+                        Semestr
+                        <input className="form-input" value={editSemester} onChange={(e) => setEditSemester(e.target.value)} />
+                      </label>
+                    </div>
+                  )}
+                </div>
+              ) : quiz.countAsGrade ? (
+                <div className="detail-pill" style={{ marginTop: "1rem", width: "fit-content" }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: "1rem" }}>grade</span>
+                  <p style={{ margin: 0 }}>Quiz liczony jako ocena, waga {quiz.gradeWeight}, semestr {quiz.semester}</p>
+                </div>
+              ) : null}
               {isEditing && quiz.hasSubmissions && (
                 <div style={{
                   marginTop: "1rem",

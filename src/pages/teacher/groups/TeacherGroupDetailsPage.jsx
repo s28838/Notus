@@ -14,6 +14,14 @@ const TeacherGroupDetailsPage = () => {
   const [inviteEmail, setInviteEmail] = useState("");
   const [showInvite, setShowInvite] = useState(false);
   const [editingStudent, setEditingStudent] = useState(null);
+  const [gradeForm, setGradeForm] = useState({
+    value: "5",
+    weight: 1,
+    semester: group?.semester || "2",
+    title: "",
+    description: "",
+    comment: "",
+  });
 
   const load = async () => {
     setLoading(true);
@@ -65,6 +73,35 @@ const TeacherGroupDetailsPage = () => {
       await load();
     } catch {
       setError("Nie udało się zaktualizować danych ucznia.");
+    }
+  };
+
+  const saveGrade = async () => {
+    if (!editingStudent) return;
+    setNotice("");
+    setError("");
+    try {
+      await apiPost(`/api/teacher/groups/${groupId}/students/${editingStudent.id}/grades`, {
+        value: gradeForm.value,
+        weight: Number(gradeForm.weight),
+        semester: gradeForm.semester,
+        title: gradeForm.title,
+        description: gradeForm.description,
+        comment: gradeForm.comment,
+        gradeDate: new Date().toISOString().slice(0, 10),
+      });
+      setNotice("Ocena została wystawiona.");
+      setGradeForm({
+        value: "5",
+        weight: 1,
+        semester: group?.semester || "2",
+        title: "",
+        description: "",
+        comment: "",
+      });
+      await load();
+    } catch {
+      setError("Nie udało się wystawić oceny.");
     }
   };
 
@@ -195,6 +232,38 @@ const TeacherGroupDetailsPage = () => {
             <div className="modal-actions">
               <button type="button" onClick={() => setEditingStudent(null)}>Anuluj</button>
               <button className="primary-action-btn" type="submit">Zapisz zmiany</button>
+            </div>
+            <div className="grade-form-section">
+              <h3>Wystaw ocenę</h3>
+              <div className="form-grid">
+                <label>
+                  Ocena
+                  <input value={gradeForm.value} onChange={(e) => setGradeForm({ ...gradeForm, value: e.target.value })} />
+                </label>
+                <label>
+                  Waga
+                  <input type="number" min="1" value={gradeForm.weight} onChange={(e) => setGradeForm({ ...gradeForm, weight: e.target.value })} />
+                </label>
+                <label>
+                  Semestr
+                  <input value={gradeForm.semester} onChange={(e) => setGradeForm({ ...gradeForm, semester: e.target.value })} />
+                </label>
+                <label>
+                  Z czego
+                  <input value={gradeForm.title} onChange={(e) => setGradeForm({ ...gradeForm, title: e.target.value })} placeholder="Kartkówka" />
+                </label>
+              </div>
+              <label>
+                Opis
+                <input value={gradeForm.description} onChange={(e) => setGradeForm({ ...gradeForm, description: e.target.value })} placeholder="Ułamki zwykłe" />
+              </label>
+              <label>
+                Komentarz
+                <textarea value={gradeForm.comment} onChange={(e) => setGradeForm({ ...gradeForm, comment: e.target.value })} placeholder="Bardzo dobra praca" />
+              </label>
+              <button className="primary-action-btn" type="button" onClick={saveGrade}>
+                Zapisz ocenę
+              </button>
             </div>
           </form>
         </div>
