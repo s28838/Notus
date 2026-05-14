@@ -1,17 +1,268 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useUser, useAuth, useClerk } from "@clerk/react";
-import { apiGet } from "../services/api";
+import { apiGet, apiPost } from "../services/api";
 
 export const AuthContext = React.createContext(null);
 
 export const AuthProvider = ({ children }) => {
+  const clerkEnabled = Boolean(import.meta.env.VITE_CLERK_PUBLISHABLE_KEY) &&
+    !import.meta.env.VITE_CLERK_PUBLISHABLE_KEY.includes("replace_me");
+
+  if (!clerkEnabled) {
+    return <DevAuthProvider>{children}</DevAuthProvider>;
+  }
+
+  return <ClerkAuthProvider>{children}</ClerkAuthProvider>;
+};
+
+const DevAuthProvider = ({ children }) => {
+  const [user, setUser] = useState(null);
+  const [authError, setAuthError] = useState(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const token = localStorage.getItem("clerkToken");
+    const role = localStorage.getItem("notus:selectedRole");
+    if (!token) {
+      return;
+    }
+
+    if (token.startsWith("mock-dev-token:") && role) {
+      const email = token.split(":").slice(2).join(":");
+      login(email, role);
+      return;
+    }
+
+    apiGet("/api/me", null, token)
+      .then((backendUser) => {
+        setUser({
+          id: backendUser.id,
+          email: backendUser.email,
+          role: backendUser.role.toLowerCase(),
+          name: backendUser.name,
+          index: backendUser.indexNumber || null,
+          isLocalAuth: true
+        });
+      })
+      .catch(() => localStorage.removeItem("clerkToken"));
+  }, []);
+
+  const login = async (email, role = "student") => {
+    const mockToken = `mock-dev-token:${role.toUpperCase()}:${email}`;
+    localStorage.setItem("notus:selectedRole", role);
+
+    try {
+      const backendUser = await apiPost("/api/me", {
+        role: role.toUpperCase(),
+        name: "Dev Mode User",
+        teacherAccessCode: role === "teacher"
+          ? localStorage.getItem("notus:teacherAccessCode")
+          : null
+      }, mockToken);
+      const backendRole = backendUser.role.toLowerCase();
+
+      localStorage.setItem("clerkToken", mockToken);
+      localStorage.setItem("notus:authProvider", "dev");
+      setAuthError(null);
+      setUser({
+        id: backendUser.id,
+        email: backendUser.email,
+        role: backendRole,
+        name: backendUser.name,
+        index: backendUser.indexNumber || null,
+        isDev: true
+      });
+      navigate(backendRole === "student" ? "/student" : "/teacher");
+    } catch (err) {
+      console.error("Dev login failed:", err);
+      localStorage.removeItem("clerkToken");
+      setAuthError(err.message || "Nie udało się zalogować w trybie dev");
+      setUser(null);
+    }
+  };
+
+  const logout = async () => {
+    localStorage.removeItem("clerkToken");
+    localStorage.removeItem("notus:authProvider");
+    setUser(null);
+    navigate("/login");
+  };
+
+  const teacherEmailLogin = async (email, password) => {
+    try {
+      const response = await apiPost("/api/auth/teacher/login", { email, password });
+      if (response.token && response.user) {
+      localStorage.setItem("clerkToken", response.token);
+      localStorage.setItem("notus:selectedRole", "teacher");
+      localStorage.setItem("notus:authProvider", "local");
+        setAuthError(null);
+        setUser({
+          id: response.user.id,
+          email: response.user.email,
+          role: response.user.role.toLowerCase(),
+          name: response.user.name,
+          index: response.user.indexNumber || null,
+          isLocalAuth: true
+        });
+        navigate("/teacher");
+      } else if (response.message) {
+        setAuthError(response.message);
+      }
+      return response;
+    } catch (err) {
+      setAuthError(err.message || "Nie udało się zalogować nauczyciela");
+      throw err;
+    }
+  };
+
+  const teacherEmailRegister = async ({ code, name, email, password }) => {
+    try {
+      const verification = await apiPost("/api/auth/teacher/verify-code", { code, email });
+      const response = await apiPost("/api/auth/teacher/register", {
+        registrationToken: verification.registrationToken,
+        name,
+        email,
+        password
+      });
+      setAuthError(null);
+      return response;
+    } catch (err) {
+      setAuthError(err.message || "Nie udało się zarejestrować nauczyciela");
+      throw err;
+    }
+  };
+
+  const applyAuthResponse = (response, fallbackRole) => {
+    if (response.token && response.user) {
+      const role = response.user.role.toLowerCase();
+      localStorage.setItem("clerkToken", response.token);
+      localStorage.setItem("notus:selectedRole", role);
+      localStorage.setItem("notus:authProvider", "local");
+      setAuthError(null);
+      setUser({
+        id: response.user.id,
+        email: response.user.email,
+        role,
+        name: response.user.name,
+        index: response.user.indexNumber || null,
+        isLocalAuth: true
+      });
+      navigate(role === "student" ? "/student" : "/teacher");
+    } else if (response.message) {
+      setAuthError(response.message);
+    } else if (fallbackRole) {
+      setAuthError("Nie udało się zalogować.");
+    }
+    return response;
+  };
+
+  const studentEmailLogin = async (email, password) => {
+    try {
+      return applyAuthResponse(await apiPost("/api/auth/student/login", { email, password }), "student");
+    } catch (err) {
+      setAuthError(err.message || "Nie udało się zalogować ucznia");
+      throw err;
+    }
+  };
+
+  const studentEmailRegister = async ({ name, email, password }) => {
+    try {
+      return applyAuthResponse(await apiPost("/api/auth/student/register", { name, email, password }), "student");
+    } catch (err) {
+      setAuthError(err.message || "Nie udało się zarejestrować ucznia");
+      throw err;
+    }
+  };
+
+  const retryUserSync = async () => {
+    const token = localStorage.getItem("clerkToken");
+    const role = localStorage.getItem("notus:selectedRole");
+    if (!token || !role) {
+      setAuthError("Wybierz typ konta i użyj logowania dev");
+      return;
+    }
+
+    const email = token.split(":").slice(2).join(":");
+    await login(email, role);
+  };
+
+  const authValue = {
+    user,
+    login,
+    logout,
+    isLoaded: true,
+    isSignedIn: Boolean(user),
+    isAuthReady: true,
+    authError,
+    retryUserSync,
+    getToken: async () => localStorage.getItem("clerkToken"),
+    teacherEmailLogin,
+    teacherEmailRegister,
+    studentEmailLogin,
+    studentEmailRegister
+  };
+
+  return (
+    <AuthContext.Provider value={authValue}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
+const ClerkAuthProvider = ({ children }) => {
   const { isLoaded, isSignedIn, user: clerkUser } = useUser();
   const { signOut } = useClerk();
   const { getToken } = useAuth();
   const [user, setUser] = useState(null);
   const [isAuthReady, setIsAuthReady] = useState(false);
+  const [authError, setAuthError] = useState(null);
   const navigate = useNavigate();
+
+  const syncUserToBackend = async () => {
+    if (!(isLoaded && isSignedIn && clerkUser)) {
+      return;
+    }
+
+    const token = await getToken();
+    const name = clerkUser.fullName ||
+                 (clerkUser.firstName && clerkUser.lastName ? `${clerkUser.firstName} ${clerkUser.lastName}` : null) ||
+                 clerkUser.firstName ||
+                 clerkUser.username ||
+                 clerkUser.primaryEmailAddress?.emailAddress ||
+                 "";
+    const selectedRole = localStorage.getItem("notus:selectedRole");
+    const registrationToken = localStorage.getItem("notus:teacherRegistrationToken");
+    const backendPayload = selectedRole === "teacher"
+      ? await apiPost("/api/auth/teacher/google-register", {
+          idToken: token,
+          registrationToken: registrationToken || null
+        })
+      : selectedRole
+        ? await apiPost("/api/me", {
+            role: selectedRole.toUpperCase(),
+            name,
+            teacherAccessCode: null
+          }, token)
+        : await apiGet("/api/me", { name }, token);
+
+    const backendUser = backendPayload?.user || backendPayload;
+    if (backendUser && backendUser.id) {
+      localStorage.removeItem("notus:teacherAccessCode");
+      localStorage.removeItem("notus:teacherRegistrationToken");
+      setAuthError(null);
+      setUser({
+        id: backendUser.id,
+        email: backendUser.email,
+        role: backendUser.role.toLowerCase(),
+        name: backendUser.name,
+        index: backendUser.indexNumber || null,
+        photoURL: clerkUser.imageUrl || null,
+        clerkId: clerkUser.id,
+        isDev: false
+      });
+    }
+  };
 
   useEffect(() => {
     const syncToken = async () => {
@@ -21,7 +272,7 @@ export const AuthProvider = ({ children }) => {
           if (t) {
             localStorage.setItem("clerkToken", t);
           }
-        } else if (isLoaded && !isSignedIn) {
+        } else if (isLoaded && !isSignedIn && localStorage.getItem("notus:authProvider") !== "local") {
           localStorage.removeItem("clerkToken");
         }
       } catch (err) {
@@ -37,54 +288,31 @@ export const AuthProvider = ({ children }) => {
   }, [isLoaded, isSignedIn, getToken]);
 
   useEffect(() => {
-    const syncUserToBackend = async () => {
-      try {
-        if (isLoaded && isSignedIn && clerkUser) {
-          const token = await getToken();
-          const name = clerkUser.fullName ||
-                       (clerkUser.firstName && clerkUser.lastName ? `${clerkUser.firstName} ${clerkUser.lastName}` : null) ||
-                       clerkUser.firstName ||
-                       clerkUser.username ||
-                       clerkUser.primaryEmailAddress?.emailAddress ||
-                       "";
-          // This call triggers findOrCreate in the backend
-          const backendUser = await apiGet("/api/me", { name }, token);
-          if (backendUser && backendUser.id) {
-            setUser(prev => ({ ...prev, id: backendUser.id }));
-          }
-        }
-      } catch (err) {
-        console.error("Backend user sync failed:", err);
-      }
-    };
-
     try {
       if (isLoaded && isSignedIn && clerkUser) {
-        const email = clerkUser.primaryEmailAddress?.emailAddress || "";
-        const role = email.trim().toLowerCase().startsWith("s")
-          ? "student"
-          : "teacher";
-
-        let indexNumber = null;
-        if (role === "student" && email.includes('@')) {
-          indexNumber = email.split('@')[0];
-        }
-
-        setUser({
-          email,
-          role,
-          name: clerkUser.fullName || clerkUser.username || email,
-          index: indexNumber,
-          photoURL: clerkUser.imageUrl || null,
-          clerkId: clerkUser.id,
-          isDev: false
+        syncUserToBackend().catch((err) => {
+          console.error("Backend user sync failed:", err);
+          setAuthError(err.message || "Nie udało się zsynchronizować konta");
+          setUser(null);
         });
-
-        // Trigger synchronization with backend
-        syncUserToBackend();
       } else if (isLoaded && !isSignedIn) {
-        // Only clear if not a dev user
-        setUser(prev => (prev?.isDev ? prev : null));
+        const localToken = localStorage.getItem("clerkToken");
+        if (localToken && !localToken.startsWith("mock-dev-token:")) {
+          apiGet("/api/me", null, localToken)
+            .then((backendUser) => {
+              setUser({
+                id: backendUser.id,
+                email: backendUser.email,
+                role: backendUser.role.toLowerCase(),
+                name: backendUser.name,
+                index: backendUser.indexNumber || null,
+                isLocalAuth: true
+              });
+            })
+            .catch(() => localStorage.removeItem("clerkToken"));
+        } else {
+          setUser(prev => (prev?.isDev || prev?.isLocalAuth ? prev : null));
+        }
       }
     } catch (err) {
       console.error("Error in AuthContext useEffect:", err);
@@ -96,6 +324,8 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     try {
       await signOut();
+      localStorage.removeItem("clerkToken");
+      localStorage.removeItem("notus:authProvider");
       setUser(null);
       navigate("/login");
     } catch (err) {
@@ -103,30 +333,144 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const login = (email) => {
-    const role = email.trim().toLowerCase().startsWith("s") ? "student" : "teacher";
-    const mockToken = `mock-dev-token:${email}`;
-    localStorage.setItem("clerkToken", mockToken);
-    
-    setUser({ 
-      id: 1, 
-      email, 
-      role, 
-      name: "Dev Mode User", 
-      index: email.split('@')[0], 
-      isDev: true 
-    });
-    navigate(role === "student" ? "/student" : "/teacher");
+  const login = async (email, role = "student") => {
+    const mockToken = `mock-dev-token:${role.toUpperCase()}:${email}`;
+    localStorage.setItem("notus:selectedRole", role);
+
+    try {
+      const backendUser = await apiPost("/api/me", {
+        role: role.toUpperCase(),
+        name: "Dev Mode User",
+        teacherAccessCode: role === "teacher"
+          ? localStorage.getItem("notus:teacherAccessCode")
+          : null
+      }, mockToken);
+      const backendRole = backendUser.role.toLowerCase();
+
+      localStorage.setItem("clerkToken", mockToken);
+      localStorage.setItem("notus:authProvider", "dev");
+      setAuthError(null);
+      setUser({
+        id: backendUser.id,
+        email: backendUser.email,
+        role: backendRole,
+        name: backendUser.name,
+        index: backendUser.indexNumber || null,
+        isDev: true
+      });
+      navigate(backendRole === "student" ? "/student" : "/teacher");
+    } catch (err) {
+      console.error("Dev login failed:", err);
+      localStorage.removeItem("clerkToken");
+      setAuthError(err.message || "Nie udało się zalogować w trybie dev");
+      setUser(null);
+    }
+  };
+
+  const teacherEmailLogin = async (email, password) => {
+    try {
+      const response = await apiPost("/api/auth/teacher/login", { email, password });
+      if (response.token && response.user) {
+      localStorage.setItem("clerkToken", response.token);
+      localStorage.setItem("notus:selectedRole", "teacher");
+      localStorage.setItem("notus:authProvider", "local");
+        setAuthError(null);
+        setUser({
+          id: response.user.id,
+          email: response.user.email,
+          role: response.user.role.toLowerCase(),
+          name: response.user.name,
+          index: response.user.indexNumber || null,
+          isLocalAuth: true
+        });
+        navigate("/teacher");
+      } else if (response.message) {
+        setAuthError(response.message);
+      }
+      return response;
+    } catch (err) {
+      setAuthError(err.message || "Nie udało się zalogować nauczyciela");
+      throw err;
+    }
+  };
+
+  const teacherEmailRegister = async ({ code, name, email, password }) => {
+    try {
+      const verification = await apiPost("/api/auth/teacher/verify-code", { code, email });
+      const response = await apiPost("/api/auth/teacher/register", {
+        registrationToken: verification.registrationToken,
+        name,
+        email,
+        password
+      });
+      setAuthError(null);
+      return response;
+    } catch (err) {
+      setAuthError(err.message || "Nie udało się zarejestrować nauczyciela");
+      throw err;
+    }
+  };
+
+  const applyAuthResponse = (response, fallbackRole) => {
+    if (response.token && response.user) {
+      const role = response.user.role.toLowerCase();
+      localStorage.setItem("clerkToken", response.token);
+      localStorage.setItem("notus:selectedRole", role);
+      localStorage.setItem("notus:authProvider", "local");
+      setAuthError(null);
+      setUser({
+        id: response.user.id,
+        email: response.user.email,
+        role,
+        name: response.user.name,
+        index: response.user.indexNumber || null,
+        isLocalAuth: true
+      });
+      navigate(role === "student" ? "/student" : "/teacher");
+    } else if (response.message) {
+      setAuthError(response.message);
+    } else if (fallbackRole) {
+      setAuthError("Nie udało się zalogować.");
+    }
+    return response;
+  };
+
+  const studentEmailLogin = async (email, password) => {
+    try {
+      return applyAuthResponse(await apiPost("/api/auth/student/login", { email, password }), "student");
+    } catch (err) {
+      setAuthError(err.message || "Nie udało się zalogować ucznia");
+      throw err;
+    }
+  };
+
+  const studentEmailRegister = async ({ name, email, password }) => {
+    try {
+      return applyAuthResponse(await apiPost("/api/auth/student/register", { name, email, password }), "student");
+    } catch (err) {
+      setAuthError(err.message || "Nie udało się zarejestrować ucznia");
+      throw err;
+    }
   };
 
   const getLocalToken = async () => {
-    if (user?.isDev) {
+    if (user?.isDev || user?.isLocalAuth) {
       return localStorage.getItem("clerkToken");
     }
     return await getToken();
   };
 
-  const authValue = { user, login, logout, isLoaded, isAuthReady, getToken: getLocalToken };
+  const retryUserSync = async () => {
+    try {
+      await syncUserToBackend();
+    } catch (err) {
+      console.error("Backend user sync failed:", err);
+      setAuthError(err.message || "Nie udało się zsynchronizować konta");
+      setUser(null);
+    }
+  };
+
+  const authValue = { user, login, logout, isLoaded, isSignedIn, isAuthReady, authError, retryUserSync, getToken: getLocalToken, teacherEmailLogin, teacherEmailRegister, studentEmailLogin, studentEmailRegister };
 
   // Don't render until Clerk is loaded to avoid flashes or context errors
   if (!isLoaded) {

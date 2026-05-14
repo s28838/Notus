@@ -1,6 +1,5 @@
 import React, { useContext, useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { useUser, useClerk } from "@clerk/react";
 import { AuthContext } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import { apiGet, apiPut, apiPost } from "../../services/api";
@@ -45,10 +44,9 @@ const PersonalSection = ({ user }) => (
 );
 
 // ─── [SCRUM-216] Contact form ─────────────────────────────────────────────────
-const ContactSection = ({ showToast }) => {
-  const { user: clerkUser } = useUser();
-  const [email, setEmail] = useState(clerkUser?.primaryEmailAddress?.emailAddress || "");
-  const [phone, setPhone] = useState(clerkUser?.primaryPhoneNumber?.phoneNumber || "");
+const ContactSection = ({ showToast, user }) => {
+  const [email, setEmail] = useState(user?.email || "");
+  const [phone, setPhone] = useState("");
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
 
@@ -65,10 +63,6 @@ const ContactSection = ({ showToast }) => {
     setErrors({});
     setSaving(true);
     try {
-      // Clerk: update primary email if changed
-      if (email && email !== clerkUser?.primaryEmailAddress?.emailAddress) {
-        await clerkUser.createEmailAddress({ email });
-      }
       showToast("Dane kontaktowe zostały zapisane.", "success");
     } catch (err) {
       showToast("Nie udało się zapisać danych.", "error");
@@ -175,7 +169,6 @@ const SecuritySection = ({ showToast }) => {
 
 // ─── [SCRUM-218] Account management ──────────────────────────────────────────
 const AccountManagementSection = ({ showToast, deactivatedStatus }) => {
-  const { signOut } = useClerk();
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deactivated,   setDeactivated]   = useState(deactivatedStatus);
 
@@ -388,7 +381,7 @@ const SettingsPage = () => {
 
       <div style={{ padding:"1rem", display:"flex", flexDirection:"column", gap:"0.875rem" }}>
         <PersonalSection user={user}/>
-        <ContactSection showToast={showToast}/>
+        <ContactSection showToast={showToast} user={user}/>
         <ThemeSection/>
         <AccountManagementSection showToast={showToast} deactivatedStatus={backendSettings?.deactivated} />
         <AboutSection/>

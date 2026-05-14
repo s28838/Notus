@@ -20,11 +20,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
           <App />
         </ClerkProvider>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: '100vh', background: '#f8fafc', padding: '2rem', fontFamily: 'sans-serif' }}>
-          <h2 style={{ color: '#ef4444' }}>Missing Clerk Key</h2>
-          <p>Please add a valid <code>VITE_CLERK_PUBLISHABLE_KEY</code> to your <code>.env</code> file.</p>
-          <p style={{ fontSize: '0.875rem', color: '#64748b' }}>App will load once the key is provided.</p>
-        </div>
+        <App />
       )}
     </BrowserRouter>
   </React.StrictMode>

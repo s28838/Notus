@@ -1,6 +1,6 @@
 // src/App.jsx
 
-import { useContext } from "react";
+import React, { useContext } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { AuthContext, AuthProvider } from "./context/AuthContext";
 import { ThemeProvider } from "./context/ThemeContext";
@@ -186,7 +186,11 @@ const AppRoutes = () => {
       {/*Lista obecnosci*/}
       <Route
         path="/teacher/attendance/:sessionId"
-        element={<AttendanceListPage />}
+        element={
+          <RequireRole role="teacher">
+            <AttendanceListPage />
+          </RequireRole>
+        }
       />
 
       {/* GŁÓWNA ŚCIEŻKA PRZEKIEROWUJĄCA */}
