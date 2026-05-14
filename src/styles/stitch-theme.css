@@ -101,6 +101,10 @@
 .nav-item.active { color: var(--color-primary); }
 .nav-item.active .material-symbols-outlined { font-variation-settings: 'FILL' 1; }
 
+.nav-item .material-symbols-outlined {
+    font-size: 1.35rem;
+}
+
 /* === SHARED COMPONENTS === */
 .section-title {
     font-size: 1.125rem;

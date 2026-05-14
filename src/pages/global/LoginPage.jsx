@@ -74,7 +74,7 @@ const LoginPage = () => {
   const [pending, setPending] = useState(false);
   const [localError, setLocalError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
-  const [devTeacherCode, setDevTeacherCode] = useState(() => localStorage.getItem("notus:teacherAccessCode") || "TEST-TEACHER-001");
+  const [devTeacherCode, setDevTeacherCode] = useState(() => localStorage.getItem("notus:teacherAccessCode") || "notus-teacher-dev");
   const [studentLoginForm, setStudentLoginForm] = useState({ email: "", password: "" });
   const [studentRegisterForm, setStudentRegisterForm] = useState({
     name: "",

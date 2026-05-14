@@ -26,6 +26,11 @@ import EditLessonPage from "./pages/teacher/EditLessonPage";
 import TeacherLessonDetailPage from "./pages/teacher/LessonDetailPage";
 import StudentLessonDetailPage from "./pages/student/LessonDetailPage";
 import SettingsPage from "./pages/global/SettingsPage";
+import TeacherGroupsPage from "./pages/teacher/groups/TeacherGroupsPage";
+import TeacherGroupDetailsPage from "./pages/teacher/groups/TeacherGroupDetailsPage";
+import StudentAttendancePage from "./pages/teacher/groups/StudentAttendancePage";
+import StudentGradesPage from "./pages/teacher/groups/StudentGradesPage";
+import GroupInviteAcceptPage from "./pages/global/GroupInviteAcceptPage";
 
 const RequireRole = ({ role, children }) => {
   const { user, isAuthReady } = useContext(AuthContext);
@@ -41,6 +46,7 @@ const AppRoutes = () => {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/invite/group" element={<GroupInviteAcceptPage />} />
 
       {/* GŁÓWNA ŚCIEŻKA STUDENTA */}
       <Route
@@ -138,6 +144,38 @@ const AppRoutes = () => {
         element={
           <RequireRole role="teacher">
             <SchedulePage />
+          </RequireRole>
+        }
+      />
+      <Route
+        path="/teacher/groups"
+        element={
+          <RequireRole role="teacher">
+            <TeacherGroupsPage />
+          </RequireRole>
+        }
+      />
+      <Route
+        path="/teacher/groups/:groupId"
+        element={
+          <RequireRole role="teacher">
+            <TeacherGroupDetailsPage />
+          </RequireRole>
+        }
+      />
+      <Route
+        path="/teacher/groups/:groupId/students/:studentId/attendance"
+        element={
+          <RequireRole role="teacher">
+            <StudentAttendancePage />
+          </RequireRole>
+        }
+      />
+      <Route
+        path="/teacher/groups/:groupId/students/:studentId/grades"
+        element={
+          <RequireRole role="teacher">
+            <StudentGradesPage />
           </RequireRole>
         }
       />

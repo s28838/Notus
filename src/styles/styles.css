@@ -691,6 +691,324 @@ html, body {
     transform: scale(1.05);
 }
 
+/* =========================================
+   8. PANEL GRUP NAUCZYCIELA
+========================================= */
+
+.groups-page {
+  width: 100%;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 28px 24px 120px;
+  align-items: stretch;
+  color: #f8fafc;
+}
+
+.groups-page .schedule-header,
+.groups-page .details-header {
+  justify-content: space-between;
+  gap: 20px;
+  padding: 16px 0 22px;
+}
+
+.groups-page h1,
+.groups-page h2,
+.groups-page h3 {
+  margin: 0;
+}
+
+.groups-page h1 {
+  font-size: 30px;
+  line-height: 1.2;
+}
+
+.eyebrow {
+  margin: 0 0 6px;
+  color: #fb8a5d;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.primary-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--color-primary);
+  color: #ffffff;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 10px 24px rgba(244, 89, 37, 0.24);
+}
+
+.primary-action-btn:hover {
+  background: #d9481d;
+}
+
+.data-panel {
+  width: 100%;
+  background: rgba(15, 23, 42, 0.78);
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 18px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.24);
+}
+
+.responsive-table {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.responsive-table table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 720px;
+}
+
+.responsive-table th,
+.responsive-table td {
+  padding: 14px 12px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+  text-align: left;
+  vertical-align: middle;
+}
+
+.responsive-table th {
+  color: #cbd5e1;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.table-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.table-actions button,
+.table-link {
+  border: 1px solid rgba(148, 163, 184, 0.32);
+  border-radius: 7px;
+  background: rgba(30, 41, 59, 0.92);
+  color: #f8fafc;
+  min-height: 34px;
+  padding: 0 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.table-link {
+  color: #fb8a5d;
+}
+
+.danger-link {
+  color: #fecaca !important;
+  border-color: rgba(248, 113, 113, 0.4) !important;
+}
+
+.success-banner,
+.error-banner {
+  width: 100%;
+  box-sizing: border-box;
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  font-weight: 700;
+}
+
+.success-banner {
+  background: rgba(34, 197, 94, 0.14);
+  border: 1px solid rgba(34, 197, 94, 0.42);
+  color: #bbf7d0;
+}
+
+.error-banner {
+  background: rgba(239, 68, 68, 0.14);
+  border: 1px solid rgba(239, 68, 68, 0.42);
+  color: #fecaca;
+}
+
+.muted {
+  color: #94a3b8;
+}
+
+.empty-state {
+  text-align: center;
+  color: #cbd5e1;
+  padding: 34px 16px;
+}
+
+.empty-state .material-symbols-outlined {
+  color: #fb8a5d;
+  font-size: 44px;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(2, 6, 23, 0.72);
+}
+
+.modal-card {
+  width: min(520px, 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 22px;
+  border-radius: 8px;
+  background: #111827;
+  border: 1px solid rgba(148, 163, 184, 0.34);
+  color: #f8fafc;
+}
+
+.modal-card label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: #cbd5e1;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.modal-card input,
+.modal-card textarea {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid rgba(148, 163, 184, 0.34);
+  border-radius: 8px;
+  background: #1f2937;
+  color: #f8fafc;
+  padding: 12px;
+  font: inherit;
+}
+
+.modal-card textarea {
+  min-height: 92px;
+  resize: vertical;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.modal-actions button {
+  border: 1px solid rgba(148, 163, 184, 0.34);
+  border-radius: 8px;
+  min-height: 40px;
+  padding: 0 14px;
+  background: rgba(30, 41, 59, 0.92);
+  color: #f8fafc;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.back-link {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 0;
+  background: transparent;
+  color: #fb8a5d;
+  font-weight: 800;
+  cursor: pointer;
+  margin-bottom: 12px;
+}
+
+.details-header {
+  display: flex;
+  align-items: flex-start;
+}
+
+.legend-row {
+  display: flex;
+  gap: 18px;
+  margin-bottom: 14px;
+  color: #cbd5e1;
+}
+
+.status-dot {
+  display: inline-flex;
+  width: 26px;
+  height: 26px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 20px;
+  font-weight: 900;
+}
+
+.status-dot.present {
+  color: #bbf7d0;
+  background: rgba(34, 197, 94, 0.16);
+}
+
+.status-dot.absent {
+  color: #fecaca;
+  background: rgba(239, 68, 68, 0.16);
+}
+
+.invite-page {
+  background: #0f172a;
+}
+
+.invite-panel {
+  width: min(460px, calc(100vw - 32px));
+  padding: 28px;
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  border-radius: 8px;
+  background: rgba(15, 23, 42, 0.92);
+  color: #f8fafc;
+  text-align: center;
+}
+
+.invite-icon {
+  color: #fb8a5d;
+  font-size: 42px;
+}
+
+@media (max-width: 720px) {
+  .groups-page {
+    padding: 20px 14px 116px;
+  }
+
+  .groups-page .schedule-header,
+  .groups-page .details-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .modal-actions {
+    flex-direction: column-reverse;
+  }
+}
+
 
 /* --- LISTA ZAJĘĆ --- */
 
