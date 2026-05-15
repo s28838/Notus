@@ -13,6 +13,8 @@ const TeacherGroupDetailsPage = () => {
   const [notice, setNotice] = useState("");
   const [inviteEmail, setInviteEmail] = useState("");
   const [showInvite, setShowInvite] = useState(false);
+  const [studentSuggestions, setStudentSuggestions] = useState([]);
+  const [studentSearchPending, setStudentSearchPending] = useState(false);
   const [editingStudent, setEditingStudent] = useState(null);
   const [gradeForm, setGradeForm] = useState({
     value: "5",
@@ -44,18 +46,60 @@ const TeacherGroupDetailsPage = () => {
     load();
   }, [groupId]);
 
+  useEffect(() => {
+    if (!showInvite) {
+      setStudentSuggestions([]);
+      setStudentSearchPending(false);
+      return;
+    }
+
+    const query = inviteEmail.trim();
+    if (query.length < 3) {
+      setStudentSuggestions([]);
+      setStudentSearchPending(false);
+      return;
+    }
+
+    let active = true;
+    setStudentSearchPending(true);
+    const timeout = window.setTimeout(async () => {
+      try {
+        const results = await apiGet(`/api/teacher/groups/${groupId}/students/search`, { email: query });
+        if (active) setStudentSuggestions(results);
+      } catch {
+        if (active) setStudentSuggestions([]);
+      } finally {
+        if (active) setStudentSearchPending(false);
+      }
+    }, 300);
+
+    return () => {
+      active = false;
+      window.clearTimeout(timeout);
+    };
+  }, [groupId, inviteEmail, showInvite]);
+
+  const matchingSuggestion = studentSuggestions.find(
+    (student) => student.email.toLowerCase() === inviteEmail.trim().toLowerCase()
+  );
+
   const sendInvite = async (event) => {
     event.preventDefault();
     setNotice("");
     setError("");
+    if (matchingSuggestion?.alreadyInGroup) {
+      setError("Ten uczeń jest już w grupie.");
+      return;
+    }
     try {
       const response = await apiPost(`/api/teacher/groups/${groupId}/students/invite`, { email: inviteEmail });
       if (!response.success) throw new Error(response.message);
       setInviteEmail("");
+      setStudentSuggestions([]);
       setShowInvite(false);
       setNotice("Zaproszenie zostało wysłane.");
-    } catch {
-      setError("Nie udało się zaprosić ucznia. Skontaktuj się z administratorem.");
+    } catch (inviteError) {
+      setError(inviteError.message || "Nie udało się zaprosić ucznia. Skontaktuj się z administratorem.");
     }
   };
 
@@ -207,11 +251,44 @@ const TeacherGroupDetailsPage = () => {
             <h2>Dodaj ucznia do grupy</h2>
             <label>
               Email ucznia
-              <input type="email" value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)} required />
+              <input
+                type="email"
+                value={inviteEmail}
+                onChange={(e) => setInviteEmail(e.target.value)}
+                autoComplete="off"
+                required
+              />
             </label>
+            {inviteEmail.trim().length >= 3 && (
+              <div className="student-suggestions" aria-live="polite">
+                <p>Podpowiedzi</p>
+                {studentSearchPending ? (
+                  <span className="suggestion-muted">Szukam uczniów...</span>
+                ) : studentSuggestions.length > 0 ? (
+                  studentSuggestions.map((student) => (
+                    <button
+                      type="button"
+                      key={student.id}
+                      className={`student-suggestion ${student.alreadyInGroup ? "disabled" : ""}`}
+                      onClick={() => setInviteEmail(student.email)}
+                    >
+                      <span>
+                        <strong>{student.fullName}</strong>
+                        <small>{student.email}</small>
+                      </span>
+                      {student.alreadyInGroup && <em>już w grupie</em>}
+                    </button>
+                  ))
+                ) : (
+                  <span className="suggestion-muted">Brak pasujących uczniów. Nadal możesz wysłać zaproszenie na ten email.</span>
+                )}
+              </div>
+            )}
             <div className="modal-actions">
               <button type="button" onClick={() => setShowInvite(false)}>Anuluj</button>
-              <button className="primary-action-btn" type="submit">Wyślij zaproszenie</button>
+              <button className="primary-action-btn" type="submit" disabled={matchingSuggestion?.alreadyInGroup}>
+                Wyślij zaproszenie
+              </button>
             </div>
           </form>
         </div>

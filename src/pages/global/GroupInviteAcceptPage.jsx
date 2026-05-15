@@ -15,14 +15,20 @@ const GroupInviteAcceptPage = () => {
 
   useEffect(() => {
     if (!token) {
-      setError("To zaproszenie jest nieprawidłowe albo wygasło.");
+      setError("Brak tokenu zaproszenia.");
       setLoading(false);
       return;
     }
 
     localStorage.setItem("notus:pendingGroupInviteToken", token);
     apiGet("/api/group-invitations/preview", { token }, null)
-      .then(setPreview)
+      .then((response) => {
+        if (!response.valid) {
+          setError(response.message || "Zaproszenie jest nieprawidłowe albo wygasło.");
+          return;
+        }
+        setPreview(response);
+      })
       .catch((err) => setError(err.message || "To zaproszenie jest nieprawidłowe albo wygasło."))
       .finally(() => setLoading(false));
   }, [token]);
@@ -39,6 +45,14 @@ const GroupInviteAcceptPage = () => {
     }
   };
 
+  const goToLogin = () => {
+    localStorage.setItem("notus:selectedRole", "student");
+    if (token) {
+      localStorage.setItem("notus:pendingGroupInviteToken", token);
+    }
+    navigate("/login");
+  };
+
   return (
     <div className="login-page invite-page">
       <div className="invite-panel">
@@ -52,10 +66,12 @@ const GroupInviteAcceptPage = () => {
         ) : (
           <>
             <p>Zaproszono Cię do grupy: <strong>{preview.groupName}</strong></p>
+            {preview.teacherName && <p>Nauczyciel: <strong>{preview.teacherName}</strong></p>}
+            {preview.email && <p className="muted">Zaproszenie wysłano na adres: {preview.email}</p>}
             {!isAuthReady ? null : !user ? (
               <>
-                <p className="muted">Zaloguj się lub zarejestruj jako uczeń, a potem wróć do tego linku.</p>
-                <button className="primary-action-btn" onClick={() => navigate("/login")}>Przejdź do logowania</button>
+                <p className="muted">Aby dołączyć do grupy, zaloguj się lub utwórz konto ucznia.</p>
+                <button className="primary-action-btn" onClick={goToLogin}>Zaloguj się / Utwórz konto</button>
               </>
             ) : user.role !== "student" ? (
               <div className="error-banner">Nie możesz zaakceptować zaproszenia jako nauczyciel.</div>

@@ -430,10 +430,10 @@ body.dark .interactive-card:active {
 }
 
 /* === DESKTOP ADAPTATION === */
-@media (min-width: 900px) {
+@media (min-width: 720px) and (hover: hover) and (pointer: fine) {
     html,
     body {
-        min-width: 900px;
+        min-width: 720px;
     }
 
     body {

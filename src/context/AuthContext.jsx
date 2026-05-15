@@ -236,7 +236,8 @@ const ClerkAuthProvider = ({ children }) => {
                  clerkUser.username ||
                  clerkUser.primaryEmailAddress?.emailAddress ||
                  "";
-    const selectedRole = localStorage.getItem("notus:selectedRole");
+    const pendingInviteToken = localStorage.getItem("notus:pendingGroupInviteToken");
+    const selectedRole = localStorage.getItem("notus:selectedRole") || (pendingInviteToken ? "student" : null);
     const registrationToken = localStorage.getItem("notus:teacherRegistrationToken");
     const backendPayload = selectedRole === "teacher"
       ? await apiPost("/api/auth/teacher/google-register", {
@@ -259,6 +260,9 @@ const ClerkAuthProvider = ({ children }) => {
     if (backendUser && backendUser.id) {
       localStorage.removeItem("notus:teacherAccessCode");
       localStorage.removeItem("notus:teacherRegistrationToken");
+      if (selectedRole) {
+        localStorage.setItem("notus:selectedRole", selectedRole);
+      }
       setAuthError(null);
       setUser({
         id: backendUser.id,
@@ -270,6 +274,10 @@ const ClerkAuthProvider = ({ children }) => {
         clerkId: clerkUser.id,
         isDev: false
       });
+
+      if (pendingInviteToken && window.location.pathname !== "/invite/group") {
+        navigate(`/invite/group?token=${encodeURIComponent(pendingInviteToken)}`);
+      }
     }
   };
 

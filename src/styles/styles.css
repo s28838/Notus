@@ -709,6 +709,7 @@ html, body {
   justify-content: space-between;
   gap: 20px;
   padding: 16px 0 22px;
+  flex-wrap: wrap;
 }
 
 .groups-page h1,
@@ -745,10 +746,17 @@ html, body {
   font-weight: 800;
   cursor: pointer;
   box-shadow: 0 10px 24px rgba(244, 89, 37, 0.24);
+  white-space: nowrap;
 }
 
 .primary-action-btn:hover {
   background: #d9481d;
+}
+
+.primary-action-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  box-shadow: none;
 }
 
 .data-panel {
@@ -780,7 +788,8 @@ html, body {
 .responsive-table table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 720px;
+  min-width: 680px;
+  table-layout: fixed;
 }
 
 .responsive-table th,
@@ -789,6 +798,7 @@ html, body {
   border-bottom: 1px solid rgba(148, 163, 184, 0.18);
   text-align: left;
   vertical-align: middle;
+  overflow-wrap: anywhere;
 }
 
 .responsive-table th {
@@ -802,6 +812,7 @@ html, body {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+  align-items: center;
 }
 
 .table-actions button,
@@ -814,6 +825,7 @@ html, body {
   padding: 0 10px;
   font-weight: 700;
   cursor: pointer;
+  white-space: nowrap;
 }
 
 .table-link {
@@ -918,6 +930,8 @@ html, body {
 
 .modal-card {
   width: min(520px, 100%);
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -926,6 +940,10 @@ html, body {
   background: #111827;
   border: 1px solid rgba(148, 163, 184, 0.34);
   color: #f8fafc;
+}
+
+.modal-card h2 {
+  line-height: 1.2;
 }
 
 .modal-card label {
@@ -965,6 +983,7 @@ html, body {
   justify-content: flex-end;
   gap: 10px;
   margin-top: 8px;
+  flex-wrap: wrap;
 }
 
 .modal-actions button {
@@ -976,6 +995,81 @@ html, body {
   color: #f8fafc;
   font-weight: 800;
   cursor: pointer;
+  white-space: nowrap;
+}
+
+.modal-actions button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.student-suggestions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-radius: 8px;
+  background: rgba(15, 23, 42, 0.5);
+}
+
+.student-suggestions p {
+  margin: 0;
+  color: #94a3b8;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.student-suggestion {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  border-radius: 8px;
+  background: rgba(30, 41, 59, 0.92);
+  color: #f8fafc;
+  padding: 10px 12px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.student-suggestion:hover {
+  border-color: rgba(244, 89, 37, 0.55);
+}
+
+.student-suggestion span {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.student-suggestion strong,
+.student-suggestion small {
+  overflow-wrap: anywhere;
+}
+
+.student-suggestion small,
+.suggestion-muted {
+  color: #94a3b8;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.student-suggestion em {
+  flex: 0 0 auto;
+  color: #fed7aa;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 800;
+}
+
+.student-suggestion.disabled {
+  opacity: 0.72;
 }
 
 .grade-form-section {
@@ -1168,7 +1262,7 @@ html, body {
   }
 }
 
-@media (min-width: 900px) {
+@media (min-width: 720px) and (hover: hover) and (pointer: fine) {
   .groups-page {
     width: auto;
     max-width: none;
