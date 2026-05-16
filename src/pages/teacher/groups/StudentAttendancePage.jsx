@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import TeacherBottomNav from "../../../components/teacher/TeacherBottomNav";
 import { apiGet } from "../../../services/api";
+import LoadingState from "../../../components/shared/LoadingState";
 
 const StudentAttendancePage = () => {
   const { groupId, studentId } = useParams();
@@ -46,7 +47,7 @@ const StudentAttendancePage = () => {
       </button>
 
       {loading ? (
-        <p className="muted">Ładowanie frekwencji...</p>
+        <LoadingState label="Ładowanie frekwencji..." />
       ) : error ? (
         <div className="error-banner">{error}</div>
       ) : (

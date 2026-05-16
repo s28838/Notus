@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import TeacherBottomNav from "../../../components/teacher/TeacherBottomNav";
 import { apiDelete, apiGet, apiPost, apiPut } from "../../../services/api";
+import LoadingState from "../../../components/shared/LoadingState";
 
 const emptyForm = {
   name: "",
@@ -104,7 +105,7 @@ const TeacherGroupsPage = () => {
 
       <section className="data-panel">
         {loading ? (
-          <p className="muted">Ładowanie grup...</p>
+          <LoadingState label="Ładowanie grup..." />
         ) : groups.length === 0 ? (
           <div className="empty-state">
             <span className="material-symbols-outlined">groups</span>

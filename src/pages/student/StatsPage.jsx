@@ -1,6 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../../context/AuthContext";
 import { apiGet } from "../../services/api";
+import LoadingState from "../../components/shared/LoadingState";
 import { useNavigate } from "react-router-dom";
 
 const StatsPage = () => {
@@ -50,10 +51,7 @@ const StatsPage = () => {
 
       <div style={{ padding: "1rem", paddingBottom: "5.5rem" }}>
         {loading ? (
-          <div className="loading-state">
-            <div className="loading-spinner"></div>
-            Ładowanie...
-          </div>
+          <LoadingState label="Ładowanie statystyk..." />
         ) : error ? (
           <div className="error-state">
             <span className="material-symbols-outlined" style={{ fontSize: "2rem" }}>error</span>

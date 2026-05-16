@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
 import { apiGet } from "../../services/api";
+import LoadingState from "../../components/shared/LoadingState";
 
 const StudentQuizReviewPage = () => {
   const { assignmentId } = useParams();
@@ -30,10 +31,7 @@ const StudentQuizReviewPage = () => {
   if (loading) {
     return (
       <div className="app-container">
-        <div className="loading-state" style={{ marginTop: "4rem" }}>
-          <div className="loading-spinner"></div>
-          Ładowanie odpowiedzi...
-        </div>
+        <LoadingState label="Ładowanie odpowiedzi..." />
       </div>
     );
   }

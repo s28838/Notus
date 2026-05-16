@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import TeacherBottomNav from "../../components/teacher/TeacherBottomNav";
 import { AuthContext } from "../../context/AuthContext";
 import { apiPost, apiGet } from "../../services/api";
+import LoadingState from "../../components/shared/LoadingState";
 import "./CreateSessionPage.css";
 
 const CreateSessionPage = () => {
@@ -87,7 +88,7 @@ const CreateSessionPage = () => {
     try {
       const token = await getToken();
       const created = await apiPost("/api/attendance/sessions", { scheduleId: currentLesson.id }, token);
-      const qrResp = await apiGet(`/api/attendance/sessions/${created.sessionId}/qr`, token);
+      const qrResp = await apiGet(`/api/attendance/sessions/${created.sessionId}/qr`, null, token);
       setQr(qrResp);
     } catch (e) {
       setError(e.message || String(e));
@@ -104,7 +105,7 @@ const CreateSessionPage = () => {
 
     try {
       const token = await getToken();
-      const qrResp = await apiGet(`/api/attendance/sessions/${qr.sessionId}/qr`, token);
+      const qrResp = await apiGet(`/api/attendance/sessions/${qr.sessionId}/qr`, null, token);
       setQr(qrResp);
     } catch (e) {
       setError(e.message || String(e));
@@ -133,9 +134,13 @@ const CreateSessionPage = () => {
           </label>
           
           {lessons.length === 0 ? (
-            <div style={{ padding: '1rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
-              {loading ? "Ładowanie zajęć..." : "Brak przypisanych zajęć na dziś."}
-            </div>
+            loading ? (
+              <LoadingState label="Ładowanie zajęć..." compact />
+            ) : (
+              <div style={{ padding: '1rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
+                Brak przypisanych zajęć na dziś.
+              </div>
+            )
           ) : (
             <select
               value={currentLesson?.id || ""}

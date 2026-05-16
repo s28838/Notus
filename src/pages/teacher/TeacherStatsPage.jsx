@@ -1,8 +1,9 @@
 import React, { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
-import { apiGet } from "../../services/api";
+import { API_BASE, apiGet } from "../../services/api";
 import TeacherBottomNav from "../../components/teacher/TeacherBottomNav";
+import LoadingState from "../../components/shared/LoadingState";
 
 const TeacherStatsPage = () => {
   const { getToken } = useContext(AuthContext);
@@ -36,7 +37,7 @@ const TeacherStatsPage = () => {
     try {
       const token = await getToken();
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL || ""}/api/history/teacher/session/${scheduleId}/pdf`,
+        `${API_BASE}/api/history/teacher/session/${scheduleId}/pdf`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       if (!response.ok) throw new Error();
@@ -88,10 +89,7 @@ const TeacherStatsPage = () => {
       </div>
 
       {loading ? (
-        <div className="loading-state">
-          <div className="loading-spinner"></div>
-          Ładowanie...
-        </div>
+        <LoadingState label="Ładowanie historii..." />
       ) : error ? (
         <div style={{ padding: "1rem" }}>
           <div className="error-state">
@@ -172,7 +170,7 @@ const TeacherStatsPage = () => {
                     <h4 style={{ margin: '0 0 0.75rem', fontSize: '0.9rem', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Lista uczestników</h4>
                     
                     {sessionLoading ? (
-                      <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Ładowanie uczniów...</p>
+                      <LoadingState label="Ładowanie uczniów..." compact />
                     ) : sessionDetails?.error ? (
                       <p style={{ margin: 0, fontSize: '0.8rem', color: '#ef4444' }}>Brak danych lub błąd.</p>
                     ) : sessionDetails?.length === 0 ? (
@@ -181,20 +179,21 @@ const TeacherStatsPage = () => {
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                         {sessionDetails?.map(student => {
                           const hasQuiz = student.quizScore != null;
+                          const canReview = hasQuiz && student.submissionId;
                           return (
                             <div 
                               key={student.studentId} 
-                              onClick={() => hasQuiz ? navigate(`/teacher/review/${h.quizAssignmentId}/${student.studentId}`) : null}
+                              onClick={() => canReview ? navigate(`/teacher/review/${student.submissionId}`) : null}
                               style={{ 
                                 display: 'flex', justifyContent: 'space-between', alignItems: 'center', 
                                 background: 'rgba(255,255,255,0.05)', 
                                 padding: '0.5rem 0.75rem', borderRadius: '0.5rem',
-                                cursor: hasQuiz ? 'pointer' : 'default',
-                                border: hasQuiz ? '1px solid rgba(255,255,255,0.1)' : 'none'
+                                cursor: canReview ? 'pointer' : 'default',
+                                border: canReview ? '1px solid rgba(255,255,255,0.1)' : 'none'
                               }}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                 <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>{student.studentName}</span>
-                                {hasQuiz && (
+                                {canReview && (
                                   <span className="material-symbols-outlined" style={{ fontSize: '1.2rem', color: 'var(--text-tertiary)' }}>chevron_right</span>
                                 )}
                               </div>

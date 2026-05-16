@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
 import { apiGet } from "../../services/api";
+import LoadingState from "../../components/shared/LoadingState";
 
 const AttendanceListPage = () => {
     const { getToken } = useContext(AuthContext);
@@ -16,7 +17,7 @@ const AttendanceListPage = () => {
         try {
             setError("");
             const token = await getToken();
-            const data = await apiGet(`/api/attendance/sessions/${sessionId}/records`, token);
+            const data = await apiGet(`/api/attendance/sessions/${sessionId}/records`, null, token);
             setAttendanceList(Array.isArray(data) ? data : []);
         } catch {
             setError("Nie udało się pobrać listy obecności.");
@@ -64,10 +65,7 @@ const AttendanceListPage = () => {
                 </div>
 
                 {loading ? (
-                    <div className="loading-state">
-                        <div className="loading-spinner"></div>
-                        Ładowanie...
-                    </div>
+                    <LoadingState label="Ładowanie obecności..." />
                 ) : error ? (
                     <div className="error-state">{error}</div>
                 ) : attendanceList.length === 0 ? (

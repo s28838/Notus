@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import TeacherBottomNav from "../../../components/teacher/TeacherBottomNav";
 import { apiGet } from "../../../services/api";
+import LoadingState from "../../../components/shared/LoadingState";
 
 const StudentGradesPage = () => {
   const { groupId, studentId } = useParams();
@@ -26,7 +27,7 @@ const StudentGradesPage = () => {
       </button>
 
       {loading ? (
-        <p className="muted">Ładowanie ocen...</p>
+        <LoadingState label="Ładowanie ocen..." />
       ) : error ? (
         <div className="error-banner">{error}</div>
       ) : (
@@ -35,7 +36,7 @@ const StudentGradesPage = () => {
             <div>
               <p className="eyebrow">Oceny</p>
               <h1>Oceny - {data.studentName}</h1>
-              <p>Średnia ocen: {Number(data.averageGrade).toFixed(2)}</p>
+              <p>Średnia ocen: {data.averageGrade == null ? "-" : Number(data.averageGrade).toFixed(2)}</p>
             </div>
           </div>
 
@@ -48,7 +49,7 @@ const StudentGradesPage = () => {
           ) : data.semesters.map((semester) => (
             <section className="data-panel" key={semester.semester}>
               <h2>Semestr {semester.semester}</h2>
-              <p className="muted">Średnia: {Number(semester.averageGrade).toFixed(2)}</p>
+              <p className="muted">Średnia: {semester.averageGrade == null ? "-" : Number(semester.averageGrade).toFixed(2)}</p>
               <div className="responsive-table">
                 <table>
                   <thead>

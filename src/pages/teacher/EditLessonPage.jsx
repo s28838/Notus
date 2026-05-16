@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
 import { apiGet, apiPut } from "../../services/api";
+import LoadingState from "../../components/shared/LoadingState";
 
 const inputStyle = {
   width: '100%', padding: '0.75rem', borderRadius: '0.5rem',
@@ -99,7 +100,7 @@ const EditLessonPage = () => {
           <h2 className="top-bar-title">Edytuj lekcję</h2>
           <div style={{ width: '2.5rem' }} />
         </div>
-        <div className="loading-state"><div className="loading-spinner"></div>Ładowanie...</div>
+        <LoadingState label="Ładowanie lekcji..." />
       </div>
     );
   }

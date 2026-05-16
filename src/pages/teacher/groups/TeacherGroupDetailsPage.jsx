@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import TeacherBottomNav from "../../../components/teacher/TeacherBottomNav";
-import { apiDelete, apiGet, apiPost, apiPut } from "../../../services/api";
+import { API_BASE, apiDelete, apiGet, apiPost, apiPut } from "../../../services/api";
+import LoadingState from "../../../components/shared/LoadingState";
 
 const TeacherGroupDetailsPage = () => {
   const { groupId } = useParams();
@@ -25,8 +26,8 @@ const TeacherGroupDetailsPage = () => {
     comment: "",
   });
 
-  const load = async () => {
-    setLoading(true);
+  const load = useCallback(async ({ silent = false } = {}) => {
+    if (!silent) setLoading(true);
     setError("");
     try {
       const [groupData, studentData] = await Promise.all([
@@ -38,13 +39,45 @@ const TeacherGroupDetailsPage = () => {
     } catch {
       setError("Nie masz uprawnień do tej grupy albo nie udało się jej pobrać.");
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
-  };
+  }, [groupId]);
 
   useEffect(() => {
     load();
-  }, [groupId]);
+  }, [load]);
+
+  useEffect(() => {
+    const token = localStorage.getItem("clerkToken");
+    if (!token || typeof EventSource === "undefined") return undefined;
+
+    const streamUrl = `${API_BASE}/api/teacher/realtime/stream?token=${encodeURIComponent(token)}`;
+    const source = new EventSource(streamUrl);
+
+    const refreshGroup = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (Number(data.payload?.groupId) === Number(groupId)) {
+          load({ silent: true });
+        }
+      } catch {
+        load({ silent: true });
+      }
+    };
+
+    [
+      "group.student_joined",
+      "group.student_updated",
+      "group.student_removed",
+      "grade.created",
+      "grade.updated",
+      "grade.deleted",
+      "grade.quiz_saved",
+      "attendance.checked_in",
+    ].forEach((eventName) => source.addEventListener(eventName, refreshGroup));
+
+    return () => source.close();
+  }, [groupId, load]);
 
   useEffect(() => {
     if (!showInvite) {
@@ -163,7 +196,7 @@ const TeacherGroupDetailsPage = () => {
   };
 
   if (loading) {
-    return <div className="schedule-page-container"><p className="muted">Ładowanie grupy...</p><TeacherBottomNav /></div>;
+    return <div className="schedule-page-container groups-page"><LoadingState label="Ładowanie grupy..." /><TeacherBottomNav /></div>;
   }
 
   return (

@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
 import { apiGet, apiPut } from "../../services/api";
+import LoadingState from "../../components/shared/LoadingState";
 
 const QuizViewPage = () => {
   const { getToken } = useContext(AuthContext);
@@ -174,10 +175,7 @@ const QuizViewPage = () => {
       </div>
 
       {loading ? (
-        <div className="loading-state">
-          <div className="loading-spinner"></div>
-          Ładowanie...
-        </div>
+        <LoadingState label="Ładowanie quizu..." />
       ) : error ? (
         <div style={{ padding: "1rem" }}>
           <div className="error-state">

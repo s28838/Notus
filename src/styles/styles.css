@@ -1242,6 +1242,153 @@ html, body {
   font-size: 42px;
 }
 
+.invite-auth-tabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 18px 0 12px;
+}
+
+.invite-auth-tabs button,
+.secondary-action-btn {
+  min-height: 42px;
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  border-radius: 8px;
+  background: rgba(30, 41, 59, 0.9);
+  color: #f8fafc;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.invite-auth-tabs button.active {
+  border-color: #fb8a5d;
+  background: rgba(251, 138, 93, 0.14);
+  color: #fed7aa;
+}
+
+.invite-auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.invite-auth-form input {
+  width: 100%;
+  min-height: 42px;
+  box-sizing: border-box;
+  border: 1px solid rgba(148, 163, 184, 0.32);
+  border-radius: 8px;
+  background: rgba(15, 23, 42, 0.72);
+  color: #f8fafc;
+  padding: 0 12px;
+  font-weight: 700;
+}
+
+.invite-auth-form input[aria-invalid="true"] {
+  border-color: rgba(248, 113, 113, 0.8);
+  box-shadow: 0 0 0 3px rgba(248, 113, 113, 0.12);
+}
+
+.invite-auth-form input:read-only {
+  color: #cbd5e1;
+  background: rgba(30, 41, 59, 0.72);
+}
+
+.password-field {
+  position: relative;
+  width: 100%;
+}
+
+.password-field input {
+  padding-right: 48px;
+}
+
+.password-toggle-btn {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  transform: translateY(-50%);
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #cbd5e1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.password-toggle-btn:hover {
+  background: rgba(148, 163, 184, 0.14);
+  color: #ffffff;
+}
+
+.password-toggle-btn .material-symbols-outlined {
+  font-size: 20px;
+}
+
+.password-rules-tooltip {
+  display: grid;
+  gap: 7px;
+  margin: -2px 0 4px;
+  padding: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  border-radius: 8px;
+  background: rgba(15, 23, 42, 0.92);
+  color: #cbd5e1;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.password-rules-tooltip strong {
+  color: #f8fafc;
+}
+
+.password-rules-tooltip span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.password-rules-tooltip .material-symbols-outlined {
+  font-size: 18px;
+}
+
+.password-rules-tooltip .valid {
+  color: #86efac;
+}
+
+.password-rules-tooltip .invalid {
+  color: #fecaca;
+}
+
+.password-inline-error {
+  margin-top: -4px;
+  color: #fecaca;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.secondary-action-btn {
+  width: 100%;
+  margin-top: 10px;
+}
+
+.secondary-action-btn:hover,
+.invite-auth-tabs button:hover {
+  border-color: rgba(251, 138, 93, 0.6);
+}
+
+.secondary-action-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 @media (max-width: 720px) {
   .groups-page {
     padding: 20px 14px 116px;

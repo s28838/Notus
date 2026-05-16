@@ -47,7 +47,6 @@ const AppRoutes = () => {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
-      <Route path="/invite/group" element={<GroupInviteAcceptPage />} />
       <Route path="/verify-email" element={<EmailVerificationPage />} />
 
       {/* GŁÓWNA ŚCIEŻKA STUDENTA */}
@@ -316,11 +315,18 @@ const AppRoutes = () => {
   );
 };
 
+const AuthenticatedApp = () => (
+  <AuthProvider>
+    <AppRoutes />
+  </AuthProvider>
+);
+
 const App = () => (
   <ThemeProvider>
-    <AuthProvider>
-      <AppRoutes />
-    </AuthProvider>
+    <Routes>
+      <Route path="/invite/group" element={<GroupInviteAcceptPage />} />
+      <Route path="/*" element={<AuthenticatedApp />} />
+    </Routes>
   </ThemeProvider>
 );
 

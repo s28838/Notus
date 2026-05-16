@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
 import { apiGet, apiDelete } from "../../services/api";
 import TeacherBottomNav from "../../components/teacher/TeacherBottomNav";
+import LoadingState from "../../components/shared/LoadingState";
 
 const QuizzesPage = () => {
   const { getToken } = useContext(AuthContext);
@@ -63,10 +64,7 @@ const QuizzesPage = () => {
 
       <div style={{ padding: "1rem" }}>
         {loading ? (
-          <div className="loading-state">
-            <div className="loading-spinner"></div>
-            Ładowanie quizów...
-          </div>
+          <LoadingState label="Ładowanie quizów..." />
         ) : error ? (
           <div className="error-state">
             <span className="material-symbols-outlined" style={{ fontSize: "2rem" }}>error</span>

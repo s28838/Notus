@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
 import { apiGet, apiDelete } from "../../services/api";
+import LoadingState from "../../components/shared/LoadingState";
 
 const LessonDetailPage = () => {
   const { id } = useParams();
@@ -51,7 +52,7 @@ const LessonDetailPage = () => {
           <h2 className="top-bar-title">Lekcja</h2>
           <div style={{ width: '2.5rem' }} />
         </div>
-        <div className="loading-state"><div className="loading-spinner"></div>Ładowanie...</div>
+        <LoadingState label="Ładowanie lekcji..." />
       </div>
     );
   }

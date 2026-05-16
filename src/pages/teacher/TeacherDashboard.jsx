@@ -3,6 +3,7 @@ import { AuthContext } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { apiGet, apiPost } from "../../services/api";
 import TeacherBottomNav from "../../components/teacher/TeacherBottomNav";
+import LoadingState from "../../components/shared/LoadingState";
 
 const getLessonLabel = (timeStr) => {
   if (!timeStr || !timeStr.includes(" - ")) return null;
@@ -234,7 +235,7 @@ const TeacherDashboard = () => {
     try {
       setAttendanceLoading(true);
       const token = await getToken();
-      const data = await apiGet(`/api/attendance/sessions/${sessionId}/records`, token);
+      const data = await apiGet(`/api/attendance/sessions/${sessionId}/records`, null, token);
       setAttendanceList(Array.isArray(data) ? data : []);
     } catch {
       setAttendanceList([]);
@@ -287,11 +288,21 @@ const TeacherDashboard = () => {
     }
   };
 
-  const handleCloseSession = () => {
-    setQr(null);
-    setAttendanceList([]);
-    setShowAttendance(false);
+  const handleCloseSession = async () => {
+    if (!qr?.sessionId) return;
+    setLoadingQr(true);
     setErrorQr("");
+    try {
+      const token = await getToken();
+      await apiPost(`/api/attendance/sessions/${qr.sessionId}/close`, {}, token);
+      setQr(null);
+      setAttendanceList([]);
+      setShowAttendance(false);
+    } catch (err) {
+      setErrorQr(err.message || "Nie udało się zamknąć sesji.");
+    } finally {
+      setLoadingQr(false);
+    }
   };
 
   const handleToggleAttendance = async () => {
@@ -410,8 +421,8 @@ const TeacherDashboard = () => {
                     Dodaj quiz
                   </button>
                 )}
-                <button className="hero-pill-btn" onClick={handleCloseSession}>
-                  Zamknij sesję
+                <button className="hero-pill-btn" onClick={handleCloseSession} disabled={loadingQr}>
+                  {loadingQr ? "Zamykam..." : "Zamknij sesję"}
                 </button>
                 <button className="hero-pill-btn" onClick={() => navigate(`/teacher/attendance/${qr.sessionId}`)}>
                   Lista obecności
@@ -428,7 +439,7 @@ const TeacherDashboard = () => {
                   </div>
 
                   {attendanceLoading ? (
-                    <div style={{ padding: "0.75rem", textAlign: "center" }}>Ładowanie...</div>
+                    <LoadingState label="Ładowanie obecności..." compact />
                   ) : attendanceList.length === 0 ? (
                     <div className="empty-state" style={{ padding: "1rem" }}>Na razie nikt się nie odbił.</div>
                   ) : (

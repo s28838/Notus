@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
 import { apiGet, apiPost } from "../../services/api";
+import LoadingState from "../../components/shared/LoadingState";
 
 const TeacherReviewPage = () => {
   const { submissionId } = useParams();
@@ -97,10 +98,7 @@ const TeacherReviewPage = () => {
 
       <div style={{ padding: "1rem", display: "flex", flexDirection: "column", gap: "1rem" }}>
         {loading ? (
-          <div className="loading-state">
-            <div className="loading-spinner"></div>
-            Ładowanie odpowiedzi...
-          </div>
+          <LoadingState label="Ładowanie odpowiedzi..." />
         ) : error && answers.length === 0 ? (
           <div className="error-state">
             <span className="material-symbols-outlined" style={{ fontSize: "2rem" }}>error</span>

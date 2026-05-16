@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
 import TeacherBottomNav from "../../components/teacher/TeacherBottomNav";
 import { apiGet } from "../../services/api";
+import LoadingState from "../../components/shared/LoadingState";
 
 // --- Helpers ---
 const formatDateHeader = (date) => {
@@ -482,10 +483,7 @@ const SchedulePage = () => {
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           {isLoading ? (
-            <div className="loading-state">
-              <div className="loading-spinner"></div>
-              Ładowanie planu...
-            </div>
+            <LoadingState label="Ładowanie planu..." />
           ) : error ? (
             <div className="error-state">
               <span className="material-symbols-outlined" style={{ fontSize: '2rem' }}>error</span>

@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
 import { apiGet, apiPost } from "../../services/api";
+import LoadingState from "../../components/shared/LoadingState";
 
 const TeacherAssignQuizPage = () => {
   const { scheduleId } = useParams();
@@ -63,10 +64,7 @@ const TeacherAssignQuizPage = () => {
             <p style={{ margin: 0, fontWeight: 700, fontSize: "1.1rem" }}>Quiz przypisany!</p>
           </div>
         ) : loading ? (
-          <div className="loading-state">
-            <div className="loading-spinner"></div>
-            Ładowanie quizów...
-          </div>
+          <LoadingState label="Ładowanie quizów..." />
         ) : (
           <>
             {error && (
