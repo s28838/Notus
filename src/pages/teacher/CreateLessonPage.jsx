@@ -33,7 +33,7 @@ const CreateLessonPage = () => {
     const fetchGroups = async () => {
       try {
         const token = await getToken();
-        const data = await apiGet("/api/student-groups", null, token);
+        const data = await apiGet("/api/teacher/groups", null, token);
         setGroups(data || []);
       } catch {
         // non-critical — groups dropdown just stays empty
@@ -43,7 +43,7 @@ const CreateLessonPage = () => {
   }, [getToken]);
 
   const handleSubmit = async () => {
-    if (!subject || !date || !timeStart || !timeEnd || !room || !type) {
+    if (!subject || !date || !timeStart || !timeEnd || !room || !type || !studentGroupId) {
       setError("Wypełnij wszystkie wymagane pola.");
       return;
     }
@@ -57,7 +57,7 @@ const CreateLessonPage = () => {
         time: `${timeStart} - ${timeEnd}`,
         room,
         type,
-        studentGroupId: studentGroupId ? Number(studentGroupId) : null,
+        teacherGroupId: Number(studentGroupId),
         color: "primary"
       }, token);
       navigate("/teacher/schedule");
@@ -117,11 +117,11 @@ const CreateLessonPage = () => {
           </div>
 
           <div>
-            <label style={labelStyle}>Grupa (opcjonalnie)</label>
+            <label style={labelStyle}>Grupa *</label>
             <select value={studentGroupId} onChange={e => setStudentGroupId(e.target.value)} style={inputStyle}>
-              <option value="">Brak grupy</option>
+              <option value="">Wybierz grupę</option>
               {groups.map(g => (
-                <option key={g.id} value={g.id}>{g.code}</option>
+                <option key={g.id} value={g.id}>{g.name} · {g.subject}</option>
               ))}
             </select>
           </div>

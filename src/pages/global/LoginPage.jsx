@@ -3,7 +3,7 @@ import { AuthContext } from "../../context/AuthContext";
 import notusLogo from "../../assets/notus-logo2.png";
 import { Navigate } from "react-router-dom";
 import { apiPost } from "../../services/api";
-import { SignIn } from "@clerk/react";
+import { useClerk } from "@clerk/react";
 
 const fieldStyle = {
   width: "100%",
@@ -51,6 +51,52 @@ const secondaryButtonStyle = {
   gap: "0.5rem"
 };
 
+const ClerkGoogleButton = ({ mode = "signIn", onPrepare, onError, disabled, style, children }) => {
+  const clerk = useClerk();
+  const [redirecting, setRedirecting] = useState(false);
+  const isReady = clerk.loaded && clerk.client;
+
+  const handleGoogleRedirect = async () => {
+    setRedirecting(true);
+    try {
+      const shouldContinue = await onPrepare?.();
+      if (shouldContinue === false) {
+        setRedirecting(false);
+        return;
+      }
+
+      const authResource = mode === "signUp" ? clerk.client.signUp : clerk.client.signIn;
+      if (!isReady || !authResource) {
+        throw new Error("Clerk nie jest jeszcze gotowy. Spróbuj ponownie za chwilę.");
+      }
+
+      await authResource.authenticateWithRedirect({
+        strategy: "oauth_google",
+        redirectUrl: "/sso-callback",
+        redirectUrlComplete: "/login"
+      });
+    } catch (err) {
+      onError?.(err.message || "Nie udało się rozpocząć logowania przez Google.");
+      setRedirecting(false);
+    }
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={handleGoogleRedirect}
+      disabled={disabled || redirecting || !isReady}
+      style={{
+        ...style,
+        opacity: disabled || redirecting || !isReady ? 0.75 : 1,
+        cursor: disabled || redirecting || !isReady ? "wait" : "pointer"
+      }}
+    >
+      {children}
+    </button>
+  );
+};
+
 const LoginPage = () => {
   const {
     user,
@@ -70,7 +116,6 @@ const LoginPage = () => {
   const [selectedRole, setSelectedRole] = useState(() => localStorage.getItem("notus:selectedRole") || "student");
   const [teacherTab, setTeacherTab] = useState("login");
   const [studentTab, setStudentTab] = useState("login");
-  const [showClerkSignIn, setShowClerkSignIn] = useState(false);
   const [pending, setPending] = useState(false);
   const [localError, setLocalError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
@@ -131,7 +176,6 @@ const LoginPage = () => {
     setSelectedRole(role);
     setLocalError(null);
     setSuccessMessage(null);
-    setShowClerkSignIn(false);
     localStorage.setItem("notus:selectedRole", role);
     if (role === "student") {
       localStorage.removeItem("notus:teacherRegistrationToken");
@@ -139,26 +183,34 @@ const LoginPage = () => {
     }
   };
 
-  const openClerkForTeacher = () => {
-    localStorage.setItem("notus:selectedRole", "teacher");
+  const showMissingClerkError = () => {
     if (!clerkEnabled) {
       setLocalError("Brakuje VITE_CLERK_PUBLISHABLE_KEY w pliku .env. Wklej klucz Clerk i zrestartuj frontend.");
-      return;
+      return false;
     }
-    setLocalError(null);
-    setShowClerkSignIn(true);
+    return true;
   };
 
-  const openClerkForStudent = () => {
+  const prepareTeacherGoogleAuth = () => {
+    localStorage.setItem("notus:selectedRole", "teacher");
+    if (!showMissingClerkError()) {
+      return false;
+    }
+    setLocalError(null);
+    setSuccessMessage(null);
+    return true;
+  };
+
+  const prepareStudentGoogleAuth = () => {
     localStorage.setItem("notus:selectedRole", "student");
     localStorage.removeItem("notus:teacherRegistrationToken");
     localStorage.removeItem("notus:teacherAccessCode");
-    if (!clerkEnabled) {
-      setLocalError("Brakuje VITE_CLERK_PUBLISHABLE_KEY w pliku .env. Wklej klucz Clerk i zrestartuj frontend.");
-      return;
+    if (!showMissingClerkError()) {
+      return false;
     }
     setLocalError(null);
-    setShowClerkSignIn(true);
+    setSuccessMessage(null);
+    return true;
   };
 
   const handleTeacherLogin = async () => {
@@ -234,28 +286,48 @@ const LoginPage = () => {
     }
   };
 
-  const handleTeacherGoogleRegister = async () => {
+  const prepareTeacherGoogleRegister = async () => {
     setLocalError(null);
     setSuccessMessage(null);
 
     if (!teacherRegisterForm.code.trim()) {
       setLocalError("Kod administratora jest wymagany.");
-      return;
+      return false;
     }
 
-    setPending(true);
     try {
       const verification = await apiPost("/api/auth/teacher/verify-code", {
         code: teacherRegisterForm.code,
         email: teacherRegisterForm.email || null
       });
       localStorage.setItem("notus:teacherRegistrationToken", verification.registrationToken);
-      openClerkForTeacher();
+      return prepareTeacherGoogleAuth();
     } catch (err) {
       setLocalError(err.message || "Kod administratora jest nieprawidłowy albo wygasł.");
-    } finally {
-      setPending(false);
+      return false;
     }
+  };
+
+  const renderGoogleButton = ({ mode = "signIn", onPrepare, children }) => {
+    if (!clerkEnabled) {
+      return (
+        <button type="button" onClick={showMissingClerkError} disabled={pending} style={secondaryButtonStyle}>
+          {children}
+        </button>
+      );
+    }
+
+    return (
+      <ClerkGoogleButton
+        mode={mode}
+        onPrepare={onPrepare}
+        onError={setLocalError}
+        disabled={pending}
+        style={secondaryButtonStyle}
+      >
+        {children}
+      </ClerkGoogleButton>
+    );
   };
 
   const handleStudentDevLogin = async () => {
@@ -336,10 +408,12 @@ const LoginPage = () => {
                   <span className="material-symbols-outlined" style={{ fontSize: "1.25rem" }}>login</span>
                   {pending ? "Logowanie..." : "Zaloguj nauczyciela"}
                 </button>
-                <button type="button" onClick={openClerkForTeacher} disabled={pending} style={secondaryButtonStyle}>
-                  <span className="material-symbols-outlined" style={{ fontSize: "1.25rem" }}>account_circle</span>
-                  Kontynuuj z Google
-                </button>
+                {renderGoogleButton({ onPrepare: prepareTeacherGoogleAuth, children: (
+                  <>
+                    <span className="material-symbols-outlined" style={{ fontSize: "1.25rem" }}>account_circle</span>
+                    Kontynuuj z Google
+                  </>
+                ) })}
               </>
             ) : (
               <>
@@ -358,10 +432,12 @@ const LoginPage = () => {
                   <span className="material-symbols-outlined" style={{ fontSize: "1.25rem" }}>person_add</span>
                   {pending ? "Tworzenie konta..." : "Zarejestruj konto nauczyciela"}
                 </button>
-                <button type="button" onClick={handleTeacherGoogleRegister} disabled={pending} style={secondaryButtonStyle}>
-                  <span className="material-symbols-outlined" style={{ fontSize: "1.25rem" }}>account_circle</span>
-                  Zarejestruj przez Google
-                </button>
+                {renderGoogleButton({ mode: "signUp", onPrepare: prepareTeacherGoogleRegister, children: (
+                  <>
+                    <span className="material-symbols-outlined" style={{ fontSize: "1.25rem" }}>account_circle</span>
+                    Zarejestruj przez Google
+                  </>
+                ) })}
               </>
             )}
           </div>
@@ -384,10 +460,12 @@ const LoginPage = () => {
                   <span className="material-symbols-outlined" style={{ fontSize: "1.25rem" }}>login</span>
                   {pending ? "Logowanie..." : "Zaloguj ucznia"}
                 </button>
-                <button type="button" onClick={openClerkForStudent} disabled={pending} style={secondaryButtonStyle}>
-                  <span className="material-symbols-outlined" style={{ fontSize: "1.25rem" }}>account_circle</span>
-                  Kontynuuj z Google jako uczeń
-                </button>
+                {renderGoogleButton({ onPrepare: prepareStudentGoogleAuth, children: (
+                  <>
+                    <span className="material-symbols-outlined" style={{ fontSize: "1.25rem" }}>account_circle</span>
+                    Kontynuuj z Google jako uczeń
+                  </>
+                ) })}
               </>
             ) : (
               <>
@@ -399,10 +477,12 @@ const LoginPage = () => {
                   <span className="material-symbols-outlined" style={{ fontSize: "1.25rem" }}>person_add</span>
                   {pending ? "Tworzenie konta..." : "Zarejestruj konto ucznia"}
                 </button>
-                <button type="button" onClick={openClerkForStudent} disabled={pending} style={secondaryButtonStyle}>
-                  <span className="material-symbols-outlined" style={{ fontSize: "1.25rem" }}>account_circle</span>
-                  Zarejestruj przez Google jako uczeń
-                </button>
+                {renderGoogleButton({ mode: "signUp", onPrepare: prepareStudentGoogleAuth, children: (
+                  <>
+                    <span className="material-symbols-outlined" style={{ fontSize: "1.25rem" }}>account_circle</span>
+                    Zarejestruj przez Google jako uczeń
+                  </>
+                ) })}
               </>
             )}
           </div>
@@ -424,30 +504,6 @@ const LoginPage = () => {
           <button type="button" onClick={retryUserSync} style={{ ...secondaryButtonStyle, marginTop: "1rem" }}>
             Dokończ synchronizację konta
           </button>
-        )}
-
-        {showClerkSignIn && clerkEnabled && (
-          <div style={{ width: "100%", marginTop: "1rem", display: "flex", justifyContent: "center" }}>
-            <SignIn
-              key={`${selectedRole}-${teacherTab}-${studentTab}`}
-              routing="hash"
-              signUpForceRedirectUrl="/login"
-              signInForceRedirectUrl="/login"
-              appearance={{
-                elements: {
-                  card: {
-                    backgroundColor: "var(--surface-light)",
-                    border: "1px solid var(--border-light)",
-                    borderRadius: "1rem",
-                    boxShadow: "0 18px 36px rgba(0, 0, 0, 0.18)"
-                  },
-                  formButtonPrimary: {
-                    backgroundColor: "var(--color-primary)"
-                  }
-                }
-              }}
-            />
-          </div>
         )}
 
         <div style={{ width: "100%", marginTop: "1rem", display: "flex", flexDirection: "column", gap: "0.75rem" }}>

@@ -38,6 +38,8 @@ const TeacherActivityPage = () => {
   const [readNotificationIds, setReadNotificationIds] = useState(loadReadNotificationIds);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [showAllNotifications, setShowAllNotifications] = useState(false);
+  const [showAllActivity, setShowAllActivity] = useState(false);
 
   const isNotificationRead = useCallback((item) => item.read || readNotificationIds.has(item.id), [readNotificationIds]);
   const unreadCount = notifications.filter((item) => !isNotificationRead(item)).length;
@@ -76,6 +78,9 @@ const TeacherActivityPage = () => {
     });
   }, []);
 
+  const visibleNotifications = showAllNotifications ? notifications : notifications.slice(0, 3);
+  const visibleActivity = showAllActivity ? activity : activity.slice(0, 3);
+
   return (
     <div className="schedule-page-container groups-page activity-page">
       <div className="details-header activity-header">
@@ -113,7 +118,7 @@ const TeacherActivityPage = () => {
               </div>
             ) : (
               <div className="notification-list">
-                {notifications.map((item) => (
+                {visibleNotifications.map((item) => (
                   <button
                     key={item.id}
                     className={`notification-item ${item.severity || "info"} ${!isNotificationRead(item) ? "unread" : ""}`}
@@ -136,6 +141,11 @@ const TeacherActivityPage = () => {
                     </span>
                   </button>
                 ))}
+                {notifications.length > 3 && (
+                  <button className="secondary-action-btn" onClick={() => setShowAllNotifications((value) => !value)}>
+                    {showAllNotifications ? "Pokaż tylko najnowsze" : `Pokaż starsze (${notifications.length - 3})`}
+                  </button>
+                )}
               </div>
             )}
           </section>
@@ -150,7 +160,7 @@ const TeacherActivityPage = () => {
               </div>
             ) : (
               <div className="activity-timeline">
-                {activity.map((item) => (
+                {visibleActivity.map((item) => (
                   <button
                     key={item.id}
                     className="activity-item"
@@ -164,6 +174,11 @@ const TeacherActivityPage = () => {
                     <em>{formatDateTime(item.occurredAt)}</em>
                   </button>
                 ))}
+                {activity.length > 3 && (
+                  <button className="secondary-action-btn" onClick={() => setShowAllActivity((value) => !value)}>
+                    {showAllActivity ? "Pokaż tylko najnowsze" : `Pokaż starsze (${activity.length - 3})`}
+                  </button>
+                )}
               </div>
             )}
           </section>

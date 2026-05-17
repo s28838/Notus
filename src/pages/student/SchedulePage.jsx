@@ -2,6 +2,7 @@ import React, { useState, useMemo, useContext, useEffect, useRef, useCallback } 
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
 import TeacherBottomNav from "../../components/teacher/TeacherBottomNav";
+import StudentBottomNav from "../../components/student/StudentBottomNav";
 import { apiGet } from "../../services/api";
 import LoadingState from "../../components/shared/LoadingState";
 
@@ -576,28 +577,7 @@ const SchedulePage = () => {
       {user?.role === "teacher" ? (
         <TeacherBottomNav />
       ) : (
-        <nav className="bottom-nav-stitch">
-          <button className="nav-item" onClick={goToHome}>
-            <span className="material-symbols-outlined">home</span>
-            Główna
-          </button>
-          <button className="nav-item active">
-            <span className="material-symbols-outlined fill">calendar_month</span>
-            Plan
-          </button>
-          <button className="nav-item" onClick={goToGroups}>
-            <span className="material-symbols-outlined">groups</span>
-            Grupy
-          </button>
-          <button className="nav-item" onClick={() => navigate("/student/activity")}>
-            <span className="material-symbols-outlined">notifications</span>
-            Aktywność
-          </button>
-          <button className="nav-item" onClick={goToProfile}>
-            <span className="material-symbols-outlined">person</span>
-            Profil
-          </button>
-        </nav>
+        <StudentBottomNav />
       )}
 
       {/* Keyframe animations injected via style tag */}

@@ -48,12 +48,6 @@ Thumbs.db
 *.sln
 *.sw?
 
-# --- CAPACITOR/MOBILE ---
-android/app/build/
-android/app/src/main/assets/public/
-ios/App/App/DerivedData/
-ios/App/public/
-
 # --- EXPORTS & TRACES ---
 stitch_exports/
 browser_recordings/

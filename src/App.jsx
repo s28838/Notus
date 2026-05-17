@@ -2,6 +2,7 @@
 
 import React, { useContext } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
+import { AuthenticateWithRedirectCallback } from "@clerk/react";
 import { AuthContext, AuthProvider } from "./context/AuthContext";
 import { ThemeProvider } from "./context/ThemeContext";
 import LoginPage from "./pages/global/LoginPage";
@@ -47,10 +48,13 @@ const RequireRole = ({ role, children }) => {
 
 const AppRoutes = () => {
   const { user, isAuthReady } = useContext(AuthContext);
+  const clerkEnabled = Boolean(import.meta.env.VITE_CLERK_PUBLISHABLE_KEY) &&
+    !import.meta.env.VITE_CLERK_PUBLISHABLE_KEY.includes("replace_me");
 
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
+      {clerkEnabled && <Route path="/sso-callback" element={<AuthenticateWithRedirectCallback />} />}
       <Route path="/verify-email" element={<EmailVerificationPage />} />
 
       {/* GŁÓWNA ŚCIEŻKA STUDENTA */}

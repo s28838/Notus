@@ -1,11 +1,13 @@
-import React, { useContext, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useContext, useEffect, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
-import { apiPost, apiPostMultipart } from "../../services/api";
+import { apiGet, apiPost, apiPostMultipart } from "../../services/api";
 
 const CreateQuizPage = () => {
   const { getToken } = useContext(AuthContext);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const scheduleId = searchParams.get("scheduleId");
 
   const [activeTab, setActiveTab] = useState("manual"); // "manual" or "ai"
   const [title, setTitle] = useState("");
@@ -19,6 +21,32 @@ const CreateQuizPage = () => {
   const [aiFile, setAiFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [statusMsg, setStatusMsg] = useState("");
+  const [contextLesson, setContextLesson] = useState(null);
+
+  useEffect(() => {
+    if (!scheduleId) return;
+    const loadLesson = async () => {
+      try {
+        const token = await getToken();
+        const lesson = await apiGet(`/api/schedule/${scheduleId}`, null, token);
+        setContextLesson(lesson);
+        setTitle((current) => current || `Quiz: ${lesson.subject || "zajęcia"}`);
+      } catch {
+        setContextLesson(null);
+      }
+    };
+    loadLesson();
+  }, [getToken, scheduleId]);
+
+  const saveAndMaybeAssign = async (payload, token) => {
+    const saved = await apiPost("/api/quiz/save", payload, token);
+    if (scheduleId && saved?.id) {
+      await apiPost("/api/quiz-assignments", { quizId: saved.id, scheduleId }, token);
+      navigate(`/teacher/assign-quiz/${scheduleId}`);
+      return;
+    }
+    navigate("/teacher/quizzes");
+  };
 
   const addQuestion = (type = "CLOSED") => {
     setQuestions([...questions, { 
@@ -53,14 +81,14 @@ const CreateQuizPage = () => {
     try {
       setLoading(true);
       const token = await getToken();
-      await apiPost("/api/quiz/save", {
+      await saveAndMaybeAssign({
         title,
         questions,
+        groupId: contextLesson?.teacherGroupId || null,
         countAsGrade,
         gradeWeight: countAsGrade ? Number(gradeWeight) : null,
         semester: countAsGrade ? semester : null,
       }, token);
-      navigate("/teacher/quizzes");
     } catch (err) {
       alert("Błąd: " + err.message);
     } finally {
@@ -85,13 +113,13 @@ const CreateQuizPage = () => {
       // After generation, we can either save automatically or let teacher review.
       // User said "Teacher should be able to create... using a PDF".
       // Let's save it and go back to list.
-      await apiPost("/api/quiz/save", {
+      await saveAndMaybeAssign({
         ...generated,
+        groupId: contextLesson?.teacherGroupId || null,
         countAsGrade,
         gradeWeight: countAsGrade ? Number(gradeWeight) : null,
         semester: countAsGrade ? semester : null,
       }, token);
-      navigate("/teacher/quizzes");
     } catch (err) {
       alert("Błąd AI: " + err.message);
     } finally {
@@ -114,6 +142,14 @@ const CreateQuizPage = () => {
       </div>
 
       <div className="desktop-centered-content" style={{ padding: "1rem" }}>
+        {contextLesson && (
+          <div className="glass-card" style={{ marginBottom: "1rem", padding: "1rem" }}>
+            <p style={{ margin: 0, color: "var(--text-secondary)", fontSize: "0.85rem", fontWeight: 700 }}>Quiz dla zajęć</p>
+            <p style={{ margin: "0.25rem 0 0", color: "var(--text-primary)", fontWeight: 800 }}>
+              {contextLesson.subject} · {contextLesson.time}
+            </p>
+          </div>
+        )}
         <div className="glass-card" style={{ display: "flex", padding: "0.5rem", marginBottom: "1.5rem" }}>
           <button
             onClick={() => setActiveTab("manual")}

@@ -80,14 +80,22 @@ const TeacherAssignQuizPage = () => {
                 <p style={{ margin: 0, fontSize: "0.875rem" }}>Najpierw utwórz quiz.</p>
                 <button
                   className="btn-primary"
-                  onClick={() => navigate("/teacher/create-quiz")}
+                  onClick={() => navigate(`/teacher/create-quiz?scheduleId=${encodeURIComponent(scheduleId)}`)}
                   style={{ width: "auto", padding: "0.75rem 1.5rem" }}
                 >
-                  Utwórz quiz
+                  Utwórz quiz dla tych zajęć
                 </button>
               </div>
             ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+                <button
+                  className="btn-primary"
+                  onClick={() => navigate(`/teacher/create-quiz?scheduleId=${encodeURIComponent(scheduleId)}`)}
+                  style={{ padding: "0.85rem 1rem" }}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: "1.1rem" }}>add</span>
+                  Utwórz nowy quiz dla tych zajęć
+                </button>
                 <p style={{ margin: "0 0 0.5rem", color: "var(--text-secondary)", fontSize: "0.875rem" }}>
                   Wybierz quiz do przypisania do tych zajęć:
                 </p>

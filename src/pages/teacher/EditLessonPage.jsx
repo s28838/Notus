@@ -38,14 +38,14 @@ const EditLessonPage = () => {
         const token = await getToken();
         const [lesson, groupList] = await Promise.all([
           apiGet(`/api/schedule/${id}`, null, token),
-          apiGet("/api/student-groups", null, token)
+          apiGet("/api/teacher/groups", null, token)
         ]);
         setGroups(groupList || []);
 
         setSubject(lesson.subject || "");
         setRoom(lesson.room || "");
         setType(lesson.type || "Wykład");
-        setStudentGroupId(lesson.studentGroup?.id ? String(lesson.studentGroup.id) : "");
+        setStudentGroupId(lesson.teacherGroupId ? String(lesson.teacherGroupId) : "");
 
         if (lesson.date) {
           setDate(new Date(lesson.date).toISOString().split("T")[0]);
@@ -65,7 +65,7 @@ const EditLessonPage = () => {
   }, [id, getToken]);
 
   const handleSubmit = async () => {
-    if (!subject || !date || !timeStart || !timeEnd || !room || !type) {
+    if (!subject || !date || !timeStart || !timeEnd || !room || !type || !studentGroupId) {
       setError("Wypełnij wszystkie wymagane pola.");
       return;
     }
@@ -79,7 +79,7 @@ const EditLessonPage = () => {
         time: `${timeStart} - ${timeEnd}`,
         room,
         type,
-        studentGroupId: studentGroupId ? Number(studentGroupId) : null,
+        teacherGroupId: Number(studentGroupId),
         color: "primary"
       }, token);
       navigate(`/teacher/lesson/${id}`);
@@ -154,11 +154,11 @@ const EditLessonPage = () => {
           </div>
 
           <div>
-            <label style={labelStyle}>Grupa (opcjonalnie)</label>
+            <label style={labelStyle}>Grupa *</label>
             <select value={studentGroupId} onChange={e => setStudentGroupId(e.target.value)} style={inputStyle}>
-              <option value="">Brak grupy</option>
+              <option value="">Wybierz grupę</option>
               {groups.map(g => (
-                <option key={g.id} value={g.id}>{g.code}</option>
+                <option key={g.id} value={g.id}>{g.name} · {g.subject}</option>
               ))}
             </select>
           </div>

@@ -8,7 +8,6 @@ Główne technologie wykorzystane w projekcie to:
 - **React 18** z frameworkiem **Vite** dla błyskawicznych czasów renderowania i budowania.
 - **Clerk** do procesów uwierzytelniania użytkowników (np. logowanie Google).
 - **React Router** do nawigacji po stronie klienckiej.
-- **Capacitor** do przyszłego obudowania aplikacji i dostarczenia jej na platformy mobilne (Android/iOS).
 
 ## Struktura Katalogów
 

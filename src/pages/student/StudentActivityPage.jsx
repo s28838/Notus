@@ -1,7 +1,8 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import LoadingState from "../../components/shared/LoadingState";
-import { apiGet } from "../../services/api";
+import StudentBottomNav from "../../components/student/StudentBottomNav";
+import { apiGet, apiPost } from "../../services/api";
 
 const READ_NOTIFICATIONS_KEY = "notus_student_read_notifications";
 
@@ -31,6 +32,18 @@ const loadReadNotificationIds = () => {
   }
 };
 
+const syncNotificationRead = (id) => {
+  if (typeof id !== "string") return;
+  if (id.startsWith("student-grade-")) {
+    const gradeId = id.replace("student-grade-", "");
+    apiPost(`/api/grades/${gradeId}/mark-seen`, {}).catch(() => {});
+  }
+  if (id.startsWith("student-review-")) {
+    const submissionId = id.replace("student-review-", "");
+    apiPost(`/api/quiz-assignments/submissions/${submissionId}/mark-seen`, {}).catch(() => {});
+  }
+};
+
 const StudentActivityPage = () => {
   const navigate = useNavigate();
   const [notifications, setNotifications] = useState([]);
@@ -38,6 +51,8 @@ const StudentActivityPage = () => {
   const [readNotificationIds, setReadNotificationIds] = useState(loadReadNotificationIds);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [showAllNotifications, setShowAllNotifications] = useState(false);
+  const [showAllActivity, setShowAllActivity] = useState(false);
 
   const isNotificationRead = useCallback((item) => item.read || readNotificationIds.has(item.id), [readNotificationIds]);
   const unreadCount = notifications.filter((item) => !isNotificationRead(item)).length;
@@ -70,9 +85,14 @@ const StudentActivityPage = () => {
       const next = new Set(current);
       next.add(id);
       localStorage.setItem(READ_NOTIFICATIONS_KEY, JSON.stringify(Array.from(next).slice(-200)));
+      syncNotificationRead(id);
+      window.dispatchEvent(new Event("student-notifications:read"));
       return next;
     });
   }, []);
+
+  const visibleNotifications = showAllNotifications ? notifications : notifications.slice(0, 3);
+  const visibleActivity = showAllActivity ? activity : activity.slice(0, 3);
 
   return (
     <div className="app-container student-groups-page activity-page">
@@ -111,7 +131,7 @@ const StudentActivityPage = () => {
                 </div>
               ) : (
                 <div className="notification-list">
-                  {notifications.map((item) => (
+                  {visibleNotifications.map((item) => (
                     <button
                       key={item.id}
                       className={`notification-item ${item.severity || "info"} ${!isNotificationRead(item) ? "unread" : ""}`}
@@ -132,6 +152,11 @@ const StudentActivityPage = () => {
                       </span>
                     </button>
                   ))}
+                  {notifications.length > 3 && (
+                    <button className="secondary-action-btn" onClick={() => setShowAllNotifications((value) => !value)}>
+                      {showAllNotifications ? "Pokaż tylko najnowsze" : `Pokaż starsze (${notifications.length - 3})`}
+                    </button>
+                  )}
                 </div>
               )}
             </section>
@@ -146,7 +171,7 @@ const StudentActivityPage = () => {
                 </div>
               ) : (
                 <div className="activity-timeline">
-                  {activity.map((item) => (
+                  {visibleActivity.map((item) => (
                     <button
                       key={item.id}
                       className="activity-item"
@@ -160,6 +185,11 @@ const StudentActivityPage = () => {
                       <em>{formatDateTime(item.occurredAt)}</em>
                     </button>
                   ))}
+                  {activity.length > 3 && (
+                    <button className="secondary-action-btn" onClick={() => setShowAllActivity((value) => !value)}>
+                      {showAllActivity ? "Pokaż tylko najnowsze" : `Pokaż starsze (${activity.length - 3})`}
+                    </button>
+                  )}
                 </div>
               )}
             </section>
@@ -167,28 +197,7 @@ const StudentActivityPage = () => {
         )}
       </main>
 
-      <nav className="bottom-nav-stitch">
-        <button className="nav-item" onClick={() => navigate("/student")}>
-          <span className="material-symbols-outlined">home</span>
-          Główna
-        </button>
-        <button className="nav-item" onClick={() => navigate("/student/schedule")}>
-          <span className="material-symbols-outlined">calendar_month</span>
-          Plan
-        </button>
-        <button className="nav-item" onClick={() => navigate("/student/groups")}>
-          <span className="material-symbols-outlined">groups</span>
-          Grupy
-        </button>
-        <button className="nav-item active">
-          <span className="material-symbols-outlined fill">notifications</span>
-          Aktywność
-        </button>
-        <button className="nav-item" onClick={() => navigate("/student/settings")}>
-          <span className="material-symbols-outlined">person</span>
-          Profil
-        </button>
-      </nav>
+      <StudentBottomNav />
     </div>
   );
 };
