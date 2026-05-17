@@ -243,6 +243,7 @@ const SchedulePage = () => {
   const goToStats = () => navigate(user?.role === "teacher" ? "/teacher/stats" : "/student/stats");
   const goToHome = () => navigate(user?.role === "teacher" ? "/teacher" : "/student");
   const goToProfile = () => navigate(user?.role === "teacher" ? "/teacher/settings" : "/student/settings");
+  const goToGroups = () => navigate("/student/groups");
 
   const handleDaySelect = (date) => {
     if (!date) return;
@@ -583,6 +584,10 @@ const SchedulePage = () => {
           <button className="nav-item active">
             <span className="material-symbols-outlined fill">calendar_month</span>
             Plan
+          </button>
+          <button className="nav-item" onClick={goToGroups}>
+            <span className="material-symbols-outlined">groups</span>
+            Grupy
           </button>
           <button className="nav-item" onClick={goToStats}>
             <span className="material-symbols-outlined">history</span>

@@ -181,6 +181,7 @@ const StudentDashboard = () => {
 
   const goToProfile = () => navigate("/student/settings");
   const goToSchedule = () => navigate("/student/schedule");
+  const goToGroups = () => navigate("/student/groups");
   const goToScanQR = () => navigate("/student/scan-qr");
   const goToStats = () => navigate("/student/stats");
 
@@ -423,6 +424,10 @@ const StudentDashboard = () => {
         <button className="nav-item" onClick={goToSchedule}>
           <span className="material-symbols-outlined">calendar_month</span>
           Plan
+        </button>
+        <button className="nav-item" onClick={goToGroups}>
+          <span className="material-symbols-outlined">groups</span>
+          Grupy
         </button>
         <button className="nav-item" onClick={goToStats}>
           <span className="material-symbols-outlined">history</span>

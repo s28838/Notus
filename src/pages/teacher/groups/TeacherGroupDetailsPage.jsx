@@ -9,13 +9,18 @@ const TeacherGroupDetailsPage = () => {
   const navigate = useNavigate();
   const [group, setGroup] = useState(null);
   const [students, setStudents] = useState([]);
+  const [invitations, setInvitations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteError, setInviteError] = useState("");
   const [showInvite, setShowInvite] = useState(false);
   const [studentSuggestions, setStudentSuggestions] = useState([]);
   const [studentSearchPending, setStudentSearchPending] = useState(false);
+  const [invitationsRefreshing, setInvitationsRefreshing] = useState(false);
+  const [pendingInvitationActions, setPendingInvitationActions] = useState({});
+  const [clockNow, setClockNow] = useState(Date.now());
   const [editingStudent, setEditingStudent] = useState(null);
   const [gradeForm, setGradeForm] = useState({
     value: "5",
@@ -36,6 +41,9 @@ const TeacherGroupDetailsPage = () => {
       ]);
       setGroup(groupData);
       setStudents(studentData);
+      apiGet(`/api/teacher/groups/${groupId}/invitations`)
+        .then((data) => setInvitations(Array.isArray(data) ? data : []))
+        .catch(() => setInvitations([]));
     } catch {
       setError("Nie masz uprawnień do tej grupy albo nie udało się jej pobrać.");
     } finally {
@@ -46,6 +54,11 @@ const TeacherGroupDetailsPage = () => {
   useEffect(() => {
     load();
   }, [load]);
+
+  useEffect(() => {
+    const interval = window.setInterval(() => setClockNow(Date.now()), 60000);
+    return () => window.clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     const token = localStorage.getItem("clerkToken");
@@ -120,8 +133,9 @@ const TeacherGroupDetailsPage = () => {
     event.preventDefault();
     setNotice("");
     setError("");
+    setInviteError("");
     if (matchingSuggestion?.alreadyInGroup) {
-      setError("Ten uczeń jest już w grupie.");
+      setInviteError("Ten uczeń jest już w grupie.");
       return;
     }
     try {
@@ -131,8 +145,9 @@ const TeacherGroupDetailsPage = () => {
       setStudentSuggestions([]);
       setShowInvite(false);
       setNotice("Zaproszenie zostało wysłane.");
+      await refreshInvitations();
     } catch (inviteError) {
-      setError(inviteError.message || "Nie udało się zaprosić ucznia. Skontaktuj się z administratorem.");
+      setInviteError(inviteError.message || "Nie udało się zaprosić ucznia. Skontaktuj się z administratorem.");
     }
   };
 
@@ -195,6 +210,97 @@ const TeacherGroupDetailsPage = () => {
     }
   };
 
+  const refreshInvitations = async ({ showPending = false } = {}) => {
+    if (showPending) setInvitationsRefreshing(true);
+    try {
+      const data = await apiGet(`/api/teacher/groups/${groupId}/invitations`);
+      setInvitations(Array.isArray(data) ? data : []);
+    } catch {
+      setInvitations([]);
+    } finally {
+      if (showPending) setInvitationsRefreshing(false);
+    }
+  };
+
+  const resendInvitation = async (invitation) => {
+    setNotice("");
+    setError("");
+    if (isResendCoolingDown(invitation)) {
+      setError(`Zaproszenie można ponowić za ${formatCooldown(invitation.resendAvailableAt)}.`);
+      return;
+    }
+    setPendingInvitationActions((current) => ({ ...current, [invitation.id]: "resend" }));
+    try {
+      const updatedInvitation = await apiPost(`/api/teacher/groups/${groupId}/invitations/${invitation.id}/resend`, {});
+      setInvitations((current) => current.map((item) => (
+        item.id === updatedInvitation.id ? updatedInvitation : item
+      )));
+      setNotice("Zaproszenie zostało wysłane ponownie.");
+    } catch (err) {
+      setError(err.message || "Nie udało się ponowić zaproszenia.");
+    } finally {
+      setPendingInvitationActions((current) => {
+        const next = { ...current };
+        delete next[invitation.id];
+        return next;
+      });
+    }
+  };
+
+  const cancelInvitation = async (invitation) => {
+    if (!window.confirm("Czy na pewno chcesz anulować to zaproszenie?")) return;
+    setNotice("");
+    setError("");
+    try {
+      await apiPost(`/api/teacher/groups/${groupId}/invitations/${invitation.id}/cancel`, {});
+      setNotice("Zaproszenie zostało anulowane.");
+      await refreshInvitations();
+    } catch (err) {
+      setError(err.message || "Nie udało się anulować zaproszenia.");
+    }
+  };
+
+  const formatInvitationDate = (value) => {
+    if (!value) return "-";
+    return new Date(value).toLocaleString("pl-PL", {
+      day: "2-digit",
+      month: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  const invitationStatusLabel = (status) => ({
+    PENDING: "Oczekuje",
+    ACCEPTED: "Zaakceptowane",
+    FAILED: "Błąd wysyłki",
+    CANCELLED: "Anulowane",
+    EXPIRED: "Wygasłe",
+  }[status] || status);
+
+  const isResendCoolingDown = (invitation) => {
+    if (invitation.status === "FAILED") return false;
+    const availableAt = invitation.resendAvailableAt ? new Date(invitation.resendAvailableAt).getTime() : 0;
+    return availableAt > clockNow;
+  };
+
+  const formatCooldown = (value) => {
+    if (!value) return "24 godz.";
+    const diffMs = Math.max(0, new Date(value).getTime() - clockNow);
+    const totalMinutes = Math.max(1, Math.ceil(diffMs / 60000));
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    if (hours <= 0) return `${minutes} min`;
+    if (minutes === 0) return `${hours} godz.`;
+    return `${hours} godz. ${minutes} min`;
+  };
+
+  const resendButtonLabel = (invitation) => {
+    if (pendingInvitationActions[invitation.id] === "resend") return "Wysyłam...";
+    if (isResendCoolingDown(invitation)) return `Ponów za ${formatCooldown(invitation.resendAvailableAt)}`;
+    return "Ponów";
+  };
+
   if (loading) {
     return <div className="schedule-page-container groups-page"><LoadingState label="Ładowanie grupy..." /><TeacherBottomNav /></div>;
   }
@@ -213,7 +319,13 @@ const TeacherGroupDetailsPage = () => {
             <h1>{group.name}</h1>
             <p>Przedmiot: {group.subject || "-"} | Rok szkolny: {group.schoolYear || "-"} | Semestr: {group.semester || "-"}</p>
           </div>
-          <button className="primary-action-btn" onClick={() => setShowInvite(true)}>
+          <button
+            className="primary-action-btn"
+            onClick={() => {
+              setInviteError("");
+              setShowInvite(true);
+            }}
+          >
             <span className="material-symbols-outlined">person_add</span>
             Dodaj ucznia
           </button>
@@ -278,6 +390,75 @@ const TeacherGroupDetailsPage = () => {
         )}
       </section>
 
+      <section className="data-panel invitations-panel">
+        <div className="panel-title-row">
+          <div>
+            <h2>Zaproszenia</h2>
+            <p>Zarządzaj wysłanymi linkami do tej grupy: ponawiaj wysyłkę albo anuluj nieaktualne zaproszenia.</p>
+          </div>
+          <button className="secondary-action-btn" onClick={() => refreshInvitations({ showPending: true })} disabled={invitationsRefreshing}>
+            <span className={`material-symbols-outlined ${invitationsRefreshing ? "spin-icon" : ""}`}>refresh</span>
+            {invitationsRefreshing ? "Odświeżam..." : "Odśwież"}
+          </button>
+        </div>
+
+        {invitations.length === 0 ? (
+          <div className="empty-state compact">
+            <span className="material-symbols-outlined">outgoing_mail</span>
+            <h3>Brak zaproszeń</h3>
+            <p>Po wysłaniu zaproszenia do ucznia zobaczysz tutaj jego status.</p>
+          </div>
+        ) : (
+          <div className="responsive-table invitations-table">
+            <table>
+              <thead>
+                <tr>
+                  <th>Email</th>
+                  <th>Status</th>
+                  <th>Wysłano</th>
+                  <th>Wygasa</th>
+                  <th>Akcje</th>
+                </tr>
+              </thead>
+              <tbody>
+                {invitations.map((invitation) => {
+                  const canManage = invitation.status !== "ACCEPTED";
+                  const resendPending = pendingInvitationActions[invitation.id] === "resend";
+                  const resendLocked = isResendCoolingDown(invitation);
+                  const canResend = canManage && !resendPending && !resendLocked;
+                  return (
+                    <tr key={invitation.id}>
+                      <td>{invitation.email}</td>
+                      <td>
+                        <span className={`status-pill ${String(invitation.status).toLowerCase()}`}>
+                          {invitationStatusLabel(invitation.status)}
+                        </span>
+                      </td>
+                      <td>{formatInvitationDate(invitation.createdAt)}</td>
+                      <td>{formatInvitationDate(invitation.expiresAt)}</td>
+                      <td className="table-actions">
+                        <button
+                          className={resendPending ? "action-loading" : ""}
+                          onClick={() => resendInvitation(invitation)}
+                          disabled={!canResend}
+                          title={resendLocked ? `Ponowienie będzie dostępne: ${formatInvitationDate(invitation.resendAvailableAt)}` : undefined}
+                        >
+                          {resendPending && <span className="button-spinner" aria-hidden="true" />}
+                          {resendButtonLabel(invitation)}
+                        </button>
+                        <button className="danger-link" onClick={() => cancelInvitation(invitation)} disabled={!canManage}>
+                          Anuluj
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
       {showInvite && (
         <div className="modal-backdrop">
           <form className="modal-card" onSubmit={sendInvite}>
@@ -287,7 +468,10 @@ const TeacherGroupDetailsPage = () => {
               <input
                 type="email"
                 value={inviteEmail}
-                onChange={(e) => setInviteEmail(e.target.value)}
+                onChange={(e) => {
+                  setInviteEmail(e.target.value);
+                  setInviteError("");
+                }}
                 autoComplete="off"
                 required
               />
@@ -317,9 +501,14 @@ const TeacherGroupDetailsPage = () => {
                 )}
               </div>
             )}
+            {(inviteError || matchingSuggestion?.alreadyInGroup) && (
+              <div className="modal-inline-error" role="alert">
+                {inviteError || "Ten uczeń jest już w grupie."}
+              </div>
+            )}
             <div className="modal-actions">
               <button type="button" onClick={() => setShowInvite(false)}>Anuluj</button>
-              <button className="primary-action-btn" type="submit" disabled={matchingSuggestion?.alreadyInGroup}>
+              <button className="primary-action-btn" type="submit">
                 Wyślij zaproszenie
               </button>
             </div>

@@ -6,7 +6,9 @@ import { AuthContext, AuthProvider } from "./context/AuthContext";
 import { ThemeProvider } from "./context/ThemeContext";
 import LoginPage from "./pages/global/LoginPage";
 import StudentDashboard from "./pages/student/StudentDashboard";
+import StudentGroupsPage from "./pages/student/StudentGroupsPage";
 import TeacherDashboard from "./pages/teacher/TeacherDashboard";
+import TeacherActivityPage from "./pages/teacher/TeacherActivityPage";
 import TeacherStatsPage from "./pages/teacher/TeacherStatsPage";
 import ProfilePage from "./pages/global/ProfilePage";
 import SchedulePage from "./pages/student/SchedulePage";
@@ -109,6 +111,15 @@ const AppRoutes = () => {
         }
       />
 
+      <Route
+        path="/student/groups"
+        element={
+          <RequireRole role="student">
+            <StudentGroupsPage />
+          </RequireRole>
+        }
+      />
+
       {/* GŁÓWNA ŚCIEŻKA NAUCZYCIELA */}
       <Route
         path="/teacher"
@@ -125,6 +136,14 @@ const AppRoutes = () => {
         element={
           <RequireRole role="teacher">
             <ProfilePage />
+          </RequireRole>
+        }
+      />
+      <Route
+        path="/teacher/activity"
+        element={
+          <RequireRole role="teacher">
+            <TeacherActivityPage />
           </RequireRole>
         }
       />

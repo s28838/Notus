@@ -10,6 +10,7 @@ const StatsPage = () => {
 
   const goToHome = () => navigate("/student");
   const goToSchedule = () => navigate("/student/schedule");
+  const goToGroups = () => navigate("/student/groups");
   const goToProfile = () => navigate("/student/settings");
 
   const [history, setHistory] = useState([]);
@@ -129,6 +130,10 @@ const StatsPage = () => {
         <button className="nav-item" onClick={goToSchedule}>
           <span className="material-symbols-outlined">calendar_month</span>
           Plan
+        </button>
+        <button className="nav-item" onClick={goToGroups}>
+          <span className="material-symbols-outlined">groups</span>
+          Grupy
         </button>
         <button className="nav-item active">
           <span className="material-symbols-outlined fill">history</span>
