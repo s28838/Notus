@@ -1202,6 +1202,11 @@ html, body {
   color: #f8fafc;
 }
 
+.student-edit-modal {
+  width: min(640px, 100%);
+  padding-bottom: 0;
+}
+
 .modal-card h2 {
   line-height: 1.2;
 }
@@ -1256,6 +1261,41 @@ html, body {
   font-weight: 800;
   cursor: pointer;
   white-space: nowrap;
+}
+
+.sticky-actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  margin: 6px -22px 0;
+  padding: 14px 22px 18px;
+  border-top: 1px solid rgba(148, 163, 184, 0.22);
+  background: linear-gradient(180deg, rgba(17, 24, 39, 0.9), #111827 34%);
+}
+
+.student-readonly-info {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.student-readonly-info span {
+  min-width: 0;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  background: rgba(15, 23, 42, 0.54);
+  color: #f8fafc;
+  overflow-wrap: anywhere;
+}
+
+.student-readonly-info strong {
+  display: block;
+  margin-bottom: 5px;
+  color: #94a3b8;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .modal-actions button:disabled {
@@ -2088,6 +2128,10 @@ html, body {
   .notification-item em,
   .activity-item em {
     grid-column: 2;
+  }
+
+  .student-readonly-info {
+    grid-template-columns: 1fr;
   }
 }
 

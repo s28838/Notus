@@ -128,6 +128,12 @@ const TeacherGroupDetailsPage = () => {
   const matchingSuggestion = studentSuggestions.find(
     (student) => student.email.toLowerCase() === inviteEmail.trim().toLowerCase()
   );
+  const acceptedInvitationEmails = new Set(
+    invitations
+      .filter((invitation) => invitation.status === "ACCEPTED")
+      .map((invitation) => invitation.email?.toLowerCase())
+      .filter(Boolean)
+  );
 
   const sendInvite = async (event) => {
     event.preventDefault();
@@ -183,6 +189,7 @@ const TeacherGroupDetailsPage = () => {
         gradeDate: new Date().toISOString().slice(0, 10),
       });
       setNotice("Ocena została wystawiona.");
+      setEditingStudent(null);
       setGradeForm({
         value: "5",
         weight: 1,
@@ -279,7 +286,7 @@ const TeacherGroupDetailsPage = () => {
   }[status] || status);
 
   const isResendCoolingDown = (invitation) => {
-    if (invitation.status === "FAILED") return false;
+    if (invitation.status === "FAILED" || invitation.status === "ACCEPTED") return false;
     const availableAt = invitation.resendAvailableAt ? new Date(invitation.resendAvailableAt).getTime() : 0;
     return availableAt > clockNow;
   };
@@ -297,6 +304,7 @@ const TeacherGroupDetailsPage = () => {
 
   const resendButtonLabel = (invitation) => {
     if (pendingInvitationActions[invitation.id] === "resend") return "Wysyłam...";
+    if (invitation.status === "ACCEPTED" || acceptedInvitationEmails.has(invitation.email?.toLowerCase())) return "Uczeń już w grupie";
     if (isResendCoolingDown(invitation)) return `Ponów za ${formatCooldown(invitation.resendAvailableAt)}`;
     return "Ponów";
   };
@@ -422,7 +430,8 @@ const TeacherGroupDetailsPage = () => {
               </thead>
               <tbody>
                 {invitations.map((invitation) => {
-                  const canManage = invitation.status !== "ACCEPTED";
+                  const emailAccepted = acceptedInvitationEmails.has(invitation.email?.toLowerCase());
+                  const canManage = invitation.status !== "ACCEPTED" && !emailAccepted;
                   const resendPending = pendingInvitationActions[invitation.id] === "resend";
                   const resendLocked = isResendCoolingDown(invitation);
                   const canResend = canManage && !resendPending && !resendLocked;
@@ -446,9 +455,11 @@ const TeacherGroupDetailsPage = () => {
                           {resendPending && <span className="button-spinner" aria-hidden="true" />}
                           {resendButtonLabel(invitation)}
                         </button>
-                        <button className="danger-link" onClick={() => cancelInvitation(invitation)} disabled={!canManage}>
-                          Anuluj
-                        </button>
+                        {canManage && (
+                          <button className="danger-link" onClick={() => cancelInvitation(invitation)}>
+                            Anuluj
+                          </button>
+                        )}
                       </td>
                     </tr>
                   );
@@ -460,8 +471,8 @@ const TeacherGroupDetailsPage = () => {
       </section>
 
       {showInvite && (
-        <div className="modal-backdrop">
-          <form className="modal-card" onSubmit={sendInvite}>
+        <div className="modal-backdrop" onClick={() => setShowInvite(false)}>
+          <form className="modal-card" onSubmit={sendInvite} onClick={(event) => event.stopPropagation()}>
             <h2>Dodaj ucznia do grupy</h2>
             <label>
               Email ucznia
@@ -517,20 +528,26 @@ const TeacherGroupDetailsPage = () => {
       )}
 
       {editingStudent && (
-        <div className="modal-backdrop">
-          <form className="modal-card" onSubmit={saveStudent}>
+        <div className="modal-backdrop" onClick={() => setEditingStudent(null)}>
+          <form className="modal-card student-edit-modal" onSubmit={saveStudent} onClick={(event) => event.stopPropagation()}>
             <h2>Edytuj ucznia</h2>
             <label>
               Imię i nazwisko
               <input value={editingStudent.fullName} onChange={(e) => setEditingStudent({ ...editingStudent, fullName: e.target.value })} required />
             </label>
-            <label>
-              Email
-              <input type="email" value={editingStudent.email} onChange={(e) => setEditingStudent({ ...editingStudent, email: e.target.value })} required />
-            </label>
-            <div className="modal-actions">
-              <button type="button" onClick={() => setEditingStudent(null)}>Anuluj</button>
-              <button className="primary-action-btn" type="submit">Zapisz zmiany</button>
+            <div className="student-readonly-info" aria-label="Informacje o uczniu">
+              <span>
+                <strong>Email</strong>
+                {editingStudent.email || "-"}
+              </span>
+              <span>
+                <strong>Frekwencja</strong>
+                {editingStudent.attendancePercentage ?? 0}%
+              </span>
+              <span>
+                <strong>Średnia ocen</strong>
+                {Number(editingStudent.averageGrade || 0).toFixed(2)}
+              </span>
             </div>
             <div className="grade-form-section">
               <h3>Wystaw ocenę</h3>
@@ -563,6 +580,10 @@ const TeacherGroupDetailsPage = () => {
               <button className="primary-action-btn" type="button" onClick={saveGrade}>
                 Zapisz ocenę
               </button>
+            </div>
+            <div className="modal-actions sticky-actions">
+              <button type="button" onClick={() => setEditingStudent(null)}>Anuluj</button>
+              <button className="primary-action-btn" type="submit">Zapisz zmiany</button>
             </div>
           </form>
         </div>

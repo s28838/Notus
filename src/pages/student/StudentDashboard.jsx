@@ -21,6 +21,8 @@ const getLessonLabel = (timeStr) => {
   return null;
 };
 
+const isFreshGrade = (grade) => Boolean(grade?.isNew ?? grade?.new);
+
 const StudentDashboard = () => {
   const { user, getToken } = useContext(AuthContext);
   const navigate = useNavigate();
@@ -179,6 +181,24 @@ const StudentDashboard = () => {
     setActiveQuiz(null);
   };
 
+  const openGrade = async (grade) => {
+    try {
+      const token = await getToken();
+      if (grade?.id) {
+        await apiPost(`/api/grades/${grade.id}/mark-seen`, {}, token);
+        setLatestGrades((prev) => prev.map((item) => item.id === grade.id ? { ...item, isNew: false, new: false } : item));
+      }
+    } catch {
+      // Nawigacja do ocen jest ważniejsza niż samo oznaczenie powiadomienia jako przeczytane.
+    }
+
+    if (grade?.groupId) {
+      navigate(`/student/groups/${grade.groupId}/grades`);
+    } else {
+      navigate("/student/groups");
+    }
+  };
+
   const goToProfile = () => navigate("/student/settings");
   const goToSchedule = () => navigate("/student/schedule");
   const goToGroups = () => navigate("/student/groups");
@@ -318,23 +338,53 @@ const StudentDashboard = () => {
         </div>
       )}
 
+      {user?.role !== "teacher" && latestGrades.some(isFreshGrade) && (
+        <div
+          className="interactive-card"
+          style={{ margin: "1rem 1rem 0 1rem", padding: "0.85rem 1rem", borderRadius: "1rem", background: "rgba(22,163,74,0.08)", border: "1px solid rgba(22,163,74,0.25)", display: "flex", alignItems: "center", gap: "0.75rem", cursor: "pointer" }}
+          onClick={() => openGrade(latestGrades.find(isFreshGrade))}
+        >
+          <span className="material-symbols-outlined" style={{ color: "#16a34a", fontSize: "1.4rem" }}>notifications_active</span>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <p style={{ margin: 0, fontWeight: 800, color: "var(--text-primary)", fontSize: "0.9rem" }}>Masz nową ocenę</p>
+            <p style={{ margin: 0, color: "var(--text-secondary)", fontSize: "0.78rem", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+              Kliknij, aby przejść do ocen z przedmiotu {latestGrades.find(isFreshGrade)?.subject || "w grupie"}.
+            </p>
+          </div>
+          <span className="material-symbols-outlined" style={{ color: "#16a34a" }}>chevron_right</span>
+        </div>
+      )}
+
       {user?.role !== "teacher" && latestGrades.length > 0 && (
-        <div className="interactive-card" style={{ margin: "1rem 1rem 0 1rem", padding: "1rem", borderRadius: "1rem", background: "var(--surface-light)", border: "1px solid var(--border-light)", boxShadow: "0 4px 12px rgba(0,0,0,0.05)", cursor: "pointer" }} onClick={() => navigate("/student/schedule")}>
+        <div className="interactive-card" style={{ margin: "1rem 1rem 0 1rem", padding: "1rem", borderRadius: "1rem", background: "var(--surface-light)", border: "1px solid var(--border-light)", boxShadow: "0 4px 12px rgba(0,0,0,0.05)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.75rem" }}>
             <span className="material-symbols-outlined" style={{ color: "#16a34a", fontSize: "1.25rem" }}>school</span>
-            <h3 style={{ margin: 0, fontSize: "0.95rem", fontWeight: 700, color: "var(--text-primary)" }}>Ostatnie Oceny</h3>
-            {latestGrades.filter(g => g.isRecent24h).length > 0 && (
+            <h3 style={{ margin: 0, fontSize: "0.95rem", fontWeight: 700, color: "var(--text-primary)" }}>Ostatnie oceny</h3>
+            {latestGrades.filter(isFreshGrade).length > 0 && (
               <span style={{ background: "#16a34a", color: "white", padding: "0.1rem 0.4rem", borderRadius: "999px", fontSize: "0.7rem", fontWeight: 800, marginLeft: "auto" }}>
-                +{latestGrades.filter(g => g.isRecent24h).length} nowe
+                +{latestGrades.filter(isFreshGrade).length} nowe
               </span>
             )}
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
             {latestGrades.map(grade => (
-              <div key={grade.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0.3rem 0", borderBottom: "1px solid rgba(22, 163, 74, 0.1)" }}>
-                <span style={{ fontSize: "0.85rem", fontWeight: 600, color: "var(--text-secondary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginRight: "1rem" }}>{grade.subject}</span>
-                <span style={{ fontSize: "0.95rem", fontWeight: 800, color: grade.isRecent24h ? "#16a34a" : "var(--text-primary)" }}>{grade.value}</span>
-              </div>
+              <button
+                key={grade.id}
+                type="button"
+                onClick={() => openGrade(grade)}
+                style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "0.75rem", padding: "0.45rem 0", border: 0, borderBottom: "1px solid rgba(22, 163, 74, 0.1)", background: "transparent", cursor: "pointer", textAlign: "left" }}
+              >
+                <span style={{ flex: 1, minWidth: 0 }}>
+                  <span style={{ display: "block", fontSize: "0.85rem", fontWeight: 700, color: "var(--text-secondary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{grade.subject}</span>
+                  <small style={{ display: "block", color: "var(--text-tertiary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{grade.groupName || "Grupa"}</small>
+                </span>
+                {isFreshGrade(grade) && (
+                  <span style={{ background: "rgba(22,163,74,0.12)", color: "#16a34a", padding: "0.1rem 0.35rem", borderRadius: "999px", fontSize: "0.68rem", fontWeight: 900 }}>
+                    Nowa
+                  </span>
+                )}
+                <span style={{ fontSize: "0.95rem", fontWeight: 800, color: isFreshGrade(grade) || grade.isRecent24h ? "#16a34a" : "var(--text-primary)" }}>{grade.value}</span>
+              </button>
             ))}
           </div>
         </div>
@@ -429,9 +479,9 @@ const StudentDashboard = () => {
           <span className="material-symbols-outlined">groups</span>
           Grupy
         </button>
-        <button className="nav-item" onClick={goToStats}>
-          <span className="material-symbols-outlined">history</span>
-          Historia
+        <button className="nav-item" onClick={() => navigate("/student/activity")}>
+          <span className="material-symbols-outlined">notifications</span>
+          Aktywność
         </button>
         <button className="nav-item" onClick={goToProfile}>
           <span className="material-symbols-outlined">person</span>

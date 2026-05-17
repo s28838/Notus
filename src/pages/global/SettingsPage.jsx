@@ -335,7 +335,7 @@ const AboutSection = () => (
     </div>
     <div style={{ height:"1px", background:"var(--border-light)", margin:"1rem 0" }}/>
     <p style={{ margin:"0 0 0.5rem", fontSize:"0.8rem", fontWeight:700, color:"var(--text-secondary)", textTransform:"uppercase", letterSpacing:"0.05em" }}>{S.about.university}</p>
-    <p style={{ margin:"0 0 1rem", fontSize:"0.875rem", color:"var(--text-primary)", lineHeight:1.5 }}>Polsko-Japońska Akademia Technik Komputerowych — uczelnia techniczna z siedzibą w Warszawie.</p>
+    <p style={{ margin:"0 0 1rem", fontSize:"0.875rem", color:"var(--text-primary)", lineHeight:1.5 }}>Notus wspiera nauczycieli i uczniów w zarządzaniu grupami, frekwencją, ocenami oraz quizami.</p>
     <p style={{ margin:"0 0 0.5rem", fontSize:"0.8rem", fontWeight:700, color:"var(--text-secondary)", textTransform:"uppercase", letterSpacing:"0.05em" }}>{S.about.creators}</p>
     <div style={{ display:"flex", flexDirection:"column", gap:"0.4rem", marginBottom:"1rem" }}>
       {S.about.creatorsList.map((c,i) => (

@@ -91,15 +91,16 @@ export const SETTINGS_STRINGS = {
   // About section
   about: {
     heading: "O aplikacji",
-    appName: "Notus — System Obecności PJATK",
+    appName: "Notus",
     version: "Wersja 1.0.0",
-    university: "Polsko-Japońska Akademia Technik Komputerowych",
+    university: "Aplikacja edukacyjna do zarządzania grupami, frekwencją, ocenami i quizami.",
     creators: "Twórcy systemu",
     creatorsList: [
-      "Kacper — Fullstack Developer",
-      "Zespół PJATK IT",
+      "Kacper Ruta",
+      "Bartosz Dembowski",
+      "Oskar Szyszko",
     ],
-    legal: "© 2024 PJATK. Wszelkie prawa zastrzeżone.",
+    legal: "© 2026 Notus. Wszelkie prawa zastrzeżone.",
   },
 };
 

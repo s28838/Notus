@@ -4,6 +4,18 @@ import TeacherBottomNav from "../../../components/teacher/TeacherBottomNav";
 import { apiGet } from "../../../services/api";
 import LoadingState from "../../../components/shared/LoadingState";
 
+const formatGradeDateTime = (grade) => {
+  const value = grade.dateTime || grade.date;
+  if (!value) return "-";
+  return new Date(value).toLocaleString("pl-PL", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
+
 const StudentGradesPage = () => {
   const { groupId, studentId } = useParams();
   const navigate = useNavigate();
@@ -63,7 +75,7 @@ const StudentGradesPage = () => {
                   <tbody>
                     {semester.grades.map((grade) => (
                       <tr key={grade.id}>
-                        <td>{grade.date}</td>
+                        <td>{formatGradeDateTime(grade)}</td>
                         <td>{grade.value}</td>
                         <td>{grade.source || "-"}</td>
                         <td>{grade.comment || "-"}</td>

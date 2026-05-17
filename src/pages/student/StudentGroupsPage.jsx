@@ -78,6 +78,14 @@ const StudentGroupsPage = () => {
                     {group.teacherName || group.teacherEmail || "-"}
                   </span>
                 </div>
+                <button
+                  className="primary-action-btn"
+                  style={{ marginTop: "1rem", width: "100%" }}
+                  onClick={() => navigate(`/student/groups/${group.id}/grades`)}
+                >
+                  <span className="material-symbols-outlined">grading</span>
+                  Zobacz oceny
+                </button>
               </article>
             ))}
           </div>
@@ -97,9 +105,9 @@ const StudentGroupsPage = () => {
           <span className="material-symbols-outlined fill">groups</span>
           Grupy
         </button>
-        <button className="nav-item" onClick={() => navigate("/student/stats")}>
-          <span className="material-symbols-outlined">history</span>
-          Historia
+        <button className="nav-item" onClick={() => navigate("/student/activity")}>
+          <span className="material-symbols-outlined">notifications</span>
+          Aktywność
         </button>
         <button className="nav-item" onClick={() => navigate("/student/settings")}>
           <span className="material-symbols-outlined">person</span>

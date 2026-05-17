@@ -589,9 +589,9 @@ const SchedulePage = () => {
             <span className="material-symbols-outlined">groups</span>
             Grupy
           </button>
-          <button className="nav-item" onClick={goToStats}>
-            <span className="material-symbols-outlined">history</span>
-            Historia
+          <button className="nav-item" onClick={() => navigate("/student/activity")}>
+            <span className="material-symbols-outlined">notifications</span>
+            Aktywność
           </button>
           <button className="nav-item" onClick={goToProfile}>
             <span className="material-symbols-outlined">person</span>
