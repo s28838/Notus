@@ -1,7 +1,9 @@
+import "./sentry";
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import { ClerkProvider } from "@clerk/react";
+import { Sentry } from "./sentry";
 import App from "./App";
 import "./styles/styles.css";
 import "./styles/stitch-theme.css";
@@ -14,14 +16,16 @@ if (!PUBLISHABLE_KEY || PUBLISHABLE_KEY.includes("replace_me")) {
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    <BrowserRouter>
-      {PUBLISHABLE_KEY && !PUBLISHABLE_KEY.includes("replace_me") ? (
-        <ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl="/">
+    <Sentry.ErrorBoundary fallback={<div className="error-state">Wystąpił błąd aplikacji.</div>}>
+      <BrowserRouter>
+        {PUBLISHABLE_KEY && !PUBLISHABLE_KEY.includes("replace_me") ? (
+          <ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl="/">
+            <App />
+          </ClerkProvider>
+        ) : (
           <App />
-        </ClerkProvider>
-      ) : (
-        <App />
-      )}
-    </BrowserRouter>
+        )}
+      </BrowserRouter>
+    </Sentry.ErrorBoundary>
   </React.StrictMode>
 );

@@ -1,9 +1,24 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useUser, useAuth, useClerk } from "@clerk/react";
+import { Sentry } from "../sentry";
 import { apiGet, apiPost } from "../services/api";
 
 export const AuthContext = React.createContext(null);
+
+const useSentryUser = (user) => {
+  useEffect(() => {
+    if (user) {
+      Sentry.setUser({ id: String(user.id) });
+      Sentry.setTag("role", user.role || "unknown");
+      Sentry.setTag("auth_provider", localStorage.getItem("notus:authProvider") || "unknown");
+      return;
+    }
+    Sentry.setUser(null);
+    Sentry.setTag("role", "anonymous");
+    Sentry.setTag("auth_provider", "none");
+  }, [user]);
+};
 
 export const AuthProvider = ({ children }) => {
   const clerkEnabled = Boolean(import.meta.env.VITE_CLERK_PUBLISHABLE_KEY) &&
@@ -21,6 +36,7 @@ const DevAuthProvider = ({ children }) => {
   const [authError, setAuthError] = useState(null);
   const [isAuthReady, setIsAuthReady] = useState(false);
   const navigate = useNavigate();
+  useSentryUser(user);
 
   useEffect(() => {
     const token = localStorage.getItem("clerkToken");
@@ -223,6 +239,7 @@ const ClerkAuthProvider = ({ children }) => {
   const [isAuthReady, setIsAuthReady] = useState(false);
   const [authError, setAuthError] = useState(null);
   const navigate = useNavigate();
+  useSentryUser(user);
 
   const syncUserToBackend = async () => {
     if (!(isLoaded && isSignedIn && clerkUser)) {
