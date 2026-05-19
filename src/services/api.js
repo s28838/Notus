@@ -24,12 +24,18 @@ async function safeFetch(url, options) {
   }
 }
 
+function localizeErrorMessage(message) {
+  return message
+    .replace("To konto istnieje już jako student.", "To konto istnieje już jako uczeń.")
+    .replace("To konto istnieje juÅ¼ jako student.", "To konto istnieje już jako uczeń.");
+}
+
 function extractErrorMessage(text, status) {
   try {
     const parsed = JSON.parse(text);
 
     if (parsed.message && parsed.message.trim() !== "") {
-      return parsed.message;
+      return localizeErrorMessage(parsed.message);
     }
 
     if (status === 404) return "Kod jest niepoprawny.";

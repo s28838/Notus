@@ -5,6 +5,8 @@ import { Navigate } from "react-router-dom";
 import { apiPost } from "../../services/api";
 import { useClerk } from "@clerk/react";
 
+const devAccountsEnabled = import.meta.env.VITE_ENABLE_DEV_ACCOUNTS === "true";
+
 const fieldStyle = {
   width: "100%",
   boxSizing: "border-box",
@@ -331,6 +333,11 @@ const LoginPage = () => {
   };
 
   const handleStudentDevLogin = async () => {
+    if (!devAccountsEnabled) {
+      setLocalError("Konta testowe są wyłączone.");
+      return;
+    }
+
     setPending(true);
     setLocalError(null);
     try {
@@ -343,6 +350,11 @@ const LoginPage = () => {
   };
 
   const handleTeacherDevLogin = async () => {
+    if (!devAccountsEnabled) {
+      setLocalError("Konta testowe są wyłączone.");
+      return;
+    }
+
     setPending(true);
     setLocalError(null);
     localStorage.setItem("notus:teacherAccessCode", devTeacherCode);
@@ -411,7 +423,7 @@ const LoginPage = () => {
                 {renderGoogleButton({ onPrepare: prepareTeacherGoogleAuth, children: (
                   <>
                     <span className="material-symbols-outlined" style={{ fontSize: "1.25rem" }}>account_circle</span>
-                    Kontynuuj z Google
+                    Kontynuuj z Google jako nauczyciel
                   </>
                 ) })}
               </>
@@ -506,6 +518,7 @@ const LoginPage = () => {
           </button>
         )}
 
+        {devAccountsEnabled && (
         <div style={{ width: "100%", marginTop: "1rem", display: "flex", flexDirection: "column", gap: "0.75rem" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
             <div style={{ flex: 1, height: "1px", background: "var(--border-light)" }} />
@@ -534,6 +547,7 @@ const LoginPage = () => {
             </button>
           </div>
         </div>
+        )}
       </div>
     </div>
   );

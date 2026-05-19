@@ -20,6 +20,7 @@ VITE_API_URL=https://your-render-backend.onrender.com
 VITE_SUPABASE_URL=your-supabase-url
 VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
 VITE_CLERK_PUBLISHABLE_KEY=your-clerk-publishable-key
+VITE_ENABLE_DEV_ACCOUNTS=false
 VITE_SENTRY_DSN=your-frontend-sentry-dsn
 VITE_SENTRY_ENVIRONMENT=production
 VITE_SENTRY_TRACES_SAMPLE_RATE=0.1

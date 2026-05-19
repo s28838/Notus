@@ -5,6 +5,7 @@ import { Sentry } from "../sentry";
 import { apiGet, apiPost } from "../services/api";
 
 export const AuthContext = React.createContext(null);
+const devAccountsEnabled = import.meta.env.VITE_ENABLE_DEV_ACCOUNTS === "true";
 
 const useSentryUser = (user) => {
   useEffect(() => {
@@ -46,9 +47,16 @@ const DevAuthProvider = ({ children }) => {
       return;
     }
 
-    if (token.startsWith("mock-dev-token:") && role) {
+    if (devAccountsEnabled && token.startsWith("mock-dev-token:") && role) {
       const email = token.split(":").slice(2).join(":");
       login(email, role, { redirect: false }).finally(() => setIsAuthReady(true));
+      return;
+    }
+
+    if (token.startsWith("mock-dev-token:")) {
+      localStorage.removeItem("clerkToken");
+      localStorage.removeItem("notus:authProvider");
+      setIsAuthReady(true);
       return;
     }
 
@@ -68,6 +76,10 @@ const DevAuthProvider = ({ children }) => {
   }, []);
 
   const login = async (email, role = "student", options = { redirect: true }) => {
+    if (!devAccountsEnabled) {
+      throw new Error("Konta testowe są wyłączone.");
+    }
+
     const mockToken = `mock-dev-token:${role.toUpperCase()}:${email}`;
     localStorage.setItem("notus:selectedRole", role);
 
@@ -309,7 +321,7 @@ const ClerkAuthProvider = ({ children }) => {
         } else if (
           isLoaded &&
           !isSignedIn &&
-          !["local", "dev"].includes(localStorage.getItem("notus:authProvider"))
+          !["local", ...(devAccountsEnabled ? ["dev"] : [])].includes(localStorage.getItem("notus:authProvider"))
         ) {
           localStorage.removeItem("clerkToken");
         }
@@ -348,7 +360,7 @@ const ClerkAuthProvider = ({ children }) => {
         }).finally(finish);
       } else if (isLoaded && !isSignedIn) {
         const localToken = localStorage.getItem("clerkToken");
-        if (localToken && localToken.startsWith("mock-dev-token:")) {
+        if (devAccountsEnabled && localToken && localToken.startsWith("mock-dev-token:")) {
           const role = localStorage.getItem("notus:selectedRole");
           const email = localToken.split(":").slice(2).join(":");
           if (role && email) {
@@ -358,6 +370,11 @@ const ClerkAuthProvider = ({ children }) => {
             setUser(null);
             finish();
           }
+        } else if (localToken && localToken.startsWith("mock-dev-token:")) {
+          localStorage.removeItem("clerkToken");
+          localStorage.removeItem("notus:authProvider");
+          setUser(null);
+          finish();
         } else if (localToken) {
           apiGet("/api/me", null, localToken)
             .then((backendUser) => {
@@ -373,7 +390,7 @@ const ClerkAuthProvider = ({ children }) => {
             .catch(() => localStorage.removeItem("clerkToken"))
             .finally(finish);
         } else {
-          setUser(prev => (prev?.isDev || prev?.isLocalAuth ? prev : null));
+          setUser(prev => ((devAccountsEnabled && prev?.isDev) || prev?.isLocalAuth ? prev : null));
           finish();
         }
       }
@@ -400,6 +417,10 @@ const ClerkAuthProvider = ({ children }) => {
   };
 
   const login = async (email, role = "student", options = { redirect: true }) => {
+    if (!devAccountsEnabled) {
+      throw new Error("Konta testowe są wyłączone.");
+    }
+
     const mockToken = `mock-dev-token:${role.toUpperCase()}:${email}`;
     localStorage.setItem("notus:selectedRole", role);
 
@@ -522,7 +543,7 @@ const ClerkAuthProvider = ({ children }) => {
   };
 
   const getLocalToken = async () => {
-    if (user?.isDev || user?.isLocalAuth) {
+    if ((devAccountsEnabled && user?.isDev) || user?.isLocalAuth) {
       return localStorage.getItem("clerkToken");
     }
     return await getToken();
