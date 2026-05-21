@@ -53,6 +53,26 @@ const getExtendedDays = (baseDate) => {
   return days;
 };
 
+const getCalendarGridDays = (monthDate) => {
+  const year = monthDate.getFullYear();
+  const month = monthDate.getMonth();
+  const firstDay = new Date(year, month, 1);
+  const lastDay = new Date(year, month + 1, 0).getDate();
+  const mondayOffset = (firstDay.getDay() + 6) % 7;
+  const days = [];
+
+  for (let i = 0; i < mondayOffset; i += 1) days.push(null);
+  for (let day = 1; day <= lastDay; day += 1) days.push(new Date(year, month, day));
+  while (days.length % 7 !== 0) days.push(null);
+
+  return days;
+};
+
+const clampDayForMonth = (sourceDate, year, month) => {
+  const lastDay = new Date(year, month + 1, 0).getDate();
+  return new Date(year, month, Math.min(sourceDate.getDate(), lastDay));
+};
+
 // --- Inline Styles (scoped to component) ---
 const styles = {
   datepickerOverlay: {
@@ -103,6 +123,44 @@ const styles = {
     fontSize: '0.9rem', cursor: 'pointer',
     transition: 'background 0.15s',
   },
+  pickerHeader: {
+    display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem',
+  },
+  pickerNavBtn: {
+    width: '2.5rem', height: '2.5rem',
+    borderRadius: '0.75rem',
+    border: '1px solid var(--border-light)',
+    background: 'var(--bg-light)',
+    color: 'var(--text-primary)',
+    cursor: 'pointer',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pickerWeekdays: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(7, minmax(0, 1fr))',
+    gap: '0.35rem',
+    color: 'var(--text-tertiary)',
+    fontSize: '0.68rem',
+    fontWeight: 800,
+    textTransform: 'uppercase',
+    textAlign: 'center',
+  },
+  pickerGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(7, minmax(0, 1fr))',
+    gap: '0.35rem',
+  },
+  pickerDayBtn: {
+    aspectRatio: '1',
+    borderRadius: '0.7rem',
+    border: '1px solid transparent',
+    background: 'transparent',
+    color: 'var(--text-primary)',
+    fontWeight: 800,
+    cursor: 'pointer',
+  },
 };
 
 const SchedulePage = () => {
@@ -113,6 +171,7 @@ const SchedulePage = () => {
   const [listPivotMonth, setListPivotMonth] = useState(new Date());
   const [isPickerOpen, setIsPickerOpen] = useState(false);
   const [pickerValue, setPickerValue] = useState(toInputDateString(new Date()));
+  const [pickerMonth, setPickerMonth] = useState(new Date());
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -239,6 +298,8 @@ const SchedulePage = () => {
 
   // Dynamic label: shows selected date formatted
   const selectedLabel = useMemo(() => formatSelectedLabel(selectedDate), [selectedDate]);
+  const pickerDays = useMemo(() => getCalendarGridDays(pickerMonth), [pickerMonth]);
+  const pickerWeekdays = ['Pon', 'Wt', 'Śr', 'Czw', 'Pt', 'Sob', 'Nd'];
 
   const handleBack = () => navigate(-1);
   const goToStats = () => navigate(user?.role === "teacher" ? "/teacher/stats" : "/student/stats");
@@ -268,6 +329,7 @@ const SchedulePage = () => {
   // --- Date Picker handlers ---
   const handleHeaderClick = () => {
     setPickerValue(toInputDateString(selectedDate));
+    setPickerMonth(new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1));
     setIsPickerOpen(true);
   };
 
@@ -283,6 +345,15 @@ const SchedulePage = () => {
 
   const handlePickerCancel = () => setIsPickerOpen(false);
 
+  const handleMonthJump = (offset) => {
+    const target = clampDayForMonth(
+      selectedDate,
+      calendarMonth.getFullYear(),
+      calendarMonth.getMonth() + offset
+    );
+    handleDaySelect(target);
+  };
+
   const getDayShortName = (dayIndex) => {
     const names = ['Pon', 'Wt', 'Śr', 'Czw', 'Pt', 'Sob', 'Nd'];
     return names[dayIndex];
@@ -294,15 +365,52 @@ const SchedulePage = () => {
       {isPickerOpen && (
         <div style={styles.datepickerOverlay} onClick={handlePickerCancel}>
           <div style={styles.datepickerModal} onClick={e => e.stopPropagation()}>
-            <p style={styles.datepickerTitle}>📅 Wybierz datę</p>
-            <input
-              type="date"
-              value={pickerValue}
-              onChange={e => setPickerValue(e.target.value)}
-              style={styles.nativeDateInput}
-              onFocus={e => (e.target.style.borderColor = 'var(--color-primary)')}
-              onBlur={e => (e.target.style.borderColor = 'var(--border-light)')}
-            />
+            <div style={styles.pickerHeader}>
+              <button
+                type="button"
+                style={styles.pickerNavBtn}
+                onClick={() => setPickerMonth((date) => new Date(date.getFullYear(), date.getMonth() - 1, 1))}
+                aria-label="Poprzedni miesiac"
+              >
+                <span className="material-symbols-outlined">chevron_left</span>
+              </button>
+              <p style={styles.datepickerTitle}>{formatDateHeader(pickerMonth)}</p>
+              <button
+                type="button"
+                style={styles.pickerNavBtn}
+                onClick={() => setPickerMonth((date) => new Date(date.getFullYear(), date.getMonth() + 1, 1))}
+                aria-label="Nastepny miesiac"
+              >
+                <span className="material-symbols-outlined">chevron_right</span>
+              </button>
+            </div>
+            <div style={styles.pickerWeekdays}>
+              {pickerWeekdays.map((day) => <span key={day}>{day}</span>)}
+            </div>
+            <div style={styles.pickerGrid}>
+              {pickerDays.map((date, index) => {
+                const value = date ? toInputDateString(date) : "";
+                const isPicked = value && value === pickerValue;
+                const isToday = date && date.toDateString() === today.toDateString();
+                return date ? (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => setPickerValue(value)}
+                    style={{
+                      ...styles.pickerDayBtn,
+                      background: isPicked ? 'var(--color-primary)' : isToday ? 'rgba(244,89,37,0.08)' : 'transparent',
+                      color: isPicked ? 'white' : isToday ? 'var(--color-primary)' : 'var(--text-primary)',
+                      borderColor: isPicked || isToday ? 'var(--color-primary)' : 'transparent',
+                    }}
+                  >
+                    {date.getDate()}
+                  </button>
+                ) : (
+                  <span key={`empty-${index}`} />
+                );
+              })}
+            </div>
             <div style={{ display: 'flex', gap: '0.75rem' }}>
               <button style={styles.datepickerCancelBtn} onClick={handlePickerCancel}>
                 Anuluj
@@ -346,7 +454,11 @@ const SchedulePage = () => {
       {/* === DATE PICKER SECTION === */}
       <div style={{ padding: '1.5rem 1rem 0.75rem' }}>
         {/* Month header – clickable, no arrows */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem', marginBottom: '0.75rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', minWidth: 0 }}>
+            <button className="icon-btn" onClick={() => handleMonthJump(-1)} aria-label="Poprzedni miesiac">
+              <span className="material-symbols-outlined">chevron_left</span>
+            </button>
           <button
             onClick={handleHeaderClick}
             style={{
@@ -370,6 +482,10 @@ const SchedulePage = () => {
               expand_more
             </span>
           </button>
+            <button className="icon-btn" onClick={() => handleMonthJump(1)} aria-label="Nastepny miesiac">
+              <span className="material-symbols-outlined">chevron_right</span>
+            </button>
+          </div>
 
           {/* Dynamic "Dziś" label — shows selected date */}
           <span

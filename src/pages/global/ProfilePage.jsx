@@ -9,8 +9,8 @@ const ProfilePage = () => {
   const { isDark, mode, toggleTheme } = useTheme();
   const navigate = useNavigate();
 
-  const userName = user?.name || "Student User"; Ś
-  const userRole = user?.role === "student" ? "Student" : "Teacher";
+  const userName = user?.name || "Użytkownik";
+  const userRole = user?.role === "student" ? "Uczeń" : "Nauczyciel";
   const userIndex = user?.index || "20230541";
 
   const handleLogout = () => {
@@ -27,7 +27,7 @@ const ProfilePage = () => {
       {/* Header */}
       <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '2rem 1.5rem 1rem' }}>
         <h1 style={{ fontSize: '1.5rem', fontWeight: 800, margin: 0 }}>Profil</h1>
-        <button className="icon-btn" style={{ background: 'rgba(244, 89, 37, 0.1)' }}>
+        <button className="icon-btn" onClick={goToSettings} style={{ background: 'rgba(244, 89, 37, 0.1)' }}>
           <span className="material-symbols-outlined">settings</span>
         </button>
       </header>
@@ -35,7 +35,7 @@ const ProfilePage = () => {
       {/* Profile Info Section */}
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '1.5rem' }}>
         <h2 style={{ fontSize: '1.25rem', fontWeight: 700, margin: '1rem 0 0' }}>{userName}</h2>
-        <p style={{ color: 'var(--text-secondary)', fontWeight: 500, margin: 0 }}>{userRole === 'Student' ? `Nr indeksu: ${userIndex}` : userRole}</p>
+        <p style={{ color: 'var(--text-secondary)', fontWeight: 500, margin: 0 }}>{user?.role === 'student' ? `Nr indeksu: ${userIndex}` : userRole}</p>
       </div>
 
 

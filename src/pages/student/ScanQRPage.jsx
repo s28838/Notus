@@ -239,14 +239,41 @@ const ScanQRPage = () => {
         >
           <div
             style={{
-              border: "2px solid rgba(255, 255, 255, 0.5)",
-              width: "250px",
-              height: "250px",
-              borderRadius: "1rem",
+              border: "1px solid rgba(255, 255, 255, 0.55)",
+              width: "min(70vw, 280px)",
+              aspectRatio: "1",
+              borderRadius: "1.25rem",
               position: "relative",
               boxShadow: "0 0 0 9999px rgba(0,0,0,0.6)",
+              overflow: "hidden",
             }}
           >
+            {["topLeft", "topRight", "bottomLeft", "bottomRight"].map((corner) => (
+              <span
+                key={corner}
+                style={{
+                  position: "absolute",
+                  width: "42px",
+                  height: "42px",
+                  borderColor: "var(--color-primary)",
+                  borderStyle: "solid",
+                  borderWidth:
+                    corner === "topLeft" ? "4px 0 0 4px" :
+                    corner === "topRight" ? "4px 4px 0 0" :
+                    corner === "bottomLeft" ? "0 0 4px 4px" :
+                    "0 4px 4px 0",
+                  top: corner.startsWith("top") ? 0 : "auto",
+                  bottom: corner.startsWith("bottom") ? 0 : "auto",
+                  left: corner.endsWith("Left") ? 0 : "auto",
+                  right: corner.endsWith("Right") ? 0 : "auto",
+                  borderRadius:
+                    corner === "topLeft" ? "1.25rem 0 0 0" :
+                    corner === "topRight" ? "0 1.25rem 0 0" :
+                    corner === "bottomLeft" ? "0 0 0 1.25rem" :
+                    "0 0 1.25rem 0",
+                }}
+              />
+            ))}
             <div
               className={showScanEffect ? "scan-line" : ""}
               style={showScanEffect ? {

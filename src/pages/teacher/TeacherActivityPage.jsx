@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import TeacherBottomNav from "../../components/teacher/TeacherBottomNav";
 import LoadingState from "../../components/shared/LoadingState";
 import { apiGet } from "../../services/api";
+import { TEACHER_REALTIME_EVENTS, useTeacherRealtime } from "../../hooks/useTeacherRealtime";
 
 const formatDateTime = (value) => {
   if (!value) return "-";
@@ -44,8 +45,8 @@ const TeacherActivityPage = () => {
   const isNotificationRead = useCallback((item) => item.read || readNotificationIds.has(item.id), [readNotificationIds]);
   const unreadCount = notifications.filter((item) => !isNotificationRead(item)).length;
 
-  const load = useCallback(async () => {
-    setLoading(true);
+  const load = useCallback(async ({ silent = false } = {}) => {
+    if (!silent) setLoading(true);
     setError("");
     try {
       const [notificationsResponse, activityResponse] = await Promise.all([
@@ -57,13 +58,19 @@ const TeacherActivityPage = () => {
     } catch (err) {
       setError(err.message || "Nie udało się pobrać aktywności.");
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, []);
 
   useEffect(() => {
     load();
   }, [load]);
+
+  const handleRealtimeUpdate = useCallback(() => {
+    load({ silent: true });
+  }, [load]);
+
+  useTeacherRealtime(TEACHER_REALTIME_EVENTS, handleRealtimeUpdate);
 
   const markNotificationRead = useCallback((id) => {
     if (!id) return;

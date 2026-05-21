@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { apiGet } from "../../services/api";
+import { TEACHER_REALTIME_EVENTS, useTeacherRealtime } from "../../hooks/useTeacherRealtime";
 
 const READ_NOTIFICATIONS_KEY = "notus_teacher_read_notifications";
 
@@ -17,32 +18,28 @@ const TeacherBottomNav = () => {
   const location = useLocation();
   const [unreadCount, setUnreadCount] = useState(0);
 
+  const loadUnread = useCallback(async () => {
+    try {
+      const response = await apiGet("/api/teacher/notifications");
+      const readIds = loadReadNotificationIds();
+      const notifications = Array.isArray(response.notifications) ? response.notifications : [];
+      setUnreadCount(notifications.filter((item) => !item.read && !readIds.has(item.id)).length);
+    } catch {
+      setUnreadCount(0);
+    }
+  }, []);
+
   useEffect(() => {
-    let active = true;
-
-    const loadUnread = async () => {
-      try {
-        const response = await apiGet("/api/teacher/notifications");
-        const readIds = loadReadNotificationIds();
-        const notifications = Array.isArray(response.notifications) ? response.notifications : [];
-        const count = notifications.filter((item) => !item.read && !readIds.has(item.id)).length;
-        if (active) setUnreadCount(count);
-      } catch {
-        if (active) setUnreadCount(0);
-      }
-    };
-
     loadUnread();
     window.addEventListener("teacher-notifications:read", loadUnread);
     window.addEventListener("storage", loadUnread);
-    const interval = window.setInterval(loadUnread, 60000);
     return () => {
-      active = false;
       window.removeEventListener("teacher-notifications:read", loadUnread);
       window.removeEventListener("storage", loadUnread);
-      window.clearInterval(interval);
     };
-  }, []);
+  }, [loadUnread]);
+
+  useTeacherRealtime(TEACHER_REALTIME_EVENTS, loadUnread);
 
   const navItems = [
     { label: "Główna", icon: "home", path: "/teacher" },

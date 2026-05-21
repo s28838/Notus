@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useRef, useState } from "react";
 import { AuthContext } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { apiGet, apiPost } from "../../services/api";
+import StudentBottomNav from "../../components/student/StudentBottomNav";
 
 const getLessonLabel = (timeStr) => {
   if (!timeStr || !timeStr.includes(" - ")) return null;
@@ -113,6 +114,7 @@ const StudentDashboard = () => {
           });
           
           setLatestGrades(mappedGrades);
+          window.dispatchEvent(new Event("student-notifications:changed"));
         }
       } catch (err) {
         console.error(err);
@@ -155,6 +157,7 @@ const StudentDashboard = () => {
         if (!token) return;
         const data = await apiGet("/api/quiz-assignments/new-reviews", null, token);
         setReviewNotifications(Array.isArray(data) ? data : []);
+        window.dispatchEvent(new Event("student-notifications:changed"));
       } catch {
         // silently ignore
       }
@@ -466,28 +469,7 @@ const StudentDashboard = () => {
 
 
 
-      <nav className="bottom-nav-stitch">
-        <button className="nav-item active" onClick={() => navigate("/student")}>
-          <span className="material-symbols-outlined fill">home</span>
-          Główna
-        </button>
-        <button className="nav-item" onClick={goToSchedule}>
-          <span className="material-symbols-outlined">calendar_month</span>
-          Plan
-        </button>
-        <button className="nav-item" onClick={goToGroups}>
-          <span className="material-symbols-outlined">groups</span>
-          Grupy
-        </button>
-        <button className="nav-item" onClick={() => navigate("/student/activity")}>
-          <span className="material-symbols-outlined">notifications</span>
-          Aktywność
-        </button>
-        <button className="nav-item" onClick={goToProfile}>
-          <span className="material-symbols-outlined">person</span>
-          Profil
-        </button>
-      </nav>
+      <StudentBottomNav />
     </div>
   );
 };

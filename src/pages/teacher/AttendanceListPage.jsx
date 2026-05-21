@@ -1,8 +1,9 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useCallback, useContext, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
 import { apiGet } from "../../services/api";
 import LoadingState from "../../components/shared/LoadingState";
+import { useTeacherRealtime } from "../../hooks/useTeacherRealtime";
 
 const AttendanceListPage = () => {
     const { getToken } = useContext(AuthContext);
@@ -13,7 +14,7 @@ const AttendanceListPage = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
-    const fetchAttendance = async () => {
+    const fetchAttendance = useCallback(async () => {
         try {
             setError("");
             const token = await getToken();
@@ -24,17 +25,19 @@ const AttendanceListPage = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [getToken, sessionId]);
 
     useEffect(() => {
         fetchAttendance();
+    }, [fetchAttendance]);
 
-        const interval = setInterval(() => {
+    const handleAttendanceRealtime = useCallback((data) => {
+        if (Number(data?.payload?.sessionId) === Number(sessionId)) {
             fetchAttendance();
-        }, 3000);
+        }
+    }, [fetchAttendance, sessionId]);
 
-        return () => clearInterval(interval);
-    }, [sessionId]);
+    useTeacherRealtime(["attendance.checked_in"], handleAttendanceRealtime, Boolean(sessionId));
 
     return (
         <div className="app-container" style={{ paddingBottom: "2rem" }}>

@@ -1,8 +1,9 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import TeacherBottomNav from "../../../components/teacher/TeacherBottomNav";
-import { API_BASE, apiDelete, apiGet, apiPost, apiPut } from "../../../services/api";
+import { apiDelete, apiGet, apiPost, apiPut } from "../../../services/api";
 import LoadingState from "../../../components/shared/LoadingState";
+import { useTeacherRealtime } from "../../../hooks/useTeacherRealtime";
 
 const TeacherGroupDetailsPage = () => {
   const { groupId } = useParams();
@@ -60,37 +61,27 @@ const TeacherGroupDetailsPage = () => {
     return () => window.clearInterval(interval);
   }, []);
 
-  useEffect(() => {
-    const token = localStorage.getItem("clerkToken");
-    if (!token || typeof EventSource === "undefined") return undefined;
-
-    const streamUrl = `${API_BASE}/api/teacher/realtime/stream?token=${encodeURIComponent(token)}`;
-    const source = new EventSource(streamUrl);
-
-    const refreshGroup = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        if (Number(data.payload?.groupId) === Number(groupId)) {
-          load({ silent: true });
-        }
-      } catch {
-        load({ silent: true });
-      }
-    };
-
-    [
-      "group.student_joined",
-      "group.student_updated",
-      "group.student_removed",
-      "grade.created",
-      "grade.updated",
-      "grade.deleted",
-      "grade.quiz_saved",
-      "attendance.checked_in",
-    ].forEach((eventName) => source.addEventListener(eventName, refreshGroup));
-
-    return () => source.close();
+  const refreshGroupFromRealtime = useCallback((data) => {
+    const payloadGroupId = data?.payload?.groupId;
+    if (!payloadGroupId || Number(payloadGroupId) === Number(groupId)) {
+      load({ silent: true });
+    }
   }, [groupId, load]);
+
+  useTeacherRealtime([
+    "group.student_joined",
+    "group.student_updated",
+    "group.student_removed",
+    "group.invitation_created",
+    "group.invitation_updated",
+    "group.invitation_cancelled",
+    "group.invitation_accepted",
+    "grade.created",
+    "grade.updated",
+    "grade.deleted",
+    "grade.quiz_saved",
+    "attendance.checked_in",
+  ], refreshGroupFromRealtime);
 
   useEffect(() => {
     if (!showInvite) {
@@ -267,6 +258,20 @@ const TeacherGroupDetailsPage = () => {
     }
   };
 
+  const copyInvitationLink = async (invitation) => {
+    if (!invitation.invitationLink) {
+      setError("To zaproszenie nie ma zapisanego linku.");
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(invitation.invitationLink);
+      setNotice("Link zaproszenia zostal skopiowany.");
+    } catch {
+      setError("Nie udalo sie skopiowac linku.");
+    }
+  };
+
   const formatInvitationDate = (value) => {
     if (!value) return "-";
     return new Date(value).toLocaleString("pl-PL", {
@@ -422,6 +427,7 @@ const TeacherGroupDetailsPage = () => {
               <thead>
                 <tr>
                   <th>Email</th>
+                  <th>Link</th>
                   <th>Status</th>
                   <th>Wysłano</th>
                   <th>Wygasa</th>
@@ -438,6 +444,21 @@ const TeacherGroupDetailsPage = () => {
                   return (
                     <tr key={invitation.id}>
                       <td>{invitation.email}</td>
+                      <td>
+                        {invitation.invitationLink ? (
+                          <button
+                            type="button"
+                            className="table-link invite-link-cell"
+                            onClick={() => copyInvitationLink(invitation)}
+                            title={invitation.invitationLink}
+                          >
+                            <span className="material-symbols-outlined">content_copy</span>
+                            Skopiuj link
+                          </button>
+                        ) : (
+                          "-"
+                        )}
+                      </td>
                       <td>
                         <span className={`status-pill ${String(invitation.status).toLowerCase()}`}>
                           {invitationStatusLabel(invitation.status)}

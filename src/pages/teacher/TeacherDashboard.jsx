@@ -1,9 +1,10 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useCallback, useContext, useEffect, useState } from "react";
 import { AuthContext } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { apiGet, apiPost } from "../../services/api";
 import TeacherBottomNav from "../../components/teacher/TeacherBottomNav";
 import LoadingState from "../../components/shared/LoadingState";
+import { useTeacherRealtime } from "../../hooks/useTeacherRealtime";
 
 const getLessonLabel = (timeStr) => {
   if (!timeStr || !timeStr.includes(" - ")) return null;
@@ -229,7 +230,7 @@ const TeacherDashboard = () => {
     }
   };
 
-  const fetchAttendance = async (sessionId) => {
+  const fetchAttendance = useCallback(async (sessionId) => {
     if (!sessionId) return;
 
     try {
@@ -242,19 +243,22 @@ const TeacherDashboard = () => {
     } finally {
       setAttendanceLoading(false);
     }
-  };
+  }, [getToken]);
 
   useEffect(() => {
     if (!qr?.sessionId || !showAttendance) return;
 
     fetchAttendance(qr.sessionId);
+  }, [qr?.sessionId, showAttendance, fetchAttendance]);
 
-    const interval = setInterval(() => {
+  const handleAttendanceRealtime = useCallback((data) => {
+    if (!showAttendance || !qr?.sessionId) return;
+    if (Number(data?.payload?.sessionId) === Number(qr.sessionId)) {
       fetchAttendance(qr.sessionId);
-    }, 3000);
+    }
+  }, [fetchAttendance, qr?.sessionId, showAttendance]);
 
-    return () => clearInterval(interval);
-  }, [qr?.sessionId, showAttendance]);
+  useTeacherRealtime(["attendance.checked_in"], handleAttendanceRealtime, Boolean(qr?.sessionId));
 
   const handleGenerateQr = async () => {
     if (!currentLesson) return;

@@ -1,4 +1,5 @@
 import React, { useContext, useState, useEffect, useCallback } from "react";
+import { useUser } from "@clerk/react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
@@ -21,13 +22,13 @@ const Field = ({ label, value, icon }) => (
   </div>
 );
 
-const FormInput = ({ id, label, type="text", value, onChange, placeholder, error, autoComplete }) => (
+const FormInput = ({ id, label, type="text", value, onChange, placeholder, error, autoComplete, disabled = false }) => (
   <div style={{ marginBottom:"0.875rem" }}>
     <label htmlFor={id} style={{ display:"block", fontSize:"0.75rem", fontWeight:700, color:"var(--text-secondary)", marginBottom:"0.375rem", textTransform:"uppercase", letterSpacing:"0.05em" }}>{label}</label>
-    <input id={id} type={type} value={value} onChange={onChange} placeholder={placeholder} autoComplete={autoComplete}
+    <input id={id} type={type} value={value} onChange={onChange} placeholder={placeholder} autoComplete={autoComplete} disabled={disabled}
       style={{ width:"100%", padding:"0.75rem 1rem", boxSizing:"border-box", borderRadius:"0.625rem",
         border: error ? "1px solid #ef4444" : "1px solid var(--border-light)",
-        background:"var(--bg-light)", color:"var(--text-primary)", fontSize:"0.9rem", fontFamily:"inherit", outline:"none" }} />
+        background: disabled ? "var(--border-light)" : "var(--bg-light)", color:"var(--text-primary)", fontSize:"0.9rem", fontFamily:"inherit", outline:"none" }} />
     {error && <p style={{ margin:"0.25rem 0 0", fontSize:"0.75rem", color:"#ef4444" }}>{error}</p>}
   </div>
 );
@@ -49,6 +50,7 @@ const ContactSection = ({ showToast, user }) => {
   const [phone, setPhone] = useState("");
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
+  const [phoneLocked, setPhoneLocked] = useState(false);
 
   const validate = () => {
     const e = {};
@@ -64,6 +66,7 @@ const ContactSection = ({ showToast, user }) => {
     setSaving(true);
     try {
       showToast("Dane kontaktowe zostały zapisane.", "success");
+      if (phone.trim()) setPhoneLocked(true);
     } catch (err) {
       showToast("Nie udało się zapisać danych.", "error");
     } finally {
@@ -78,10 +81,17 @@ const ContactSection = ({ showToast, user }) => {
         error={errors.email} autoComplete="email" />
       <FormInput id="contact-phone" label={S.contact.phone} type="tel" value={phone}
         onChange={e => setPhone(e.target.value)} placeholder={S.contact.phonePlaceholder}
-        error={errors.phone} autoComplete="tel" />
-      <button id="btn-save-contact" className="btn-primary" onClick={handleSave} disabled={saving} style={{ marginTop:"0.25rem" }}>
-        {saving ? S.contact.saving : S.contact.save}
-      </button>
+        error={errors.phone} autoComplete="tel" disabled={phoneLocked} />
+      <div style={{ display:"flex", gap:"0.625rem", marginTop:"0.25rem" }}>
+        <button id="btn-save-contact" className="btn-primary" onClick={handleSave} disabled={saving || phoneLocked} style={{ flex:1 }}>
+          {saving ? S.contact.saving : S.contact.save}
+        </button>
+        {phoneLocked && (
+          <button type="button" className="secondary-action-btn" onClick={() => setPhoneLocked(false)}>
+            Edytuj
+          </button>
+        )}
+      </div>
     </SectionCard>
   );
 };
@@ -386,9 +396,9 @@ const SettingsPage = () => {
         <AccountManagementSection showToast={showToast} deactivatedStatus={backendSettings?.deactivated} />
         <AboutSection/>
         <button
-          className="btn-primary"
+          className="secondary-action-btn"
           onClick={handleLogout}
-          style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:"0.5rem", padding:"1rem" }}
+          style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:"0.5rem", alignSelf:"flex-start" }}
         >
           <span className="material-symbols-outlined">logout</span>
           Wyloguj się
