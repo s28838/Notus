@@ -90,15 +90,23 @@ const TeacherActivityPage = () => {
 
   return (
     <div className="schedule-page-container groups-page activity-page">
-      <div className="details-header activity-header">
-        <div>
-          <p className="eyebrow">Centrum nauczyciela</p>
-          <h1>Aktywność i powiadomienia</h1>
-          <p>Najważniejsze zdarzenia z grup, zaproszeń, ocen, quizów i obecności.</p>
-        </div>
-        <button className="secondary-action-btn" onClick={load}>
+      <div className="top-bar">
+        <button
+          className="icon-btn"
+          onClick={() => navigate("/teacher")}
+          style={{ background: "transparent", color: "var(--text-primary)" }}
+          aria-label="Wróć do panelu nauczyciela"
+        >
+          <span className="material-symbols-outlined text-primary">arrow_back</span>
+        </button>
+        <h2 className="top-bar-title">Aktywność</h2>
+        <button
+          className="icon-btn"
+          onClick={() => load()}
+          style={{ background: "var(--color-primary-light)", color: "var(--color-primary)" }}
+          aria-label="Odśwież aktywność"
+        >
           <span className="material-symbols-outlined">refresh</span>
-          Odśwież
         </button>
       </div>
 

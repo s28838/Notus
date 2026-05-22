@@ -89,14 +89,23 @@ const TeacherGroupsPage = () => {
 
   return (
     <div className="schedule-page-container groups-page">
-      <div className="schedule-header">
-        <div>
-          <p className="eyebrow">Panel nauczyciela</p>
-          <h1>Moje grupy</h1>
-        </div>
-        <button className="primary-action-btn" onClick={openCreate}>
+      <div className="top-bar">
+        <button
+          className="icon-btn"
+          onClick={() => navigate("/teacher")}
+          style={{ background: "transparent", color: "var(--text-primary)" }}
+          aria-label="Wróć do panelu nauczyciela"
+        >
+          <span className="material-symbols-outlined text-primary">arrow_back</span>
+        </button>
+        <h2 className="top-bar-title">Moje grupy</h2>
+        <button
+          className="icon-btn"
+          onClick={openCreate}
+          style={{ background: "var(--color-primary-light)", color: "var(--color-primary)" }}
+          aria-label="Utwórz grupę"
+        >
           <span className="material-symbols-outlined">add</span>
-          Utwórz grupę
         </button>
       </div>
 

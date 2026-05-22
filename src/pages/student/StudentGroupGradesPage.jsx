@@ -1,6 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import LoadingState from "../../components/shared/LoadingState";
+import StudentBottomNav from "../../components/student/StudentBottomNav";
 import { AuthContext } from "../../context/AuthContext";
 import { apiGet } from "../../services/api";
 
@@ -112,7 +113,9 @@ const StudentGroupGradesPage = () => {
         )}
       </main>
 
-      <nav className="bottom-nav-stitch">
+      <>
+      <StudentBottomNav />
+      <nav className="bottom-nav-stitch" style={{ display: "none" }}>
         <button className="nav-item" onClick={() => navigate("/student")}>
           <span className="material-symbols-outlined">home</span>
           Główna
@@ -134,6 +137,7 @@ const StudentGroupGradesPage = () => {
           Profil
         </button>
       </nav>
+      </>
     </div>
   );
 };

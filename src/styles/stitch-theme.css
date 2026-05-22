@@ -108,6 +108,7 @@
     justify-content: center;
     min-width: 1.5rem;
     min-height: 1.5rem;
+    flex: 0 0 1.5rem;
 }
 
 .nav-notification-badge {
@@ -132,6 +133,11 @@
 
 .nav-item .material-symbols-outlined {
     font-size: 1.28rem;
+    width: 1.5rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 1.5rem;
 }
 
 /* === SHARED COMPONENTS === */
