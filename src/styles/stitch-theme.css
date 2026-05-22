@@ -406,6 +406,10 @@ body.dark .interactive-card:active {
     padding: 1rem;
 }
 
+.app-container > .notus-loading-state {
+    margin-top: 20px;
+}
+
 .notus-loading-logo-wrap {
     width: 56px;
     height: 56px;

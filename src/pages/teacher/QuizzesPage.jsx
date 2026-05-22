@@ -55,10 +55,11 @@ const QuizzesPage = () => {
         rightAriaLabel="Stwórz quiz"
       />
 
+      {loading ? (
+        <LoadingState label="Ładowanie quizów..." />
+      ) : (
       <div style={{ padding: "1rem" }}>
-        {loading ? (
-          <LoadingState label="Ładowanie quizów..." />
-        ) : error ? (
+        {error ? (
           <div className="error-state">
             <span className="material-symbols-outlined" style={{ fontSize: "2rem" }}>error</span>
             {error}
@@ -116,6 +117,7 @@ const QuizzesPage = () => {
           </div>
         )}
       </div>
+      )}
 
       <TeacherBottomNav />
     </div>
