@@ -712,6 +712,10 @@ html, body {
   flex-wrap: wrap;
 }
 
+.groups-page:not(.activity-page) > .top-bar {
+  margin-bottom: 20px;
+}
+
 .groups-page h1,
 .groups-page h2,
 .groups-page h3 {

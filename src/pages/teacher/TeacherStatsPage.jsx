@@ -89,7 +89,9 @@ const TeacherStatsPage = () => {
       </div>
 
       {loading ? (
-        <LoadingState label="Ładowanie historii..." />
+        <div style={{ padding: "1rem" }}>
+          <LoadingState label="Ładowanie historii..." />
+        </div>
       ) : error ? (
         <div style={{ padding: "1rem" }}>
           <div className="error-state">

@@ -112,10 +112,11 @@ const TeacherGroupsPage = () => {
       {notice && <div className="success-banner">{notice}</div>}
       {error && <div className="error-banner">{error}</div>}
 
-      <section className="data-panel">
-        {loading ? (
-          <LoadingState label="Ładowanie grup..." />
-        ) : groups.length === 0 ? (
+      {loading ? (
+        <LoadingState label="Ładowanie grup..." />
+      ) : (
+        <section className="data-panel">
+          {groups.length === 0 ? (
           <div className="empty-state">
             <span className="material-symbols-outlined">groups</span>
             <h2>Nie masz jeszcze grup</h2>
@@ -152,8 +153,9 @@ const TeacherGroupsPage = () => {
               </tbody>
             </table>
           </div>
-        )}
-      </section>
+          )}
+        </section>
+      )}
 
       {modalMode && (
         <div className="modal-backdrop">
