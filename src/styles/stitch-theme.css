@@ -283,6 +283,58 @@ body.dark .interactive-card:active {
     color: var(--color-primary);
 }
 
+.dashboard-status-card {
+    justify-content: flex-start;
+}
+
+.dashboard-status-card.primary {
+    background: rgba(244, 89, 37, 0.07);
+    border-color: rgba(244, 89, 37, 0.2);
+}
+
+.dashboard-status-card.success {
+    background: rgba(22, 163, 74, 0.08);
+    border-color: rgba(22, 163, 74, 0.25);
+}
+
+.dashboard-status-icon {
+    flex: 0 0 auto;
+    color: var(--color-primary);
+    font-size: 1.35rem;
+}
+
+.dashboard-status-card.success .dashboard-status-icon {
+    color: #16a34a;
+}
+
+.dashboard-grade-value {
+    flex: 0 0 auto;
+    color: var(--color-primary);
+    font-size: 1.15rem;
+    font-weight: 900;
+}
+
+.dashboard-dismiss-btn {
+    width: 2.25rem;
+    height: 2.25rem;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--text-secondary);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.dashboard-dismiss-btn:hover {
+    background: rgba(15, 23, 42, 0.06);
+}
+
+.dashboard-dismiss-btn .material-symbols-outlined {
+    font-size: 1.1rem;
+}
+
 /* Primary Button */
 .btn-primary {
     width: 100%;

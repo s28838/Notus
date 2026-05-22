@@ -207,6 +207,199 @@ const StudentDashboard = () => {
   const goToGroups = () => navigate("/student/groups");
   const goToScanQR = () => navigate("/student/scan-qr");
   const goToStats = () => navigate("/student/stats");
+  const freshGrade = latestGrades.find(isFreshGrade);
+  const freshGradeCount = latestGrades.filter(isFreshGrade).length;
+
+  const renderScheduleSection = () => {
+    if (loadingSchedule) {
+      return (
+        <>
+          <h3 className="section-title">Następne Zajęcia</h3>
+          <div className="list-container">
+            {[1].map(i => (
+              <div key={i} className="list-item" style={{ opacity: 0.4 }}>
+                <div className="list-item-content">
+                  <div style={{ height: "0.85rem", width: "60%", background: "var(--border-light)", borderRadius: "4px", marginBottom: "0.5rem" }} />
+                  <div style={{ height: "0.75rem", width: "40%", background: "var(--border-light)", borderRadius: "4px" }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
+      );
+    }
+
+    return (
+      <>
+        <h3 className="section-title">{upcomingIsNextDay ? "Jutrzejsze Zajęcia" : "Następne Zajęcia"}</h3>
+        <div className="list-container">
+          {upcomingLessons.length > 0 ? (
+            upcomingLessons.map((lesson, i) => {
+              const label = upcomingIsNextDay ? { text: "Jutro", style: "secondary" } : getLessonLabel(lesson.time);
+              return (
+                <div key={lesson.id || i} className="list-item" onClick={goToSchedule} style={{ cursor: "pointer" }}>
+                  <div className="list-item-content">
+                    {label && (
+                      <div className="list-item-top">
+                        <span className="material-symbols-outlined list-item-tag primary" style={{ fontSize: "14px" }}>schedule</span>
+                        <p className={`list-item-tag ${label.style}`}>{label.text}</p>
+                      </div>
+                    )}
+                    <h4 className="list-item-title">{lesson.subject}</h4>
+                    <div className="list-item-details">
+                      <div className="detail-pill">
+                        <span className="material-symbols-outlined">alarm</span>
+                        <p style={{ margin: 0 }}>{lesson.time}</p>
+                      </div>
+                      <div className="detail-pill">
+                        <span className="material-symbols-outlined">location_on</span>
+                        <p style={{ margin: 0 }}>{lesson.room || "TBD"}</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="list-item-action">
+                    <span className="material-symbols-outlined">chevron_right</span>
+                  </div>
+                </div>
+              );
+            })
+          ) : (
+            <div className="list-item" onClick={goToSchedule} style={{ cursor: "pointer" }}>
+              <div className="list-item-content">
+                <h4 className="list-item-title">Brak zaplanowanych zajęć</h4>
+                <div className="list-item-details">
+                  <div className="detail-pill">
+                    <span className="material-symbols-outlined">calendar_month</span>
+                    <p style={{ margin: 0 }}>Sprawdź pełny plan</p>
+                  </div>
+                </div>
+              </div>
+              <div className="list-item-action">
+                <span className="material-symbols-outlined">chevron_right</span>
+              </div>
+            </div>
+          )}
+        </div>
+      </>
+    );
+  };
+
+  const renderActivitySection = () => {
+    const hasActivity = activeQuiz || freshGrade || reviewNotifications.length > 0;
+    if (!hasActivity) return null;
+
+    return (
+      <>
+        <h3 className="section-title">Aktywność</h3>
+        <div className="list-container">
+          {freshGrade && (
+            <div className="list-item dashboard-status-card success" onClick={() => openGrade(freshGrade)} style={{ cursor: "pointer" }}>
+              <span className="material-symbols-outlined dashboard-status-icon">notifications_active</span>
+              <div className="list-item-content">
+                <h4 className="list-item-title">Masz nową ocenę</h4>
+                <div className="list-item-details">
+                  <div className="detail-pill">
+                    <span className="material-symbols-outlined">school</span>
+                    <p style={{ margin: 0 }}>{freshGrade.subject || "Oceny"}</p>
+                  </div>
+                </div>
+              </div>
+              <div className="list-item-action">
+                <span className="material-symbols-outlined">chevron_right</span>
+              </div>
+            </div>
+          )}
+
+          {activeQuiz && (
+            <div
+              className={`list-item dashboard-status-card ${activeQuiz.alreadySubmitted ? "success" : "primary"}`}
+              onClick={() => !activeQuiz.alreadySubmitted && navigate(`/student/quiz/${activeQuiz.assignmentId}`)}
+              style={{ cursor: activeQuiz.alreadySubmitted ? "default" : "pointer" }}
+            >
+              <span className="material-symbols-outlined dashboard-status-icon">
+                {activeQuiz.alreadySubmitted ? "check_circle" : "quiz"}
+              </span>
+              <div className="list-item-content">
+                <h4 className="list-item-title">{activeQuiz.quizTitle}</h4>
+                <div className="list-item-details">
+                  <div className="detail-pill">
+                    <span className="material-symbols-outlined">{activeQuiz.alreadySubmitted ? "done" : "bolt"}</span>
+                    <p style={{ margin: 0 }}>
+                      {activeQuiz.alreadySubmitted
+                        ? `Ukończono · ${activeQuiz.myScore}/${activeQuiz.myTotal} pkt`
+                        : "Quiz aktywny"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              {!activeQuiz.alreadySubmitted && (
+                <div className="list-item-action">
+                  <span className="material-symbols-outlined">chevron_right</span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {reviewNotifications.map(n => (
+            <div
+              key={n.submissionId}
+              className="list-item dashboard-status-card success"
+              onClick={() => { navigate(`/student/quiz/${n.assignmentId}`); dismissReview(n.submissionId); }}
+              style={{ cursor: "pointer" }}
+            >
+              <span className="material-symbols-outlined dashboard-status-icon">mark_email_read</span>
+              <div className="list-item-content">
+                <h4 className="list-item-title">Quiz oceniony: {n.quizTitle}</h4>
+                <div className="list-item-details">
+                  <div className="detail-pill">
+                    <span className="material-symbols-outlined">grading</span>
+                    <p style={{ margin: 0 }}>{n.score}/{n.total} pkt</p>
+                  </div>
+                </div>
+              </div>
+              <button
+                className="dashboard-dismiss-btn"
+                onClick={e => { e.stopPropagation(); dismissReview(n.submissionId); }}
+                aria-label="Ukryj powiadomienie"
+              >
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+          ))}
+        </div>
+      </>
+    );
+  };
+
+  const renderGradesSection = () => {
+    if (latestGrades.length === 0) return null;
+
+    return (
+      <>
+        <h3 className="section-title">Ostatnie oceny</h3>
+        <div className="list-container">
+          {latestGrades.map(grade => (
+            <div key={grade.id} className="list-item" onClick={() => openGrade(grade)} style={{ cursor: "pointer" }}>
+              <div className="list-item-content">
+                <div className="list-item-top">
+                  {isFreshGrade(grade) && <p className="list-item-tag primary">Nowa</p>}
+                  {freshGradeCount > 0 && isFreshGrade(grade) && <p className="list-item-tag secondary">+{freshGradeCount}</p>}
+                </div>
+                <h4 className="list-item-title">{grade.subject}</h4>
+                <div className="list-item-details">
+                  <div className="detail-pill">
+                    <span className="material-symbols-outlined">groups</span>
+                    <p style={{ margin: 0 }}>{grade.groupName || "Grupa"}</p>
+                  </div>
+                </div>
+              </div>
+              <div className="dashboard-grade-value">{grade.value}</div>
+            </div>
+          ))}
+        </div>
+      </>
+    );
+  };
 
   return (
     <div className="app-container">
@@ -314,158 +507,9 @@ const StudentDashboard = () => {
         />
       </div>
 
-      {!loadingSchedule && (
-        <div className="interactive-card" style={{ margin: "0 1rem", padding: "1rem", borderRadius: "1rem", background: "var(--surface-light)", border: "1px solid var(--border-light)", display: "flex", alignItems: "center", gap: "1rem", boxShadow: "0 4px 12px rgba(0,0,0,0.05)", cursor: "pointer" }} onClick={goToSchedule}>
-           <div style={{ background: "rgba(244,89,37,0.1)", padding: "0.75rem", borderRadius: "0.75rem", display: "flex", alignItems: "center", justifyContent: "center" }}>
-             <span className="material-symbols-outlined" style={{ color: "var(--color-primary)", fontSize: "1.5rem" }}>schedule</span>
-           </div>
-           <div style={{ flex: 1, minWidth: 0 }}>
-             <p style={{ margin: "0 0 0.25rem", fontSize: "0.7rem", fontWeight: 800, color: "var(--color-primary)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-               {upcomingLessons.length > 0 ? (upcomingIsNextDay ? "Jutrzejsze zajęcia" : "Następne zajęcia") : "Najbliższe zajęcia"}
-             </p>
-             <p style={{ margin: "0 0 0.25rem", fontSize: "0.95rem", fontWeight: 700, color: "var(--text-primary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-               {upcomingLessons.length > 0 ? upcomingLessons[0].subject : "Brak zaplanowanych zajęć"}
-             </p>
-             <p style={{ margin: 0, fontSize: "0.8rem", color: "var(--text-secondary)", display: "flex", alignItems: "center", gap: "0.25rem" }}>
-               {upcomingLessons.length > 0 ? (
-                 <>
-                   <span className="material-symbols-outlined" style={{ fontSize: "1rem" }}>schedule</span> {upcomingLessons[0].time}
-                   <span className="material-symbols-outlined" style={{ fontSize: "1rem", marginLeft: "0.5rem" }}>location_on</span> {upcomingLessons[0].room || "TBD"}
-                 </>
-               ) : (
-                 "Sprawdź swój pełny plan"
-               )}
-             </p>
-           </div>
-           <span className="material-symbols-outlined" style={{ color: "var(--text-tertiary)" }}>chevron_right</span>
-        </div>
-      )}
-
-      {user?.role !== "teacher" && latestGrades.some(isFreshGrade) && (
-        <div
-          className="interactive-card"
-          style={{ margin: "1rem 1rem 0 1rem", padding: "0.85rem 1rem", borderRadius: "1rem", background: "rgba(22,163,74,0.08)", border: "1px solid rgba(22,163,74,0.25)", display: "flex", alignItems: "center", gap: "0.75rem", cursor: "pointer" }}
-          onClick={() => openGrade(latestGrades.find(isFreshGrade))}
-        >
-          <span className="material-symbols-outlined" style={{ color: "#16a34a", fontSize: "1.4rem" }}>notifications_active</span>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <p style={{ margin: 0, fontWeight: 800, color: "var(--text-primary)", fontSize: "0.9rem" }}>Masz nową ocenę</p>
-            <p style={{ margin: 0, color: "var(--text-secondary)", fontSize: "0.78rem", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-              Kliknij, aby przejść do ocen z przedmiotu {latestGrades.find(isFreshGrade)?.subject || "w grupie"}.
-            </p>
-          </div>
-          <span className="material-symbols-outlined" style={{ color: "#16a34a" }}>chevron_right</span>
-        </div>
-      )}
-
-      {user?.role !== "teacher" && latestGrades.length > 0 && (
-        <div className="interactive-card" style={{ margin: "1rem 1rem 0 1rem", padding: "1rem", borderRadius: "1rem", background: "var(--surface-light)", border: "1px solid var(--border-light)", boxShadow: "0 4px 12px rgba(0,0,0,0.05)" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.75rem" }}>
-            <span className="material-symbols-outlined" style={{ color: "#16a34a", fontSize: "1.25rem" }}>school</span>
-            <h3 style={{ margin: 0, fontSize: "0.95rem", fontWeight: 700, color: "var(--text-primary)" }}>Ostatnie oceny</h3>
-            {latestGrades.filter(isFreshGrade).length > 0 && (
-              <span style={{ background: "#16a34a", color: "white", padding: "0.1rem 0.4rem", borderRadius: "999px", fontSize: "0.7rem", fontWeight: 800, marginLeft: "auto" }}>
-                +{latestGrades.filter(isFreshGrade).length} nowe
-              </span>
-            )}
-          </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
-            {latestGrades.map(grade => (
-              <button
-                key={grade.id}
-                type="button"
-                onClick={() => openGrade(grade)}
-                style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "0.75rem", padding: "0.45rem 0", border: 0, borderBottom: "1px solid rgba(22, 163, 74, 0.1)", background: "transparent", cursor: "pointer", textAlign: "left" }}
-              >
-                <span style={{ flex: 1, minWidth: 0 }}>
-                  <span style={{ display: "block", fontSize: "0.85rem", fontWeight: 700, color: "var(--text-secondary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{grade.subject}</span>
-                  <small style={{ display: "block", color: "var(--text-tertiary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{grade.groupName || "Grupa"}</small>
-                </span>
-                {isFreshGrade(grade) && (
-                  <span style={{ background: "rgba(22,163,74,0.12)", color: "#16a34a", padding: "0.1rem 0.35rem", borderRadius: "999px", fontSize: "0.68rem", fontWeight: 900 }}>
-                    Nowa
-                  </span>
-                )}
-                <span style={{ fontSize: "0.95rem", fontWeight: 800, color: isFreshGrade(grade) || grade.isRecent24h ? "#16a34a" : "var(--text-primary)" }}>{grade.value}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {activeQuiz && (
-        <div
-          style={{
-            margin: "0 1rem",
-            borderRadius: "0.75rem",
-            padding: "0.75rem 1rem",
-            display: "flex",
-            alignItems: "center",
-            gap: "0.75rem",
-            background: activeQuiz.alreadySubmitted ? "rgba(34,197,94,0.08)" : "rgba(244,89,37,0.07)",
-            border: `1px solid ${activeQuiz.alreadySubmitted ? "rgba(34,197,94,0.25)" : "rgba(244,89,37,0.2)"}`,
-            cursor: activeQuiz.alreadySubmitted ? "default" : "pointer",
-          }}
-          onClick={() => !activeQuiz.alreadySubmitted && navigate(`/student/quiz/${activeQuiz.assignmentId}`)}
-        >
-          <span
-            className="material-symbols-outlined"
-            style={{ fontSize: "1.25rem", color: activeQuiz.alreadySubmitted ? "#16a34a" : "var(--color-primary)", flexShrink: 0 }}
-          >
-            {activeQuiz.alreadySubmitted ? "check_circle" : "quiz"}
-          </span>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <p style={{ margin: 0, fontWeight: 700, fontSize: "0.875rem", color: "var(--text-primary)" }}>
-              {activeQuiz.quizTitle}
-            </p>
-            <p style={{ margin: 0, fontSize: "0.75rem", color: "var(--text-secondary)" }}>
-              {activeQuiz.alreadySubmitted
-                ? `Ukończono · ${activeQuiz.myScore}/${activeQuiz.myTotal} pkt`
-                : "Quiz aktywny — kliknij, aby wypełnić"}
-            </p>
-          </div>
-          {!activeQuiz.alreadySubmitted && (
-            <span className="material-symbols-outlined" style={{ fontSize: "1.1rem", color: "var(--color-primary)" }}>
-              chevron_right
-            </span>
-          )}
-        </div>
-      )}
-
-      {reviewNotifications.length > 0 && (
-        <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", margin: "0 1rem" }}>
-          {reviewNotifications.map(n => (
-            <div
-              key={n.submissionId}
-              style={{
-                borderRadius: "0.75rem", padding: "0.75rem 1rem",
-                display: "flex", alignItems: "center", gap: "0.75rem",
-                background: "rgba(22,163,74,0.08)", border: "1px solid rgba(22,163,74,0.25)",
-                cursor: "pointer"
-              }}
-              onClick={() => { navigate(`/student/quiz/${n.assignmentId}`); dismissReview(n.submissionId); }}
-            >
-              <span className="material-symbols-outlined" style={{ fontSize: "1.25rem", color: "#16a34a", flexShrink: 0 }}>
-                mark_email_read
-              </span>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ margin: 0, fontWeight: 700, fontSize: "0.875rem", color: "var(--text-primary)" }}>
-                  Quiz oceniony: {n.quizTitle}
-                </p>
-                <p style={{ margin: 0, fontSize: "0.75rem", color: "var(--text-secondary)" }}>
-                  Wynik: {n.score}/{n.total} pkt — kliknij, aby zobaczyć
-                </p>
-              </div>
-              <button
-                onClick={e => { e.stopPropagation(); dismissReview(n.submissionId); }}
-                style={{ background: "none", border: "none", cursor: "pointer", padding: "0.25rem", color: "var(--text-secondary)" }}
-              >
-                <span className="material-symbols-outlined" style={{ fontSize: "1.1rem" }}>close</span>
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
+      {renderScheduleSection()}
+      {renderActivitySection()}
+      {renderGradesSection()}
 
 
 
