@@ -750,6 +750,15 @@ body.dark .interactive-card:active {
         box-sizing: border-box;
     }
 
+    .app-container > .notus-loading-state {
+        width: min(100%, 1240px);
+        max-width: 1240px;
+        align-self: center;
+        margin-left: auto !important;
+        margin-right: auto !important;
+        box-sizing: border-box;
+    }
+
     .desktop-centered-content {
         width: min(100%, 1040px);
         max-width: 1040px;
