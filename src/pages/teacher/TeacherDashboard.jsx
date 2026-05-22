@@ -4,6 +4,13 @@ import { useNavigate } from "react-router-dom";
 import { apiGet, apiPost } from "../../services/api";
 import TeacherBottomNav from "../../components/teacher/TeacherBottomNav";
 import LoadingState from "../../components/shared/LoadingState";
+import AppTopBar from "../../components/shared/AppTopBar";
+import {
+  DashboardItemContent,
+  DashboardListItem,
+  DashboardSection,
+  DashboardSkeletonItem,
+} from "../../components/shared/DashboardSection";
 import { useTeacherRealtime } from "../../hooks/useTeacherRealtime";
 
 const getLessonLabel = (timeStr) => {
@@ -330,13 +337,12 @@ const TeacherDashboard = () => {
 
   return (
     <div className="app-container">
-      <header className="top-bar">
-        <button className="icon-btn" onClick={() => navigate("/teacher/settings")}>
-          <span className="material-symbols-outlined">account_circle</span>
-        </button>
-        <h2 className="top-bar-title">Panel Nauczyciela</h2>
-        <div style={{ width: "2.5rem" }} />
-      </header>
+      <AppTopBar
+        title="Panel Nauczyciela"
+        leftIcon="account_circle"
+        onLeftClick={() => navigate("/teacher/settings")}
+        leftAriaLabel="Przejdź do profilu"
+      />
 
       <div className="hero-card">
         <div className="hero-card-icon">
@@ -510,54 +516,28 @@ const TeacherDashboard = () => {
 
 
       {loadingSchedule ? (
-        <>
-          <h3 className="section-title">Następne Zajęcia</h3>
-          <div className="list-container">
-            {[1, 2].map(i => (
-              <div key={i} className="list-item" style={{ opacity: 0.4 }}>
-                <div className="list-item-content">
-                  <div style={{ height: "0.85rem", width: "60%", background: "var(--border-light)", borderRadius: "4px", marginBottom: "0.5rem" }} />
-                  <div style={{ height: "0.75rem", width: "40%", background: "var(--border-light)", borderRadius: "4px" }} />
-                </div>
-              </div>
-            ))}
-          </div>
-        </>
+        <DashboardSection title="Następne Zajęcia">
+          {[1, 2].map(i => <DashboardSkeletonItem key={i} />)}
+        </DashboardSection>
       ) : upcomingLessons.length > 0 ? (
-        <>
-          <h3 className="section-title">{upcomingIsNextDay ? "Jutrzejsze Zajęcia" : "Następne Zajęcia"}</h3>
-          <div className="list-container">
+        <DashboardSection title={upcomingIsNextDay ? "Jutrzejsze Zajęcia" : "Następne Zajęcia"}>
             {upcomingLessons.map((lesson, i) => {
               const label = upcomingIsNextDay ? { text: "Jutro", style: "secondary" } : getLessonLabel(lesson.time);
               return (
-                <div key={i} className="list-item" onClick={goToSchedule} style={{ cursor: "pointer" }}>
-                  <div className="list-item-content">
-                    {label && (
-                      <div className="list-item-top">
-                        <span className="material-symbols-outlined list-item-tag primary" style={{ fontSize: "14px" }}>schedule</span>
-                        <p className={`list-item-tag ${label.style}`}>{label.text}</p>
-                      </div>
-                    )}
-                    <h4 className="list-item-title">{lesson.subject}</h4>
-                    <div className="list-item-details">
-                      <div className="detail-pill">
-                        <span className="material-symbols-outlined">alarm</span>
-                        <p style={{ margin: 0 }}>{lesson.time}</p>
-                      </div>
-                      <div className="detail-pill">
-                        <span className="material-symbols-outlined">location_on</span>
-                        <p style={{ margin: 0 }}>{lesson.room || "TBD"}</p>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="list-item-action">
-                    <span className="material-symbols-outlined">chevron_right</span>
-                  </div>
-                </div>
+                <DashboardListItem key={lesson.id || i} onClick={goToSchedule}>
+                  <DashboardItemContent
+                    tag={label?.text}
+                    tagStyle={label?.style || "primary"}
+                    title={lesson.subject}
+                    details={[
+                      { icon: "alarm", label: lesson.time },
+                      { icon: "location_on", label: lesson.room || "TBD" },
+                    ]}
+                  />
+                </DashboardListItem>
               );
             })}
-          </div>
-        </>
+        </DashboardSection>
       ) : null}
 
       <TeacherBottomNav />

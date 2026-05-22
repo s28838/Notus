@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../../context/AuthContext";
 import { apiGet } from "../../services/api";
 import LoadingState from "../../components/shared/LoadingState";
+import AppTopBar from "../../components/shared/AppTopBar";
 import { useNavigate } from "react-router-dom";
 
 const StatsPage = () => {
@@ -39,16 +40,12 @@ const StatsPage = () => {
 
   return (
     <div className="app-container">
-      <div className="top-bar">
-        <button
-          className="icon-btn"
-          onClick={() => navigate("/student")}
-          style={{ background: "transparent", color: "var(--text-primary)" }}
-        >
-          <span className="material-symbols-outlined text-primary">arrow_back</span>
-        </button>
-        <h2 className="top-bar-title" style={{ marginRight: "2.5rem" }}>Historia</h2>
-      </div>
+      <AppTopBar
+        title="Historia"
+        leftIcon="arrow_back"
+        onLeftClick={() => navigate("/student")}
+        leftAriaLabel="Wróć do strony głównej"
+      />
 
       <div style={{ padding: "1rem", paddingBottom: "5.5rem" }}>
         {loading ? (

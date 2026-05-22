@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import TeacherBottomNav from "../../../components/teacher/TeacherBottomNav";
 import { apiDelete, apiGet, apiPost, apiPut } from "../../../services/api";
 import LoadingState from "../../../components/shared/LoadingState";
+import AppTopBar from "../../../components/shared/AppTopBar";
 
 const emptyForm = {
   name: "",
@@ -89,25 +90,15 @@ const TeacherGroupsPage = () => {
 
   return (
     <div className="schedule-page-container groups-page">
-      <div className="top-bar">
-        <button
-          className="icon-btn"
-          onClick={() => navigate("/teacher")}
-          style={{ background: "transparent", color: "var(--text-primary)" }}
-          aria-label="Wróć do panelu nauczyciela"
-        >
-          <span className="material-symbols-outlined text-primary">arrow_back</span>
-        </button>
-        <h2 className="top-bar-title">Moje grupy</h2>
-        <button
-          className="icon-btn"
-          onClick={openCreate}
-          style={{ background: "var(--color-primary-light)", color: "var(--color-primary)" }}
-          aria-label="Utwórz grupę"
-        >
-          <span className="material-symbols-outlined">add</span>
-        </button>
-      </div>
+      <AppTopBar
+        title="Moje grupy"
+        leftIcon="arrow_back"
+        onLeftClick={() => navigate("/teacher")}
+        leftAriaLabel="Wróć do panelu nauczyciela"
+        rightIcon="add"
+        onRightClick={openCreate}
+        rightAriaLabel="Utwórz grupę"
+      />
 
       {notice && <div className="success-banner">{notice}</div>}
       {error && <div className="error-banner">{error}</div>}

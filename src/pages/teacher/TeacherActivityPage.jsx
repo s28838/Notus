@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import TeacherBottomNav from "../../components/teacher/TeacherBottomNav";
 import LoadingState from "../../components/shared/LoadingState";
+import AppTopBar from "../../components/shared/AppTopBar";
 import { apiGet } from "../../services/api";
 import { TEACHER_REALTIME_EVENTS, useTeacherRealtime } from "../../hooks/useTeacherRealtime";
 
@@ -90,25 +91,15 @@ const TeacherActivityPage = () => {
 
   return (
     <div className="schedule-page-container groups-page activity-page">
-      <div className="top-bar">
-        <button
-          className="icon-btn"
-          onClick={() => navigate("/teacher")}
-          style={{ background: "transparent", color: "var(--text-primary)" }}
-          aria-label="Wróć do panelu nauczyciela"
-        >
-          <span className="material-symbols-outlined text-primary">arrow_back</span>
-        </button>
-        <h2 className="top-bar-title">Aktywność</h2>
-        <button
-          className="icon-btn"
-          onClick={() => load()}
-          style={{ background: "var(--color-primary-light)", color: "var(--color-primary)" }}
-          aria-label="Odśwież aktywność"
-        >
-          <span className="material-symbols-outlined">refresh</span>
-        </button>
-      </div>
+      <AppTopBar
+        title="Aktywność"
+        leftIcon="arrow_back"
+        onLeftClick={() => navigate("/teacher")}
+        leftAriaLabel="Wróć do panelu nauczyciela"
+        rightIcon="refresh"
+        onRightClick={() => load()}
+        rightAriaLabel="Odśwież aktywność"
+      />
 
       {loading ? (
         <LoadingState label="Ładowanie aktywności..." />

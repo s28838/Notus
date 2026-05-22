@@ -4,6 +4,7 @@ import { AuthContext } from "../../context/AuthContext";
 import { API_BASE, apiGet } from "../../services/api";
 import TeacherBottomNav from "../../components/teacher/TeacherBottomNav";
 import LoadingState from "../../components/shared/LoadingState";
+import AppTopBar from "../../components/shared/AppTopBar";
 
 const TeacherStatsPage = () => {
   const { getToken } = useContext(AuthContext);
@@ -77,16 +78,12 @@ const TeacherStatsPage = () => {
 
   return (
     <div className="app-container">
-      <div className="top-bar">
-        <button
-          className="icon-btn"
-          onClick={() => navigate("/teacher")}
-          style={{ background: "transparent", color: "var(--text-primary)" }}
-        >
-          <span className="material-symbols-outlined text-primary">arrow_back</span>
-        </button>
-        <h2 className="top-bar-title" style={{ marginRight: "2.5rem" }}>Historia Sesji</h2>
-      </div>
+      <AppTopBar
+        title="Historia Sesji"
+        leftIcon="arrow_back"
+        onLeftClick={() => navigate("/teacher")}
+        leftAriaLabel="Wróć do panelu nauczyciela"
+      />
 
       {loading ? (
         <LoadingState label="Ładowanie historii..." />

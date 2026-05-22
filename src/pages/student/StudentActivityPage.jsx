@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import LoadingState from "../../components/shared/LoadingState";
+import AppTopBar from "../../components/shared/AppTopBar";
 import StudentBottomNav from "../../components/student/StudentBottomNav";
 import { apiGet, apiPost } from "../../services/api";
 
@@ -96,15 +97,15 @@ const StudentActivityPage = () => {
 
   return (
     <div className="app-container student-groups-page activity-page">
-      <header className="top-bar">
-        <button className="icon-btn" onClick={() => navigate("/student")}>
-          <span className="material-symbols-outlined">arrow_back</span>
-        </button>
-        <h2 className="top-bar-title">Aktywność</h2>
-        <button className="icon-btn" onClick={load}>
-          <span className="material-symbols-outlined">refresh</span>
-        </button>
-      </header>
+      <AppTopBar
+        title="Aktywność"
+        leftIcon="arrow_back"
+        onLeftClick={() => navigate("/student")}
+        leftAriaLabel="Wróć do strony głównej"
+        rightIcon="refresh"
+        onRightClick={load}
+        rightAriaLabel="Odśwież aktywność"
+      />
 
       <main className="student-groups-content">
         {loading ? (

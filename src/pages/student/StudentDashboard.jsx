@@ -3,6 +3,13 @@ import { AuthContext } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { apiGet, apiPost } from "../../services/api";
 import StudentBottomNav from "../../components/student/StudentBottomNav";
+import AppTopBar from "../../components/shared/AppTopBar";
+import {
+  DashboardItemContent,
+  DashboardListItem,
+  DashboardSection,
+  DashboardSkeletonItem,
+} from "../../components/shared/DashboardSection";
 
 const getLessonLabel = (timeStr) => {
   if (!timeStr || !timeStr.includes(" - ")) return null;
@@ -213,74 +220,40 @@ const StudentDashboard = () => {
   const renderScheduleSection = () => {
     if (loadingSchedule) {
       return (
-        <>
-          <h3 className="section-title">Następne Zajęcia</h3>
-          <div className="list-container">
-            {[1].map(i => (
-              <div key={i} className="list-item" style={{ opacity: 0.4 }}>
-                <div className="list-item-content">
-                  <div style={{ height: "0.85rem", width: "60%", background: "var(--border-light)", borderRadius: "4px", marginBottom: "0.5rem" }} />
-                  <div style={{ height: "0.75rem", width: "40%", background: "var(--border-light)", borderRadius: "4px" }} />
-                </div>
-              </div>
-            ))}
-          </div>
-        </>
+        <DashboardSection title="Następne Zajęcia">
+          <DashboardSkeletonItem />
+        </DashboardSection>
       );
     }
 
     return (
-      <>
-        <h3 className="section-title">{upcomingIsNextDay ? "Jutrzejsze Zajęcia" : "Następne Zajęcia"}</h3>
-        <div className="list-container">
-          {upcomingLessons.length > 0 ? (
-            upcomingLessons.map((lesson, i) => {
-              const label = upcomingIsNextDay ? { text: "Jutro", style: "secondary" } : getLessonLabel(lesson.time);
-              return (
-                <div key={lesson.id || i} className="list-item" onClick={goToSchedule} style={{ cursor: "pointer" }}>
-                  <div className="list-item-content">
-                    {label && (
-                      <div className="list-item-top">
-                        <span className="material-symbols-outlined list-item-tag primary" style={{ fontSize: "14px" }}>schedule</span>
-                        <p className={`list-item-tag ${label.style}`}>{label.text}</p>
-                      </div>
-                    )}
-                    <h4 className="list-item-title">{lesson.subject}</h4>
-                    <div className="list-item-details">
-                      <div className="detail-pill">
-                        <span className="material-symbols-outlined">alarm</span>
-                        <p style={{ margin: 0 }}>{lesson.time}</p>
-                      </div>
-                      <div className="detail-pill">
-                        <span className="material-symbols-outlined">location_on</span>
-                        <p style={{ margin: 0 }}>{lesson.room || "TBD"}</p>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="list-item-action">
-                    <span className="material-symbols-outlined">chevron_right</span>
-                  </div>
-                </div>
-              );
-            })
-          ) : (
-            <div className="list-item" onClick={goToSchedule} style={{ cursor: "pointer" }}>
-              <div className="list-item-content">
-                <h4 className="list-item-title">Brak zaplanowanych zajęć</h4>
-                <div className="list-item-details">
-                  <div className="detail-pill">
-                    <span className="material-symbols-outlined">calendar_month</span>
-                    <p style={{ margin: 0 }}>Sprawdź pełny plan</p>
-                  </div>
-                </div>
-              </div>
-              <div className="list-item-action">
-                <span className="material-symbols-outlined">chevron_right</span>
-              </div>
-            </div>
-          )}
-        </div>
-      </>
+      <DashboardSection title={upcomingIsNextDay ? "Jutrzejsze Zajęcia" : "Następne Zajęcia"}>
+        {upcomingLessons.length > 0 ? (
+          upcomingLessons.map((lesson, i) => {
+            const label = upcomingIsNextDay ? { text: "Jutro", style: "secondary" } : getLessonLabel(lesson.time);
+            return (
+              <DashboardListItem key={lesson.id || i} onClick={goToSchedule}>
+                <DashboardItemContent
+                  tag={label?.text}
+                  tagStyle={label?.style || "primary"}
+                  title={lesson.subject}
+                  details={[
+                    { icon: "alarm", label: lesson.time },
+                    { icon: "location_on", label: lesson.room || "TBD" },
+                  ]}
+                />
+              </DashboardListItem>
+            );
+          })
+        ) : (
+          <DashboardListItem onClick={goToSchedule}>
+            <DashboardItemContent
+              title="Brak zaplanowanych zajęć"
+              details={[{ icon: "calendar_month", label: "Sprawdź pełny plan" }]}
+            />
+          </DashboardListItem>
+        )}
+      </DashboardSection>
     );
   };
 
@@ -289,74 +262,52 @@ const StudentDashboard = () => {
     if (!hasActivity) return null;
 
     return (
-      <>
-        <h3 className="section-title">Aktywność</h3>
-        <div className="list-container">
+      <DashboardSection title="Aktywność">
           {freshGrade && (
-            <div className="list-item dashboard-status-card success" onClick={() => openGrade(freshGrade)} style={{ cursor: "pointer" }}>
+            <DashboardListItem className="dashboard-status-card success" onClick={() => openGrade(freshGrade)}>
               <span className="material-symbols-outlined dashboard-status-icon">notifications_active</span>
-              <div className="list-item-content">
-                <h4 className="list-item-title">Masz nową ocenę</h4>
-                <div className="list-item-details">
-                  <div className="detail-pill">
-                    <span className="material-symbols-outlined">school</span>
-                    <p style={{ margin: 0 }}>{freshGrade.subject || "Oceny"}</p>
-                  </div>
-                </div>
-              </div>
-              <div className="list-item-action">
-                <span className="material-symbols-outlined">chevron_right</span>
-              </div>
-            </div>
+              <DashboardItemContent
+                title="Masz nową ocenę"
+                details={[{ icon: "school", label: freshGrade.subject || "Oceny" }]}
+              />
+            </DashboardListItem>
           )}
 
           {activeQuiz && (
-            <div
-              className={`list-item dashboard-status-card ${activeQuiz.alreadySubmitted ? "success" : "primary"}`}
+            <DashboardListItem
+              className={`dashboard-status-card ${activeQuiz.alreadySubmitted ? "success" : "primary"}`}
               onClick={() => !activeQuiz.alreadySubmitted && navigate(`/student/quiz/${activeQuiz.assignmentId}`)}
               style={{ cursor: activeQuiz.alreadySubmitted ? "default" : "pointer" }}
+              showAction={!activeQuiz.alreadySubmitted}
             >
               <span className="material-symbols-outlined dashboard-status-icon">
                 {activeQuiz.alreadySubmitted ? "check_circle" : "quiz"}
               </span>
-              <div className="list-item-content">
-                <h4 className="list-item-title">{activeQuiz.quizTitle}</h4>
-                <div className="list-item-details">
-                  <div className="detail-pill">
-                    <span className="material-symbols-outlined">{activeQuiz.alreadySubmitted ? "done" : "bolt"}</span>
-                    <p style={{ margin: 0 }}>
-                      {activeQuiz.alreadySubmitted
-                        ? `Ukończono · ${activeQuiz.myScore}/${activeQuiz.myTotal} pkt`
-                        : "Quiz aktywny"}
-                    </p>
-                  </div>
-                </div>
-              </div>
-              {!activeQuiz.alreadySubmitted && (
-                <div className="list-item-action">
-                  <span className="material-symbols-outlined">chevron_right</span>
-                </div>
-              )}
-            </div>
+              <DashboardItemContent
+                title={activeQuiz.quizTitle}
+                details={[{
+                  icon: activeQuiz.alreadySubmitted ? "done" : "bolt",
+                  label: activeQuiz.alreadySubmitted
+                    ? `Ukończono · ${activeQuiz.myScore}/${activeQuiz.myTotal} pkt`
+                    : "Quiz aktywny",
+                }]}
+              />
+            </DashboardListItem>
           )}
 
           {reviewNotifications.map(n => (
-            <div
+            <DashboardListItem
               key={n.submissionId}
-              className="list-item dashboard-status-card success"
+              className="dashboard-status-card success"
               onClick={() => { navigate(`/student/quiz/${n.assignmentId}`); dismissReview(n.submissionId); }}
               style={{ cursor: "pointer" }}
+              showAction={false}
             >
               <span className="material-symbols-outlined dashboard-status-icon">mark_email_read</span>
-              <div className="list-item-content">
-                <h4 className="list-item-title">Quiz oceniony: {n.quizTitle}</h4>
-                <div className="list-item-details">
-                  <div className="detail-pill">
-                    <span className="material-symbols-outlined">grading</span>
-                    <p style={{ margin: 0 }}>{n.score}/{n.total} pkt</p>
-                  </div>
-                </div>
-              </div>
+              <DashboardItemContent
+                title={`Quiz oceniony: ${n.quizTitle}`}
+                details={[{ icon: "grading", label: `${n.score}/${n.total} pkt` }]}
+              />
               <button
                 className="dashboard-dismiss-btn"
                 onClick={e => { e.stopPropagation(); dismissReview(n.submissionId); }}
@@ -364,10 +315,9 @@ const StudentDashboard = () => {
               >
                 <span className="material-symbols-outlined">close</span>
               </button>
-            </div>
+            </DashboardListItem>
           ))}
-        </div>
-      </>
+      </DashboardSection>
     );
   };
 
@@ -375,41 +325,29 @@ const StudentDashboard = () => {
     if (latestGrades.length === 0) return null;
 
     return (
-      <>
-        <h3 className="section-title">Ostatnie oceny</h3>
-        <div className="list-container">
+      <DashboardSection title="Ostatnie oceny">
           {latestGrades.map(grade => (
-            <div key={grade.id} className="list-item" onClick={() => openGrade(grade)} style={{ cursor: "pointer" }}>
-              <div className="list-item-content">
-                <div className="list-item-top">
-                  {isFreshGrade(grade) && <p className="list-item-tag primary">Nowa</p>}
-                  {freshGradeCount > 0 && isFreshGrade(grade) && <p className="list-item-tag secondary">+{freshGradeCount}</p>}
-                </div>
-                <h4 className="list-item-title">{grade.subject}</h4>
-                <div className="list-item-details">
-                  <div className="detail-pill">
-                    <span className="material-symbols-outlined">groups</span>
-                    <p style={{ margin: 0 }}>{grade.groupName || "Grupa"}</p>
-                  </div>
-                </div>
-              </div>
+            <DashboardListItem key={grade.id} onClick={() => openGrade(grade)} showAction={false}>
+              <DashboardItemContent
+                tag={isFreshGrade(grade) ? `Nowa${freshGradeCount > 1 ? ` +${freshGradeCount}` : ""}` : undefined}
+                title={grade.subject}
+                details={[{ icon: "groups", label: grade.groupName || "Grupa" }]}
+              />
               <div className="dashboard-grade-value">{grade.value}</div>
-            </div>
+            </DashboardListItem>
           ))}
-        </div>
-      </>
+      </DashboardSection>
     );
   };
 
   return (
     <div className="app-container">
-      <header className="top-bar">
-        <button className="icon-btn" onClick={() => navigate("/student/settings")}>
-          <span className="material-symbols-outlined">account_circle</span>
-        </button>
-        <h2 className="top-bar-title">Strona Główna</h2>
-        <div style={{ width: "2.5rem" }} />
-      </header>
+      <AppTopBar
+        title="Strona Główna"
+        leftIcon="account_circle"
+        onLeftClick={() => navigate("/student/settings")}
+        leftAriaLabel="Przejdź do profilu"
+      />
 
       <div className="hero-card">
         <div className="hero-card-icon">

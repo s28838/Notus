@@ -1,6 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import LoadingState from "../../components/shared/LoadingState";
+import AppTopBar from "../../components/shared/AppTopBar";
 import StudentBottomNav from "../../components/student/StudentBottomNav";
 import { AuthContext } from "../../context/AuthContext";
 import { apiGet } from "../../services/api";
@@ -30,13 +31,12 @@ const StudentGroupsPage = () => {
 
   return (
     <div className="app-container student-groups-page">
-      <header className="top-bar">
-        <button className="icon-btn" onClick={() => navigate("/student")}>
-          <span className="material-symbols-outlined">arrow_back</span>
-        </button>
-        <h2 className="top-bar-title">Moje grupy</h2>
-        <div style={{ width: "2.5rem" }} />
-      </header>
+      <AppTopBar
+        title="Moje grupy"
+        leftIcon="arrow_back"
+        onLeftClick={() => navigate("/student")}
+        leftAriaLabel="Wróć do strony głównej"
+      />
 
       <main className="student-groups-content">
         {loading ? (

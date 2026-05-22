@@ -4,6 +4,7 @@ import { AuthContext } from "../../context/AuthContext";
 import { apiGet, apiDelete } from "../../services/api";
 import TeacherBottomNav from "../../components/teacher/TeacherBottomNav";
 import LoadingState from "../../components/shared/LoadingState";
+import AppTopBar from "../../components/shared/AppTopBar";
 
 const QuizzesPage = () => {
   const { getToken } = useContext(AuthContext);
@@ -44,23 +45,15 @@ const QuizzesPage = () => {
 
   return (
     <div className="app-container">
-      <div className="top-bar">
-        <button
-          className="icon-btn"
-          onClick={() => navigate("/teacher")}
-          style={{ background: "transparent", color: "var(--text-primary)" }}
-        >
-          <span className="material-symbols-outlined text-primary">arrow_back</span>
-        </button>
-        <h2 className="top-bar-title">Twoje Quizy</h2>
-        <button
-          className="icon-btn"
-          onClick={() => navigate("/teacher/create-quiz")}
-          style={{ background: "var(--color-primary-light)", color: "var(--color-primary)" }}
-        >
-          <span className="material-symbols-outlined">add</span>
-        </button>
-      </div>
+      <AppTopBar
+        title="Twoje Quizy"
+        leftIcon="arrow_back"
+        onLeftClick={() => navigate("/teacher")}
+        leftAriaLabel="Wróć do panelu nauczyciela"
+        rightIcon="add"
+        onRightClick={() => navigate("/teacher/create-quiz")}
+        rightAriaLabel="Stwórz quiz"
+      />
 
       <div style={{ padding: "1rem" }}>
         {loading ? (
