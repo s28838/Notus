@@ -3,6 +3,7 @@ import { AuthContext } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import { useNavigate } from "react-router-dom";
 import TeacherBottomNav from "../../components/teacher/TeacherBottomNav";
+import StudentBottomNav from "../../components/student/StudentBottomNav";
 
 const ProfilePage = () => {
   const { user, logout } = useContext(AuthContext);
@@ -102,24 +103,7 @@ const ProfilePage = () => {
       {user?.role === "teacher" ? (
         <TeacherBottomNav />
       ) : (
-        <nav className="bottom-nav-stitch">
-          <button className="nav-item" onClick={goToHome}>
-            <span className="material-symbols-outlined">home</span>
-            Główna
-          </button>
-          <button className="nav-item" onClick={goToSchedule}>
-            <span className="material-symbols-outlined">calendar_month</span>
-            Plan
-          </button>
-          <button className="nav-item" onClick={goToStats}>
-            <span className="material-symbols-outlined">history</span>
-            Historia
-          </button>
-          <button className="nav-item active">
-            <span className="material-symbols-outlined fill">person</span>
-            Profil
-          </button>
-        </nav>
+        <StudentBottomNav />
       )}
     </div>
   );

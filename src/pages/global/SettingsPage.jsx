@@ -5,6 +5,7 @@ import { AuthContext } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import { apiGet, apiPut, apiPost } from "../../services/api";
 import TeacherBottomNav from "../../components/teacher/TeacherBottomNav";
+import StudentBottomNav from "../../components/student/StudentBottomNav";
 import Toast from "../../components/shared/Toast";
 import SectionCard from "../../components/settings/SectionCard";
 import SettingRow from "../../components/settings/SettingRow";
@@ -12,7 +13,11 @@ import { SETTINGS_STRINGS as S, VALIDATION, MOCK_SESSIONS } from "../../config/s
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
-const Field = ({ label, value, icon }) => (
+const Field = ({ label, value, icon }) => {
+  if (icon === "fingerprint") return null;
+  value = icon === "school" ? (value === "Student" ? "Uczeń" : "Nauczyciel") : value;
+
+  return (
   <div style={{ display:"flex", alignItems:"center", gap:"0.75rem", padding:"0.75rem 0", borderBottom:"1px solid var(--border-light)" }}>
     <span className="material-symbols-outlined" style={{ color:"var(--text-tertiary)", fontSize:"1.2rem" }}>{icon}</span>
     <div style={{ flex:1 }}>
@@ -20,7 +25,8 @@ const Field = ({ label, value, icon }) => (
       <p style={{ margin:"0.1rem 0 0", fontSize:"0.9rem", fontWeight:600, color:"var(--text-primary)" }}>{value || "—"}</p>
     </div>
   </div>
-);
+  );
+};
 
 const FormInput = ({ id, label, type="text", value, onChange, placeholder, error, autoComplete, disabled = false }) => (
   <div style={{ marginBottom:"0.875rem" }}>
@@ -408,14 +414,7 @@ const SettingsPage = () => {
       {user?.role === "teacher" ? (
         <TeacherBottomNav/>
       ) : (
-        <nav className="bottom-nav-stitch">
-          <button className="nav-item" onClick={goToHome}     id="nav-home"><span className="material-symbols-outlined">home</span>Główna</button>
-          <button className="nav-item" onClick={goToSchedule} id="nav-schedule"><span className="material-symbols-outlined">calendar_month</span>Plan</button>
-          <button className="nav-item" onClick={goToStats}    id="nav-stats"><span className="material-symbols-outlined">history</span>Historia</button>
-          <button className="nav-item active" onClick={() => navigate(user?.role==="teacher" ? "/teacher/settings" : "/student/settings")} id="nav-profile">
-            <span className="material-symbols-outlined fill">person</span>Profil
-          </button>
-        </nav>
+        <StudentBottomNav/>
       )}
     </div>
   );
