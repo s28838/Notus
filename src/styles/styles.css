@@ -712,7 +712,7 @@ html, body {
   flex-wrap: wrap;
 }
 
-.groups-page:not(.activity-page) > .top-bar {
+.groups-page > .top-bar {
   margin-bottom: 20px;
 }
 
@@ -1007,7 +1007,12 @@ html, body {
 .activity-page {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 0;
+}
+
+.activity-page > .data-panel + .data-panel,
+.activity-page > .error-banner + .data-panel {
+  margin-top: 16px;
 }
 
 .activity-header .secondary-action-btn {

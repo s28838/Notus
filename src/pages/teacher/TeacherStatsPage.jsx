@@ -95,7 +95,7 @@ const TeacherStatsPage = () => {
           </div>
         </div>
       ) : history.length === 0 ? (
-        <div style={{ padding: "0 1rem" }}>
+        <div style={{ padding: "1rem 1rem 0" }}>
           <div className="empty-state">
             <span className="material-symbols-outlined" style={{ fontSize: "3rem", color: "var(--border-light)" }}>history</span>
             <p style={{ margin: 0, fontWeight: 600, color: "var(--text-primary)" }}>Brak historii</p>

@@ -382,9 +382,9 @@ body.dark .interactive-card:active {
 
 .notus-loading-state {
     width: 100%;
-    min-height: 220px;
+    min-height: clamp(240px, 34vh, 340px);
     margin: 0;
-    padding: 2rem 1rem;
+    padding: 0 1rem;
     border: 0;
     border-radius: 0;
     background: transparent;
@@ -590,6 +590,10 @@ body.dark .interactive-card:active {
             radial-gradient(circle at 85% -10%, rgba(244, 89, 37, 0.08), transparent 320px),
             linear-gradient(180deg, rgba(15, 23, 42, 0.02), transparent 260px),
             var(--bg-light);
+    }
+
+    body:has(.groups-page) {
+        background: var(--bg-light);
     }
 
     .app-container {
