@@ -12,6 +12,7 @@ const LessonDetailPage = () => {
   const [lesson, setLesson] = useState(null);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
+  const [showDeleteChoice, setShowDeleteChoice] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -29,17 +30,26 @@ const LessonDetailPage = () => {
     fetchLesson();
   }, [id, getToken]);
 
-  const handleDelete = async () => {
-    if (!window.confirm("Czy na pewno chcesz usunąć tę lekcję?")) return;
+  const performDelete = async (deleteFuture = false) => {
     setDeleting(true);
     try {
       const token = await getToken();
-      await apiDelete(`/api/schedule/${id}`, token);
+      await apiDelete(`/api/schedule/${id}${deleteFuture ? "?deleteFuture=true" : ""}`, token);
       navigate("/teacher/schedule");
     } catch {
       setDeleting(false);
+      setShowDeleteChoice(false);
       alert("Nie udało się usunąć lekcji.");
     }
+  };
+
+  const handleDelete = async () => {
+    if (lesson?.recurring) {
+      setShowDeleteChoice(true);
+      return;
+    }
+    if (!window.confirm("Czy na pewno chcesz usunąć tę lekcję?")) return;
+    await performDelete(false);
   };
 
   if (loading) {
@@ -124,6 +134,17 @@ const LessonDetailPage = () => {
                 <span style={{ fontSize: '0.9rem' }}>{lesson.studentGroupName}</span>
               </div>
             )}
+            {lesson.recurring && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--text-secondary)' }}>
+                <span className="material-symbols-outlined text-primary" style={{ fontSize: '1.25rem' }}>repeat</span>
+                <span style={{ fontSize: '0.9rem' }}>
+                  Zajęcia cykliczne co {lesson.repeatEveryWeeks || 1} tydz.
+                  {lesson.recurrenceEndsAt
+                    ? ` do ${new Date(lesson.recurrenceEndsAt).toLocaleDateString('pl-PL')}`
+                    : ""}
+                </span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -135,6 +156,79 @@ const LessonDetailPage = () => {
           {deleting ? "Usuwanie..." : "Usuń lekcję"}
         </button>
       </div>
+
+      {showDeleteChoice && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 200,
+            background: 'rgba(15, 23, 42, 0.62)',
+            backdropFilter: 'blur(8px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '1rem'
+          }}
+          onClick={() => !deleting && setShowDeleteChoice(false)}
+        >
+          <div
+            className="glass-card"
+            style={{ width: 'min(100%, 520px)', padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <span className="material-symbols-outlined text-primary" style={{ fontSize: '1.75rem' }}>repeat</span>
+              <h3 style={{ margin: 0, fontSize: '1.2rem' }}>To są zajęcia cykliczne</h3>
+            </div>
+            <p style={{ margin: 0, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+              Ten termin należy do serii zajęć. Możesz usunąć tylko wybraną lekcję albo usunąć ten termin i wszystkie przyszłe zajęcia z tej serii.
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '0.5rem' }}>
+              <button
+                onClick={() => performDelete(false)}
+                disabled={deleting}
+                className="btn-white"
+                style={{ padding: '0.95rem', opacity: deleting ? 0.7 : 1 }}
+              >
+                Usuń tylko tę lekcję
+              </button>
+              <button
+                onClick={() => performDelete(true)}
+                disabled={deleting}
+                style={{
+                  width: '100%',
+                  padding: '0.95rem',
+                  fontSize: '1rem',
+                  fontWeight: 800,
+                  background: deleting ? '#fca5a5' : '#ef4444',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '0.75rem',
+                  cursor: deleting ? 'not-allowed' : 'pointer',
+                  opacity: deleting ? 0.7 : 1
+                }}
+              >
+                Usuń tę i przyszłe lekcje
+              </button>
+              <button
+                onClick={() => setShowDeleteChoice(false)}
+                disabled={deleting}
+                style={{
+                  border: 'none',
+                  background: 'transparent',
+                  color: 'var(--text-secondary)',
+                  fontWeight: 800,
+                  padding: '0.75rem',
+                  cursor: deleting ? 'not-allowed' : 'pointer'
+                }}
+              >
+                Anuluj
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
