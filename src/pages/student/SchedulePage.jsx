@@ -5,6 +5,7 @@ import TeacherBottomNav from "../../components/teacher/TeacherBottomNav";
 import StudentBottomNav from "../../components/student/StudentBottomNav";
 import { apiGet } from "../../services/api";
 import LoadingState from "../../components/shared/LoadingState";
+import { useTeacherRealtime } from "../../hooks/useTeacherRealtime";
 
 // --- Helpers ---
 const formatDateHeader = (date) => {
@@ -72,6 +73,8 @@ const clampDayForMonth = (sourceDate, year, month) => {
   const lastDay = new Date(year, month + 1, 0).getDate();
   return new Date(year, month, Math.min(sourceDate.getDate(), lastDay));
 };
+
+const SCHEDULE_REALTIME_EVENTS = ["schedule.created", "schedule.updated", "schedule.deleted"];
 
 // --- Inline Styles (scoped to component) ---
 const styles = {
@@ -186,8 +189,11 @@ const SchedulePage = () => {
   const shouldScrollInstant = useRef(false);
 
   // --- Fetch lessons whenever selectedDate changes ---
-  const fetchLessons = useCallback(async (date) => {
-    setIsLoading(true);
+  const fetchLessons = useCallback(async (date, options = {}) => {
+    const silent = Boolean(options.silent);
+    if (!silent) {
+      setIsLoading(true);
+    }
     setError(null);
     try {
       const token = await getToken();
@@ -228,15 +234,29 @@ const SchedulePage = () => {
         setAssignmentMap({});
       }
     } catch {
-      setError("Nie udało się załadować planu. Spróbuj ponownie.");
+      if (!silent) {
+        setError("Nie udało się załadować planu. Spróbuj ponownie.");
+      }
     } finally {
-      setIsLoading(false);
+      if (!silent) {
+        setIsLoading(false);
+      }
     }
   }, [getToken]);
 
   useEffect(() => {
     fetchLessons(selectedDate);
   }, [selectedDate, fetchLessons]);
+
+  const handleScheduleRealtime = useCallback(() => {
+    fetchLessons(selectedDate, { silent: true });
+  }, [fetchLessons, selectedDate]);
+
+  useTeacherRealtime(
+    SCHEDULE_REALTIME_EVENTS,
+    handleScheduleRealtime,
+    user?.role === "teacher"
+  );
 
   // --- Scroll selected tile to center whenever selection changes ---
   useEffect(() => {

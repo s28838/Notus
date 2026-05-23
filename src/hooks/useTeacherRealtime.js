@@ -1,8 +1,11 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { API_BASE } from "../services/api";
 
 export const TEACHER_REALTIME_EVENTS = [
   "attendance.checked_in",
+  "schedule.created",
+  "schedule.updated",
+  "schedule.deleted",
   "grade.created",
   "grade.updated",
   "grade.deleted",
@@ -18,6 +21,11 @@ export const TEACHER_REALTIME_EVENTS = [
 
 export function useTeacherRealtime(eventNames, handler, enabled = true) {
   const eventKey = eventNames.join("|");
+  const handlerRef = useRef(handler);
+
+  useEffect(() => {
+    handlerRef.current = handler;
+  }, [handler]);
 
   useEffect(() => {
     const token = localStorage.getItem("clerkToken");
@@ -34,7 +42,7 @@ export function useTeacherRealtime(eventNames, handler, enabled = true) {
         } catch {
           data = { type: eventName, payload: {} };
         }
-        handler(data, eventName);
+        handlerRef.current(data, eventName);
       };
 
       source.addEventListener(eventName, listener);
@@ -47,5 +55,5 @@ export function useTeacherRealtime(eventNames, handler, enabled = true) {
       });
       source.close();
     };
-  }, [enabled, eventKey, handler]);
+  }, [enabled, eventKey]);
 }
