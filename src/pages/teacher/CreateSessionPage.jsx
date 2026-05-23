@@ -4,6 +4,7 @@ import TeacherBottomNav from "../../components/teacher/TeacherBottomNav";
 import { AuthContext } from "../../context/AuthContext";
 import { apiPost, apiGet } from "../../services/api";
 import LoadingState from "../../components/shared/LoadingState";
+import AppPageLayout from "../../components/shared/AppPageLayout";
 import "./CreateSessionPage.css";
 
 const CreateSessionPage = () => {
@@ -115,16 +116,14 @@ const CreateSessionPage = () => {
   };
 
   return (
-    <div className="app-container" style={{ paddingBottom: '2rem' }}>
-      {/* Header */}
-      <div className="top-bar">
-        <button className="icon-btn" onClick={() => navigate(-1)} style={{ background: 'transparent', color: 'var(--text-primary)' }}>
-          <span className="material-symbols-outlined text-primary">arrow_back</span>
-        </button>
-        <h2 className="top-bar-title" style={{ marginRight: '2.5rem' }}>Utwórz zajęcia</h2>
-      </div>
-
-      <div style={{ padding: '1.5rem' }}>
+    <AppPageLayout
+      title="Utwórz zajęcia"
+      leftIcon="arrow_back"
+      onLeftClick={() => navigate(-1)}
+      leftAriaLabel="Wróć"
+      bottomNav={<TeacherBottomNav />}
+      shell="teacher"
+    >
         
         {/* Form Container */}
         <div className="glass-card" style={{ padding: '1.5rem' }}>
@@ -222,10 +221,7 @@ const CreateSessionPage = () => {
           </div>
         )}
 
-      </div>
-      <TeacherBottomNav />
-
-    </div>
+    </AppPageLayout>
   );
 };
 

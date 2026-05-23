@@ -3,7 +3,7 @@ import { AuthContext } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { apiGet, apiPost } from "../../services/api";
 import StudentBottomNav from "../../components/student/StudentBottomNav";
-import AppTopBar from "../../components/shared/AppTopBar";
+import AppPageLayout from "../../components/shared/AppPageLayout";
 import {
   DashboardItemContent,
   DashboardListItem,
@@ -341,13 +341,14 @@ const StudentDashboard = () => {
   };
 
   return (
-    <div className="app-container">
-      <AppTopBar
+    <AppPageLayout
         title="Strona Główna"
         leftIcon="account_circle"
         onLeftClick={() => navigate("/student/settings")}
         leftAriaLabel="Przejdź do profilu"
-      />
+        bottomNav={<StudentBottomNav />}
+        shell="student"
+      >
 
       <div className="hero-card">
         <div className="hero-card-icon">
@@ -448,11 +449,7 @@ const StudentDashboard = () => {
       {renderScheduleSection()}
       {renderActivitySection()}
       {renderGradesSection()}
-
-
-
-      <StudentBottomNav />
-    </div>
+    </AppPageLayout>
   );
 };
 

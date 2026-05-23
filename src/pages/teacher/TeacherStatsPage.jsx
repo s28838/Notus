@@ -4,7 +4,8 @@ import { AuthContext } from "../../context/AuthContext";
 import { API_BASE, apiGet } from "../../services/api";
 import TeacherBottomNav from "../../components/teacher/TeacherBottomNav";
 import LoadingState from "../../components/shared/LoadingState";
-import AppTopBar from "../../components/shared/AppTopBar";
+import AppPageLayout from "../../components/shared/AppPageLayout";
+import { EmptyState, ErrorState } from "../../components/shared/PageState";
 
 const TeacherStatsPage = () => {
   const { getToken } = useContext(AuthContext);
@@ -77,33 +78,25 @@ const TeacherStatsPage = () => {
   };
 
   return (
-    <div className="app-container">
-      <AppTopBar
-        title="Historia Sesji"
-        leftIcon="arrow_back"
-        onLeftClick={() => navigate("/teacher")}
-        leftAriaLabel="Wróć do panelu nauczyciela"
-      />
-
-      {loading ? (
-        <LoadingState label="Ładowanie historii..." />
-      ) : error ? (
-        <div style={{ padding: "1rem" }}>
-          <div className="error-state">
-            <span className="material-symbols-outlined" style={{ fontSize: "2rem" }}>error</span>
-            {error}
-          </div>
-        </div>
+    <AppPageLayout
+      title="Historia Sesji"
+      leftIcon="arrow_back"
+      onLeftClick={() => navigate("/teacher")}
+      leftAriaLabel="Wróć do panelu nauczyciela"
+      loading={loading}
+      loadingLabel="Ładowanie historii..."
+      bottomNav={<TeacherBottomNav />}
+      shell="teacher"
+    >
+      {error ? (
+        <ErrorState iconStyle={{ fontSize: "2rem" }}>{error}</ErrorState>
       ) : history.length === 0 ? (
-        <div style={{ padding: "1rem 1rem 0" }}>
-          <div className="empty-state">
-            <span className="material-symbols-outlined" style={{ fontSize: "3rem", color: "var(--border-light)" }}>history</span>
-            <p style={{ margin: 0, fontWeight: 600, color: "var(--text-primary)" }}>Brak historii</p>
-            <p style={{ margin: 0, fontSize: "0.875rem" }}>Otwórz listę obecności lub zadaj quiz w trakcie zajęć.</p>
-          </div>
-        </div>
+        <EmptyState icon="history" iconStyle={{ fontSize: "3rem", color: "var(--border-light)" }}>
+          <p style={{ margin: 0, fontWeight: 600, color: "var(--text-primary)" }}>Brak historii</p>
+          <p style={{ margin: 0, fontSize: "0.875rem" }}>Otwórz listę obecności lub zadaj quiz w trakcie zajęć.</p>
+        </EmptyState>
       ) : (
-        <div className="list-container" style={{ padding: "1rem", paddingBottom: "5.5rem" }}>
+        <div className="list-container">
           {history.map((h) => {
             const isExpanded = expandedSessionId === h.scheduleId;
 
@@ -238,9 +231,7 @@ const TeacherStatsPage = () => {
           })}
         </div>
       )}
-
-      <TeacherBottomNav />
-    </div>
+    </AppPageLayout>
   );
 };
 

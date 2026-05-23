@@ -2,7 +2,8 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import TeacherBottomNav from "../../../components/teacher/TeacherBottomNav";
 import { apiGet } from "../../../services/api";
-import LoadingState from "../../../components/shared/LoadingState";
+import AppPageLayout from "../../../components/shared/AppPageLayout";
+import { EmptyState } from "../../../components/shared/PageState";
 
 const formatGradeDateTime = (grade) => {
   const value = grade.dateTime || grade.date;
@@ -32,15 +33,17 @@ const StudentGradesPage = () => {
   }, [groupId, studentId]);
 
   return (
-    <div className="schedule-page-container groups-page">
-      <button className="back-link" onClick={() => navigate(`/teacher/groups/${groupId}`)}>
-        <span className="material-symbols-outlined">arrow_back</span>
-        Powrót
-      </button>
-
-      {loading ? (
-        <LoadingState label="Ładowanie ocen..." />
-      ) : error ? (
+    <AppPageLayout
+      title="Oceny"
+      leftIcon="arrow_back"
+      onLeftClick={() => navigate(`/teacher/groups/${groupId}`)}
+      leftAriaLabel="Powrót do grupy"
+      loading={loading}
+      loadingLabel="Ładowanie ocen..."
+      bottomNav={<TeacherBottomNav />}
+      shell="teacher"
+    >
+      {error ? (
         <div className="error-banner">{error}</div>
       ) : (
         <>
@@ -53,11 +56,10 @@ const StudentGradesPage = () => {
           </div>
 
           {data.semesters.length === 0 ? (
-            <section className="data-panel empty-state">
-              <span className="material-symbols-outlined">grading</span>
+            <EmptyState className="data-panel" icon="grading">
               <h2>Brak ocen</h2>
               <p>Ten uczeń nie ma jeszcze ocen w tej grupie.</p>
-            </section>
+            </EmptyState>
           ) : data.semesters.map((semester) => (
             <section className="data-panel" key={semester.semester}>
               <h2>Semestr {semester.semester}</h2>
@@ -89,8 +91,7 @@ const StudentGradesPage = () => {
         </>
       )}
 
-      <TeacherBottomNav />
-    </div>
+    </AppPageLayout>
   );
 };
 

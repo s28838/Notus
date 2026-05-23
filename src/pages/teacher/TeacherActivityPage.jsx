@@ -1,8 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import TeacherBottomNav from "../../components/teacher/TeacherBottomNav";
-import LoadingState from "../../components/shared/LoadingState";
-import AppTopBar from "../../components/shared/AppTopBar";
+import AppPageLayout from "../../components/shared/AppPageLayout";
 import { apiGet } from "../../services/api";
 import { TEACHER_REALTIME_EVENTS, useTeacherRealtime } from "../../hooks/useTeacherRealtime";
 
@@ -90,8 +89,7 @@ const TeacherActivityPage = () => {
   const visibleActivity = showAllActivity ? activity : activity.slice(0, 3);
 
   return (
-    <div className="schedule-page-container groups-page activity-page">
-      <AppTopBar
+    <AppPageLayout
         title="Aktywność"
         leftIcon="arrow_back"
         onLeftClick={() => navigate("/teacher")}
@@ -99,11 +97,12 @@ const TeacherActivityPage = () => {
         rightIcon="refresh"
         onRightClick={() => load()}
         rightAriaLabel="Odśwież aktywność"
-      />
-
-      {loading ? (
-        <LoadingState label="Ładowanie aktywności..." />
-      ) : (
+        loading={loading}
+        loadingLabel="Ładowanie aktywności..."
+        bottomNav={<TeacherBottomNav />}
+        shell="teacher"
+        className="activity-page"
+      >
         <>
           {error && <div className="error-banner">{error}</div>}
 
@@ -189,10 +188,7 @@ const TeacherActivityPage = () => {
             )}
           </section>
         </>
-      )}
-
-      <TeacherBottomNav />
-    </div>
+    </AppPageLayout>
   );
 };
 

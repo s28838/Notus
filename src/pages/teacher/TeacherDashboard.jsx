@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { apiGet, apiPost } from "../../services/api";
 import TeacherBottomNav from "../../components/teacher/TeacherBottomNav";
 import LoadingState from "../../components/shared/LoadingState";
-import AppTopBar from "../../components/shared/AppTopBar";
+import AppPageLayout from "../../components/shared/AppPageLayout";
 import {
   DashboardItemContent,
   DashboardListItem,
@@ -336,13 +336,14 @@ const TeacherDashboard = () => {
   const goToHistory = () => navigate("/teacher/stats");
 
   return (
-    <div className="app-container">
-      <AppTopBar
+    <AppPageLayout
         title="Panel Nauczyciela"
         leftIcon="account_circle"
         onLeftClick={() => navigate("/teacher/settings")}
         leftAriaLabel="Przejdź do profilu"
-      />
+        bottomNav={<TeacherBottomNav />}
+        shell="teacher"
+      >
 
       <div className="hero-card">
         <div className="hero-card-icon">
@@ -540,8 +541,7 @@ const TeacherDashboard = () => {
         </DashboardSection>
       ) : null}
 
-      <TeacherBottomNav />
-    </div>
+    </AppPageLayout>
   );
 };
 

@@ -698,10 +698,11 @@ html, body {
 .groups-page {
   width: 100%;
   max-width: 1120px;
+  box-sizing: border-box;
   margin: 0 auto;
   padding: 28px 24px 120px;
   align-items: stretch;
-  color: #f8fafc;
+  color: var(--text-primary);
 }
 
 .groups-page .schedule-header,
@@ -765,12 +766,15 @@ html, body {
 
 .data-panel {
   width: 100%;
-  background: rgba(15, 23, 42, 0.78);
-  border: 1px solid rgba(148, 163, 184, 0.24);
+  max-width: 100%;
+  box-sizing: border-box;
+  min-width: 0;
+  background: var(--surface-light);
+  border: 1px solid var(--border-light);
   border-radius: 8px;
   padding: 20px;
   margin-bottom: 18px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.24);
+  box-shadow: 0 18px 42px rgba(15, 23, 42, 0.08);
 }
 
 .student-roster-panel {
@@ -781,6 +785,9 @@ html, body {
 
 .responsive-table {
   width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  min-width: 0;
   overflow-x: auto;
 }
 
@@ -800,6 +807,7 @@ html, body {
 .responsive-table td {
   padding: 14px 12px;
   border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+  color: var(--text-primary);
   text-align: left;
   vertical-align: middle;
   overflow-wrap: anywhere;
@@ -821,10 +829,10 @@ html, body {
 
 .table-actions button,
 .table-link {
-  border: 1px solid rgba(148, 163, 184, 0.32);
+  border: 1px solid var(--border-light);
   border-radius: 7px;
-  background: rgba(30, 41, 59, 0.92);
-  color: #f8fafc;
+  background: var(--surface-light);
+  color: var(--text-primary);
   min-height: 34px;
   padding: 0 10px;
   font-weight: 700;
@@ -880,8 +888,8 @@ html, body {
 }
 
 .danger-link {
-  color: #fecaca !important;
-  border-color: rgba(248, 113, 113, 0.4) !important;
+  color: #dc2626 !important;
+  border-color: rgba(220, 38, 38, 0.34) !important;
 }
 
 .table-actions button:disabled {
@@ -892,7 +900,7 @@ html, body {
 .table-actions button.action-loading {
   opacity: 1;
   border-color: rgba(251, 138, 93, 0.58);
-  color: #fed7aa;
+  color: #c2410c;
 }
 
 .button-spinner {
@@ -939,9 +947,9 @@ html, body {
   min-height: 40px;
   padding: 0 14px;
   border-radius: 8px;
-  border: 1px solid rgba(148, 163, 184, 0.28);
-  background: rgba(30, 41, 59, 0.86);
-  color: #f8fafc;
+  border: 1px solid var(--border-light);
+  background: var(--surface-light);
+  color: var(--text-primary);
   font-weight: 800;
   cursor: pointer;
   white-space: nowrap;
@@ -962,17 +970,17 @@ html, body {
   font-weight: 900;
   border: 1px solid rgba(148, 163, 184, 0.28);
   background: rgba(148, 163, 184, 0.12);
-  color: #cbd5e1;
+  color: var(--text-secondary);
 }
 
 .status-pill.pending {
-  color: #fde68a;
+  color: #b45309;
   background: rgba(245, 158, 11, 0.14);
   border-color: rgba(245, 158, 11, 0.34);
 }
 
 .status-pill.accepted {
-  color: #bbf7d0;
+  color: #15803d;
   background: rgba(34, 197, 94, 0.14);
   border-color: rgba(34, 197, 94, 0.38);
 }
@@ -980,7 +988,7 @@ html, body {
 .status-pill.failed,
 .status-pill.cancelled,
 .status-pill.expired {
-  color: #fecaca;
+  color: #dc2626;
   background: rgba(239, 68, 68, 0.12);
   border-color: rgba(239, 68, 68, 0.34);
 }
@@ -1165,7 +1173,7 @@ html, body {
   display: inline-flex;
   align-items: center;
   background: rgba(251, 138, 93, 0.18);
-  color: #fed7aa;
+  color: #c2410c;
   border: 1px solid rgba(251, 138, 93, 0.44);
   font-size: 11px;
   font-weight: 900;
@@ -1190,13 +1198,13 @@ html, body {
 .success-banner {
   background: rgba(34, 197, 94, 0.14);
   border: 1px solid rgba(34, 197, 94, 0.42);
-  color: #bbf7d0;
+  color: #15803d;
 }
 
 .error-banner {
   background: rgba(239, 68, 68, 0.14);
   border: 1px solid rgba(239, 68, 68, 0.42);
-  color: #fecaca;
+  color: #dc2626;
 }
 
 .muted {
@@ -1205,7 +1213,7 @@ html, body {
 
 .empty-state {
   text-align: center;
-  color: #cbd5e1;
+  color: var(--text-secondary);
   padding: 34px 16px;
 }
 
@@ -1346,8 +1354,8 @@ html, body {
   box-sizing: border-box;
   border: 1px solid rgba(248, 113, 113, 0.45);
   border-radius: 8px;
-  background: rgba(127, 29, 29, 0.24);
-  color: #fecaca;
+  background: rgba(239, 68, 68, 0.12);
+  color: #dc2626;
   padding: 10px 12px;
   font-weight: 800;
   line-height: 1.35;
@@ -1412,7 +1420,7 @@ html, body {
 
 .student-suggestion em {
   flex: 0 0 auto;
-  color: #fed7aa;
+  color: #c2410c;
   font-size: 12px;
   font-style: normal;
   font-weight: 800;
@@ -1458,7 +1466,7 @@ html, body {
   display: flex;
   gap: 18px;
   margin-bottom: 14px;
-  color: #cbd5e1;
+  color: var(--text-secondary);
 }
 
 .status-dot {
@@ -1478,12 +1486,12 @@ html, body {
 }
 
 .status-dot.present {
-  color: #bbf7d0;
+  color: #15803d;
   background: rgba(34, 197, 94, 0.16);
 }
 
 .status-dot.absent {
-  color: #fecaca;
+  color: #dc2626;
   background: rgba(239, 68, 68, 0.16);
 }
 
@@ -1500,7 +1508,7 @@ html, body {
 }
 
 .attendance-month h2 {
-  color: #f8fafc;
+  color: var(--text-primary);
   font-size: 18px;
   text-transform: capitalize;
 }
@@ -1519,8 +1527,8 @@ html, body {
   gap: 12px;
   padding: 12px;
   border-radius: 8px;
-  border: 1px solid rgba(148, 163, 184, 0.22);
-  background: rgba(30, 41, 59, 0.74);
+  border: 1px solid var(--border-light);
+  background: var(--surface-light);
 }
 
 .attendance-day-card.present {
@@ -1534,8 +1542,8 @@ html, body {
 .attendance-date-tile {
   height: 72px;
   border-radius: 8px;
-  background: rgba(15, 23, 42, 0.9);
-  border: 1px solid rgba(148, 163, 184, 0.22);
+  background: var(--bg-light);
+  border: 1px solid var(--border-light);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1551,7 +1559,7 @@ html, body {
 }
 
 .attendance-date-tile strong {
-  color: #f8fafc;
+  color: var(--text-primary);
   font-size: 24px;
   line-height: 1;
 }
@@ -1562,7 +1570,7 @@ html, body {
 
 .attendance-day-main p {
   margin: 0 0 6px;
-  color: #f8fafc;
+  color: var(--text-primary);
   font-weight: 800;
   line-height: 1.25;
 }
@@ -1600,7 +1608,7 @@ html, body {
 }
 
 .invite-auth-tabs button,
-.secondary-action-btn {
+.invite-page .secondary-action-btn {
   min-height: 42px;
   border: 1px solid rgba(148, 163, 184, 0.28);
   border-radius: 8px;
@@ -1762,20 +1770,20 @@ html, body {
   min-height: 220px;
   padding: 18px;
   border-radius: 8px;
-  border: 1px solid rgba(148, 163, 184, 0.22);
-  background: rgba(15, 23, 42, 0.74);
+  border: 1px solid var(--border-light);
+  background: var(--surface-light);
   box-shadow: 0 18px 40px rgba(15, 23, 42, 0.18);
 }
 
 .student-group-card h3 {
   margin: 0;
-  color: #f8fafc;
+  color: var(--text-primary);
   font-size: 22px;
 }
 
 .student-group-card p {
   margin: 8px 0 0;
-  color: #94a3b8;
+  color: var(--text-secondary);
   line-height: 1.45;
 }
 
@@ -1790,8 +1798,8 @@ html, body {
   min-height: 58px;
   padding: 10px;
   border-radius: 8px;
-  background: rgba(30, 41, 59, 0.72);
-  color: #e2e8f0;
+  background: var(--bg-light);
+  color: var(--text-primary);
   font-weight: 800;
   overflow-wrap: anywhere;
 }
@@ -1837,7 +1845,6 @@ html, body {
 
   .groups-page .schedule-header,
   .groups-page .details-header,
-  .groups-page .top-bar,
   .groups-page .data-panel,
   .groups-page .success-banner,
   .groups-page .error-banner {
@@ -2194,6 +2201,32 @@ html, body {
 
 [data-theme="dark"] .bottom-nav-stitch {
   background-color: rgba(30, 41, 59, 0.9);
+}
+
+[data-theme="dark"] .danger-link,
+[data-theme="dark"] .status-pill.failed,
+[data-theme="dark"] .status-pill.cancelled,
+[data-theme="dark"] .status-pill.expired,
+[data-theme="dark"] .error-banner,
+[data-theme="dark"] .modal-inline-error,
+[data-theme="dark"] .status-dot.absent {
+  color: #fecaca !important;
+}
+
+[data-theme="dark"] .status-pill.pending {
+  color: #fde68a;
+}
+
+[data-theme="dark"] .table-actions button.action-loading,
+[data-theme="dark"] .new-badge,
+[data-theme="dark"] .student-suggestion em {
+  color: #fed7aa;
+}
+
+[data-theme="dark"] .status-pill.accepted,
+[data-theme="dark"] .success-banner,
+[data-theme="dark"] .status-dot.present {
+  color: #bbf7d0;
 }
 
 [data-theme="dark"] .notification-item,

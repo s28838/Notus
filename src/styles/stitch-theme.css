@@ -418,6 +418,30 @@ body.dark .interactive-card:active {
     margin-top: 20px;
 }
 
+.app-page-content {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 20px 1rem 1rem;
+    flex: 1;
+}
+
+.app-page-layout > .top-bar {
+    margin-bottom: 0;
+}
+
+.app-page-loading-slot {
+    width: 100%;
+    min-height: clamp(300px, calc(100vh - 190px), 520px);
+    display: grid;
+    place-items: center;
+}
+
+.app-page-loading-slot .notus-loading-state {
+    min-height: auto;
+    margin: 0;
+    padding: 0 1rem;
+}
+
 .notus-loading-logo-wrap {
     width: 56px;
     height: 56px;
@@ -625,9 +649,10 @@ body.dark .interactive-card:active {
 
     .top-bar {
         position: static;
-        width: 100%;
-        margin: 0;
-        padding: 0 0 1.25rem;
+        width: calc(100% + 6rem);
+        margin: 0 -3rem;
+        padding: 0 3rem 1.25rem;
+        box-sizing: border-box;
         background: transparent;
         backdrop-filter: none;
         border-bottom: 1px solid var(--border-light);
@@ -784,6 +809,34 @@ body.dark .interactive-card:active {
         margin-left: auto !important;
         margin-right: auto !important;
         box-sizing: border-box;
+    }
+
+    .app-page-layout > .app-page-content {
+        width: min(100%, 1240px);
+        max-width: 1240px;
+        margin-left: auto;
+        margin-right: auto;
+        box-sizing: border-box;
+    }
+
+    .app-page-layout > .top-bar {
+        width: calc(100% + 6rem);
+        max-width: none;
+        margin-left: -3rem;
+        margin-right: -3rem;
+        box-sizing: border-box;
+    }
+
+    .app-page-layout > .app-page-content {
+        padding: 1rem 0 5.5rem;
+    }
+
+    .app-page-layout.groups-page > .top-bar {
+        margin-bottom: 0;
+    }
+
+    .app-page-loading-slot {
+        min-height: clamp(320px, calc(100vh - 190px), 520px);
     }
 
     .desktop-centered-content {

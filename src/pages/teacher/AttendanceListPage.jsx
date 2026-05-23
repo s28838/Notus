@@ -2,7 +2,9 @@ import React, { useCallback, useContext, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
 import { apiGet } from "../../services/api";
-import LoadingState from "../../components/shared/LoadingState";
+import TeacherBottomNav from "../../components/teacher/TeacherBottomNav";
+import AppPageLayout from "../../components/shared/AppPageLayout";
+import { EmptyState, ErrorState } from "../../components/shared/PageState";
 import { useTeacherRealtime } from "../../hooks/useTeacherRealtime";
 
 const AttendanceListPage = () => {
@@ -40,21 +42,16 @@ const AttendanceListPage = () => {
     useTeacherRealtime(["attendance.checked_in"], handleAttendanceRealtime, Boolean(sessionId));
 
     return (
-        <div className="app-container" style={{ paddingBottom: "2rem" }}>
-            <div className="top-bar">
-                <button
-                    className="icon-btn"
-                    onClick={() => navigate(-1)}
-                    style={{ background: "transparent", color: "var(--text-primary)" }}
-                >
-                    <span className="material-symbols-outlined text-primary">arrow_back</span>
-                </button>
-                <h2 className="top-bar-title" style={{ marginRight: "2.5rem" }}>
-                    Lista obecności
-                </h2>
-            </div>
-
-            <div style={{ padding: "1rem" }}>
+        <AppPageLayout
+            title="Lista obecności"
+            leftIcon="arrow_back"
+            onLeftClick={() => navigate(-1)}
+            leftAriaLabel="Wróć"
+            loading={loading}
+            loadingLabel="Ładowanie obecności..."
+            bottomNav={<TeacherBottomNav />}
+            shell="teacher"
+        >
                 <div
                     className="glass-card"
                     style={{ padding: "1rem", marginBottom: "1rem" }}
@@ -67,16 +64,13 @@ const AttendanceListPage = () => {
                     </div>
                 </div>
 
-                {loading ? (
-                    <LoadingState label="Ładowanie obecności..." />
-                ) : error ? (
-                    <div className="error-state">{error}</div>
+                {error ? (
+                    <ErrorState icon={null}>{error}</ErrorState>
                 ) : attendanceList.length === 0 ? (
-                    <div className="empty-state">
-                        <span className="material-symbols-outlined" style={{ fontSize: "2.5rem", color: "var(--border-light)" }}>group_off</span>
+                    <EmptyState icon="group_off" iconStyle={{ fontSize: "2.5rem", color: "var(--border-light)" }}>
                         <p style={{ margin: 0, fontWeight: 600, color: "var(--text-primary)" }}>Brak obecności</p>
                         <p style={{ margin: 0, fontSize: "0.875rem" }}>Na razie nikt się nie odbił.</p>
-                    </div>
+                    </EmptyState>
                 ) : (
                     <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
                         {attendanceList.map((item, index) => (
@@ -127,8 +121,7 @@ const AttendanceListPage = () => {
                         ))}
                     </div>
                 )}
-            </div>
-        </div>
+        </AppPageLayout>
     );
 };
 

@@ -2,8 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import TeacherBottomNav from "../../../components/teacher/TeacherBottomNav";
 import { apiDelete, apiGet, apiPost, apiPut } from "../../../services/api";
-import LoadingState from "../../../components/shared/LoadingState";
-import AppTopBar from "../../../components/shared/AppTopBar";
+import AppPageLayout from "../../../components/shared/AppPageLayout";
 
 const emptyForm = {
   name: "",
@@ -89,8 +88,7 @@ const TeacherGroupsPage = () => {
   };
 
   return (
-    <div className="schedule-page-container groups-page">
-      <AppTopBar
+    <AppPageLayout
         title="Moje grupy"
         leftIcon="arrow_back"
         onLeftClick={() => navigate("/teacher")}
@@ -98,14 +96,16 @@ const TeacherGroupsPage = () => {
         rightIcon="add"
         onRightClick={openCreate}
         rightAriaLabel="Utwórz grupę"
-      />
+        loading={loading}
+        loadingLabel="Ładowanie grup..."
+        bottomNav={<TeacherBottomNav />}
+        shell="teacher"
+      >
 
       {notice && <div className="success-banner">{notice}</div>}
       {error && <div className="error-banner">{error}</div>}
 
-      {loading ? (
-        <LoadingState label="Ładowanie grup..." />
-      ) : (
+      {!loading && (
         <section className="data-panel">
           {groups.length === 0 ? (
           <div className="empty-state">
@@ -182,8 +182,7 @@ const TeacherGroupsPage = () => {
         </div>
       )}
 
-      <TeacherBottomNav />
-    </div>
+    </AppPageLayout>
   );
 };
 

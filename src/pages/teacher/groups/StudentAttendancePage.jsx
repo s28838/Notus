@@ -2,7 +2,8 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import TeacherBottomNav from "../../../components/teacher/TeacherBottomNav";
 import { apiGet } from "../../../services/api";
-import LoadingState from "../../../components/shared/LoadingState";
+import AppPageLayout from "../../../components/shared/AppPageLayout";
+import { EmptyState } from "../../../components/shared/PageState";
 
 const StudentAttendancePage = () => {
   const { groupId, studentId } = useParams();
@@ -40,15 +41,17 @@ const StudentAttendancePage = () => {
   }, new Map());
 
   return (
-    <div className="schedule-page-container groups-page">
-      <button className="back-link" onClick={() => navigate(`/teacher/groups/${groupId}`)}>
-        <span className="material-symbols-outlined">arrow_back</span>
-        Powrót
-      </button>
-
-      {loading ? (
-        <LoadingState label="Ładowanie frekwencji..." />
-      ) : error ? (
+    <AppPageLayout
+      title="Frekwencja"
+      leftIcon="arrow_back"
+      onLeftClick={() => navigate(`/teacher/groups/${groupId}`)}
+      leftAriaLabel="Powrót do grupy"
+      loading={loading}
+      loadingLabel="Ładowanie frekwencji..."
+      bottomNav={<TeacherBottomNav />}
+      shell="teacher"
+    >
+      {error ? (
         <div className="error-banner">{error}</div>
       ) : (
         <>
@@ -66,11 +69,10 @@ const StudentAttendancePage = () => {
             </div>
             <div className="attendance-calendar">
               {data.items.length === 0 ? (
-                <div className="empty-state">
-                  <span className="material-symbols-outlined">event_busy</span>
+                <EmptyState icon="event_busy">
                   <h3>Brak zajęć do pokazania</h3>
                   <p>Gdy pojawią się zajęcia, frekwencja będzie widoczna w kalendarzu.</p>
-                </div>
+                </EmptyState>
               ) : (
                 Array.from(attendanceByMonth.entries()).map(([month, items]) => (
                   <section className="attendance-month" key={month}>
@@ -100,8 +102,7 @@ const StudentAttendancePage = () => {
         </>
       )}
 
-      <TeacherBottomNav />
-    </div>
+    </AppPageLayout>
   );
 };
 

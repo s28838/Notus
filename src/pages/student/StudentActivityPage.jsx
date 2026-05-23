@@ -1,8 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import LoadingState from "../../components/shared/LoadingState";
-import AppTopBar from "../../components/shared/AppTopBar";
 import StudentBottomNav from "../../components/student/StudentBottomNav";
+import AppPageLayout from "../../components/shared/AppPageLayout";
 import { apiGet, apiPost } from "../../services/api";
 
 const READ_NOTIFICATIONS_KEY = "notus_student_read_notifications";
@@ -96,8 +95,7 @@ const StudentActivityPage = () => {
   const visibleActivity = showAllActivity ? activity : activity.slice(0, 3);
 
   return (
-    <div className="app-container student-groups-page activity-page">
-      <AppTopBar
+    <AppPageLayout
         title="Aktywność"
         leftIcon="arrow_back"
         onLeftClick={() => navigate("/student")}
@@ -105,12 +103,14 @@ const StudentActivityPage = () => {
         rightIcon="refresh"
         onRightClick={load}
         rightAriaLabel="Odśwież aktywność"
-      />
+        loading={loading}
+        loadingLabel="Ładowanie aktywności..."
+        bottomNav={<StudentBottomNav />}
+        shell="student"
+        className="student-groups-page activity-page"
+        contentClassName="student-groups-content"
+      >
 
-      <main className="student-groups-content">
-        {loading ? (
-          <LoadingState label="Ładowanie aktywności..." />
-        ) : (
           <>
             {error && <div className="error-state"><span className="material-symbols-outlined">error</span>{error}</div>}
 
@@ -195,11 +195,7 @@ const StudentActivityPage = () => {
               )}
             </section>
           </>
-        )}
-      </main>
-
-      <StudentBottomNav />
-    </div>
+    </AppPageLayout>
   );
 };
 

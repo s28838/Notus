@@ -3,8 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
 import { apiGet, apiDelete } from "../../services/api";
 import TeacherBottomNav from "../../components/teacher/TeacherBottomNav";
-import LoadingState from "../../components/shared/LoadingState";
-import AppTopBar from "../../components/shared/AppTopBar";
+import AppPageLayout from "../../components/shared/AppPageLayout";
+import { EmptyState, ErrorState } from "../../components/shared/PageState";
 
 const QuizzesPage = () => {
   const { getToken } = useContext(AuthContext);
@@ -44,29 +44,26 @@ const QuizzesPage = () => {
   };
 
   return (
-    <div className="app-container">
-      <AppTopBar
-        title="Twoje Quizy"
-        leftIcon="arrow_back"
-        onLeftClick={() => navigate("/teacher")}
-        leftAriaLabel="Wróć do panelu nauczyciela"
-        rightIcon="add"
-        onRightClick={() => navigate("/teacher/create-quiz")}
-        rightAriaLabel="Stwórz quiz"
-      />
-
-      {loading ? (
-        <LoadingState label="Ładowanie quizów..." />
-      ) : (
-      <div style={{ padding: "1rem" }}>
-        {error ? (
-          <div className="error-state">
-            <span className="material-symbols-outlined" style={{ fontSize: "2rem" }}>error</span>
-            {error}
-          </div>
+    <AppPageLayout
+      title="Twoje Quizy"
+      leftIcon="arrow_back"
+      onLeftClick={() => navigate("/teacher")}
+      leftAriaLabel="Wróć do panelu nauczyciela"
+      rightIcon="add"
+      onRightClick={() => navigate("/teacher/create-quiz")}
+      rightAriaLabel="Stwórz quiz"
+      loading={loading}
+      loadingLabel="Ładowanie quizów..."
+      bottomNav={<TeacherBottomNav />}
+      shell="teacher"
+    >
+      {error ? (
+          <ErrorState iconStyle={{ fontSize: "2rem" }}>{error}</ErrorState>
         ) : quizzes.length === 0 ? (
-          <div className="empty-state">
-            <span className="material-symbols-outlined" style={{ fontSize: "3rem", color: "var(--border-light)" }}>quiz</span>
+          <EmptyState
+            icon="quiz"
+            iconStyle={{ fontSize: "3rem", color: "var(--border-light)" }}
+          >
             <p style={{ margin: 0, fontWeight: 600, color: "var(--text-primary)" }}>Brak quizów</p>
             <p style={{ margin: 0, fontSize: "0.875rem" }}>Nie masz jeszcze żadnych quizów.</p>
             <button
@@ -76,7 +73,7 @@ const QuizzesPage = () => {
             >
               Stwórz pierwszy quiz
             </button>
-          </div>
+          </EmptyState>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
             {quizzes.map((quiz) => (
@@ -116,11 +113,7 @@ const QuizzesPage = () => {
             ))}
           </div>
         )}
-      </div>
-      )}
-
-      <TeacherBottomNav />
-    </div>
+    </AppPageLayout>
   );
 };
 

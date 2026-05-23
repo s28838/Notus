@@ -1,8 +1,8 @@
 import React, { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import LoadingState from "../../components/shared/LoadingState";
-import AppTopBar from "../../components/shared/AppTopBar";
 import StudentBottomNav from "../../components/student/StudentBottomNav";
+import AppPageLayout from "../../components/shared/AppPageLayout";
+import { EmptyState, ErrorState } from "../../components/shared/PageState";
 import { AuthContext } from "../../context/AuthContext";
 import { apiGet } from "../../services/api";
 
@@ -30,28 +30,26 @@ const StudentGroupsPage = () => {
   }, [getToken]);
 
   return (
-    <div className="app-container student-groups-page">
-      <AppTopBar
+    <AppPageLayout
         title="Moje grupy"
         leftIcon="arrow_back"
         onLeftClick={() => navigate("/student")}
         leftAriaLabel="Wróć do strony głównej"
-      />
+        loading={loading}
+        loadingLabel="Ładowanie grup..."
+        bottomNav={<StudentBottomNav />}
+        shell="student"
+        className="student-groups-page"
+        contentClassName="student-groups-content"
+      >
 
-      <main className="student-groups-content">
-        {loading ? (
-          <LoadingState label="Ładowanie grup..." />
-        ) : error ? (
-          <div className="error-state">
-            <span className="material-symbols-outlined">error</span>
-            {error}
-          </div>
+        {error ? (
+          <ErrorState>{error}</ErrorState>
         ) : groups.length === 0 ? (
-          <div className="empty-state">
-            <span className="material-symbols-outlined">groups</span>
+          <EmptyState icon="groups">
             <h3>Nie należysz jeszcze do żadnej grupy</h3>
             <p>Po zaakceptowaniu zaproszenia od nauczyciela grupa pojawi się tutaj.</p>
-          </div>
+          </EmptyState>
         ) : (
           <div className="student-groups-list">
             {groups.map((group) => (
@@ -91,34 +89,7 @@ const StudentGroupsPage = () => {
             ))}
           </div>
         )}
-      </main>
-
-      <>
-      <StudentBottomNav />
-      <nav className="bottom-nav-stitch" style={{ display: "none" }}>
-        <button className="nav-item" onClick={() => navigate("/student")}>
-          <span className="material-symbols-outlined">home</span>
-          Główna
-        </button>
-        <button className="nav-item" onClick={() => navigate("/student/schedule")}>
-          <span className="material-symbols-outlined">calendar_month</span>
-          Plan
-        </button>
-        <button className="nav-item active">
-          <span className="material-symbols-outlined fill">groups</span>
-          Grupy
-        </button>
-        <button className="nav-item" onClick={() => navigate("/student/activity")}>
-          <span className="material-symbols-outlined">notifications</span>
-          Aktywność
-        </button>
-        <button className="nav-item" onClick={() => navigate("/student/settings")}>
-          <span className="material-symbols-outlined">person</span>
-          Profil
-        </button>
-      </nav>
-      </>
-    </div>
+    </AppPageLayout>
   );
 };
 

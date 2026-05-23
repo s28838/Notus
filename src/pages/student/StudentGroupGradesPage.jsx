@@ -1,8 +1,8 @@
 import React, { useContext, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import LoadingState from "../../components/shared/LoadingState";
-import AppTopBar from "../../components/shared/AppTopBar";
 import StudentBottomNav from "../../components/student/StudentBottomNav";
+import AppPageLayout from "../../components/shared/AppPageLayout";
+import { EmptyState, ErrorState } from "../../components/shared/PageState";
 import { AuthContext } from "../../context/AuthContext";
 import { apiGet } from "../../services/api";
 
@@ -45,22 +45,21 @@ const StudentGroupGradesPage = () => {
   }, [getToken, groupId]);
 
   return (
-    <div className="app-container student-groups-page">
-      <AppTopBar
+    <AppPageLayout
         title="Oceny"
         leftIcon="arrow_back"
         onLeftClick={() => navigate("/student/groups")}
         leftAriaLabel="Wróć do grup"
-      />
+        loading={loading}
+        loadingLabel="Ładowanie ocen..."
+        bottomNav={<StudentBottomNav />}
+        shell="student"
+        className="student-groups-page"
+        contentClassName="student-groups-content"
+      >
 
-      <main className="student-groups-content">
-        {loading ? (
-          <LoadingState label="Ładowanie ocen..." />
-        ) : error ? (
-          <div className="error-state">
-            <span className="material-symbols-outlined">error</span>
-            {error}
-          </div>
+        {error ? (
+          <ErrorState>{error}</ErrorState>
         ) : (
           <>
             <section className="student-group-card">
@@ -70,11 +69,10 @@ const StudentGroupGradesPage = () => {
             </section>
 
             {!data?.semesters?.length ? (
-              <div className="empty-state">
-                <span className="material-symbols-outlined">grading</span>
+              <EmptyState icon="grading">
                 <h3>Brak ocen</h3>
                 <p>Gdy nauczyciel wystawi ocenę w tej grupie, pojawi się tutaj.</p>
-              </div>
+              </EmptyState>
             ) : (
               data.semesters.map((semester) => (
                 <section className="student-group-card" key={semester.semester}>
@@ -111,34 +109,7 @@ const StudentGroupGradesPage = () => {
             )}
           </>
         )}
-      </main>
-
-      <>
-      <StudentBottomNav />
-      <nav className="bottom-nav-stitch" style={{ display: "none" }}>
-        <button className="nav-item" onClick={() => navigate("/student")}>
-          <span className="material-symbols-outlined">home</span>
-          Główna
-        </button>
-        <button className="nav-item" onClick={() => navigate("/student/schedule")}>
-          <span className="material-symbols-outlined">calendar_month</span>
-          Plan
-        </button>
-        <button className="nav-item active" onClick={() => navigate("/student/groups")}>
-          <span className="material-symbols-outlined fill">groups</span>
-          Grupy
-        </button>
-        <button className="nav-item" onClick={() => navigate("/student/activity")}>
-          <span className="material-symbols-outlined">notifications</span>
-          Aktywność
-        </button>
-        <button className="nav-item" onClick={() => navigate("/student/settings")}>
-          <span className="material-symbols-outlined">person</span>
-          Profil
-        </button>
-      </nav>
-      </>
-    </div>
+    </AppPageLayout>
   );
 };
 

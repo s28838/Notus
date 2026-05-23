@@ -2,7 +2,9 @@ import React, { useContext, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
 import { apiGet, apiPost } from "../../services/api";
-import LoadingState from "../../components/shared/LoadingState";
+import TeacherBottomNav from "../../components/teacher/TeacherBottomNav";
+import AppPageLayout from "../../components/shared/AppPageLayout";
+import { EmptyState, ErrorState, SuccessState } from "../../components/shared/PageState";
 
 const TeacherAssignQuizPage = () => {
   const { scheduleId } = useParams();
@@ -45,37 +47,33 @@ const TeacherAssignQuizPage = () => {
   };
 
   return (
-    <div className="app-container">
-      <div className="top-bar">
-        <button
-          className="icon-btn"
-          onClick={() => navigate(-1)}
-          style={{ background: "transparent", color: "var(--text-primary)" }}
-        >
-          <span className="material-symbols-outlined text-primary">arrow_back</span>
-        </button>
-        <h2 className="top-bar-title" style={{ marginRight: "2.5rem" }}>Przypisz Quiz</h2>
-      </div>
-
-      <div style={{ padding: "1rem" }}>
+    <AppPageLayout
+      title="Przypisz Quiz"
+      leftIcon="arrow_back"
+      onLeftClick={() => navigate(-1)}
+      leftAriaLabel="Wróć"
+      loading={loading}
+      loadingLabel="Ładowanie quizów..."
+      bottomNav={<TeacherBottomNav />}
+      shell="teacher"
+    >
         {success ? (
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "1rem", padding: "3rem 1rem", textAlign: "center" }}>
-            <span className="material-symbols-outlined" style={{ fontSize: "3rem", color: "#22c55e" }}>check_circle</span>
-            <p style={{ margin: 0, fontWeight: 700, fontSize: "1.1rem" }}>Quiz przypisany!</p>
-          </div>
-        ) : loading ? (
-          <LoadingState label="Ładowanie quizów..." />
+          <SuccessState
+            iconStyle={{ fontSize: "3rem", color: "#22c55e" }}
+            title="Quiz przypisany!"
+            titleAs="p"
+            titleStyle={{ margin: 0, fontWeight: 700, fontSize: "1.1rem" }}
+            style={{ padding: "3rem 1rem" }}
+          />
         ) : (
           <>
             {error && (
-              <div className="error-state" style={{ marginBottom: "1rem" }}>
-                <span className="material-symbols-outlined" style={{ fontSize: "1.5rem" }}>error</span>
+              <ErrorState style={{ marginBottom: "1rem" }} iconStyle={{ fontSize: "1.5rem" }}>
                 {error}
-              </div>
+              </ErrorState>
             )}
             {quizzes.length === 0 ? (
-              <div className="empty-state">
-                <span className="material-symbols-outlined" style={{ fontSize: "3rem", color: "var(--border-light)" }}>quiz</span>
+              <EmptyState icon="quiz" iconStyle={{ fontSize: "3rem", color: "var(--border-light)" }}>
                 <p style={{ margin: 0, fontWeight: 600, color: "var(--text-primary)" }}>Brak quizów</p>
                 <p style={{ margin: 0, fontSize: "0.875rem" }}>Najpierw utwórz quiz.</p>
                 <button
@@ -85,7 +83,7 @@ const TeacherAssignQuizPage = () => {
                 >
                   Utwórz quiz dla tych zajęć
                 </button>
-              </div>
+              </EmptyState>
             ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
                 <button
@@ -125,8 +123,7 @@ const TeacherAssignQuizPage = () => {
             )}
           </>
         )}
-      </div>
-    </div>
+    </AppPageLayout>
   );
 };
 

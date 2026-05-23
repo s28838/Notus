@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import TeacherBottomNav from "../../../components/teacher/TeacherBottomNav";
 import { apiDelete, apiGet, apiPost, apiPut } from "../../../services/api";
-import LoadingState from "../../../components/shared/LoadingState";
+import AppPageLayout from "../../../components/shared/AppPageLayout";
 import { useTeacherRealtime } from "../../../hooks/useTeacherRealtime";
 
 const TeacherGroupDetailsPage = () => {
@@ -315,15 +315,29 @@ const TeacherGroupDetailsPage = () => {
   };
 
   if (loading) {
-    return <div className="schedule-page-container groups-page"><LoadingState label="Ładowanie grupy..." /><TeacherBottomNav /></div>;
+    return (
+      <AppPageLayout
+        title="Szczegóły grupy"
+        leftIcon="arrow_back"
+        onLeftClick={() => navigate("/teacher/groups")}
+        leftAriaLabel="Powrót do grup"
+        loading
+        loadingLabel="Ładowanie grupy..."
+        bottomNav={<TeacherBottomNav />}
+        shell="teacher"
+      />
+    );
   }
 
   return (
-    <div className="schedule-page-container groups-page">
-      <button className="back-link" onClick={() => navigate("/teacher/groups")}>
-        <span className="material-symbols-outlined">arrow_back</span>
-        Powrót
-      </button>
+    <AppPageLayout
+      title="Szczegóły grupy"
+      leftIcon="arrow_back"
+      onLeftClick={() => navigate("/teacher/groups")}
+      leftAriaLabel="Powrót do grup"
+      bottomNav={<TeacherBottomNav />}
+      shell="teacher"
+    >
 
       {group && (
         <div className="details-header">
@@ -610,8 +624,7 @@ const TeacherGroupDetailsPage = () => {
         </div>
       )}
 
-      <TeacherBottomNav />
-    </div>
+    </AppPageLayout>
   );
 };
 

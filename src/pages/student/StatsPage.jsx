@@ -1,18 +1,14 @@
 import React, { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../../context/AuthContext";
 import { apiGet } from "../../services/api";
-import LoadingState from "../../components/shared/LoadingState";
-import AppTopBar from "../../components/shared/AppTopBar";
+import StudentBottomNav from "../../components/student/StudentBottomNav";
+import AppPageLayout from "../../components/shared/AppPageLayout";
+import { EmptyState, ErrorState } from "../../components/shared/PageState";
 import { useNavigate } from "react-router-dom";
 
 const StatsPage = () => {
   const { getToken } = useContext(AuthContext);
   const navigate = useNavigate();
-
-  const goToHome = () => navigate("/student");
-  const goToSchedule = () => navigate("/student/schedule");
-  const goToGroups = () => navigate("/student/groups");
-  const goToProfile = () => navigate("/student/settings");
 
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -39,28 +35,24 @@ const StatsPage = () => {
   };
 
   return (
-    <div className="app-container">
-      <AppTopBar
+    <AppPageLayout
         title="Historia"
         leftIcon="arrow_back"
         onLeftClick={() => navigate("/student")}
         leftAriaLabel="Wróć do strony głównej"
-      />
+        loading={loading}
+        loadingLabel="Ładowanie statystyk..."
+        bottomNav={<StudentBottomNav />}
+        shell="student"
+      >
 
-      <div style={{ padding: "1rem", paddingBottom: "5.5rem" }}>
-        {loading ? (
-          <LoadingState label="Ładowanie statystyk..." />
-        ) : error ? (
-          <div className="error-state">
-            <span className="material-symbols-outlined" style={{ fontSize: "2rem" }}>error</span>
-            {error}
-          </div>
+        {error ? (
+          <ErrorState iconStyle={{ fontSize: "2rem" }}>{error}</ErrorState>
         ) : history.length === 0 ? (
-          <div className="empty-state">
-            <span className="material-symbols-outlined" style={{ fontSize: "3rem", color: "var(--border-light)" }}>history</span>
+          <EmptyState icon="history" iconStyle={{ fontSize: "3rem", color: "var(--border-light)" }}>
             <p style={{ margin: 0, fontWeight: 600, color: "var(--text-primary)" }}>Brak historii</p>
             <p style={{ margin: 0, fontSize: "0.875rem", textAlign: "center" }}>Zaloguj się na zajęciach, lub zrób quiz, aby dodać go do historii.</p>
-          </div>
+          </EmptyState>
         ) : (
           <div className="list-container">
             {history.map((h) => (
@@ -117,31 +109,7 @@ const StatsPage = () => {
             ))}
           </div>
         )}
-      </div>
-
-      <nav className="bottom-nav-stitch">
-        <button className="nav-item" onClick={goToHome}>
-          <span className="material-symbols-outlined">home</span>
-          Główna
-        </button>
-        <button className="nav-item" onClick={goToSchedule}>
-          <span className="material-symbols-outlined">calendar_month</span>
-          Plan
-        </button>
-        <button className="nav-item" onClick={goToGroups}>
-          <span className="material-symbols-outlined">groups</span>
-          Grupy
-        </button>
-        <button className="nav-item" onClick={() => navigate("/student/activity")}>
-          <span className="material-symbols-outlined">notifications</span>
-          Aktywność
-        </button>
-        <button className="nav-item" onClick={goToProfile}>
-          <span className="material-symbols-outlined">person</span>
-          Profil
-        </button>
-      </nav>
-    </div>
+    </AppPageLayout>
   );
 };
 
