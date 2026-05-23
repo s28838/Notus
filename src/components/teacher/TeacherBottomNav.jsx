@@ -1,6 +1,5 @@
-import React, { useCallback, useContext, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { AuthContext } from "../../context/AuthContext";
 import { apiGet } from "../../services/api";
 import { TEACHER_REALTIME_EVENTS, useTeacherRealtime } from "../../hooks/useTeacherRealtime";
 
@@ -17,7 +16,6 @@ const loadReadNotificationIds = () => {
 const TeacherBottomNav = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { logout } = useContext(AuthContext);
   const [unreadCount, setUnreadCount] = useState(0);
 
   const loadUnread = useCallback(async () => {
@@ -79,10 +77,6 @@ const TeacherBottomNav = () => {
           );
         })}
       </div>
-      <button className="nav-item nav-logout" onClick={logout}>
-        <span className="material-symbols-outlined">logout</span>
-        Wyloguj
-      </button>
     </nav>
   );
 };

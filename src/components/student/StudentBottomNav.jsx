@@ -1,6 +1,5 @@
-import React, { useCallback, useContext, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { AuthContext } from "../../context/AuthContext";
 import { apiGet } from "../../services/api";
 
 const READ_NOTIFICATIONS_KEY = "notus_student_read_notifications";
@@ -16,7 +15,6 @@ const loadReadNotificationIds = () => {
 const StudentBottomNav = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { logout } = useContext(AuthContext);
   const [unreadCount, setUnreadCount] = useState(0);
 
   const loadUnread = useCallback(async () => {
@@ -76,10 +74,6 @@ const StudentBottomNav = () => {
           );
         })}
       </div>
-      <button className="nav-item nav-logout" onClick={logout}>
-        <span className="material-symbols-outlined">logout</span>
-        Wyloguj
-      </button>
     </nav>
   );
 };
