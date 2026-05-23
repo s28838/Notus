@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useUser, useAuth, useClerk } from "@clerk/react";
 import { Sentry } from "../sentry";
@@ -247,6 +247,11 @@ const ClerkAuthProvider = ({ children }) => {
   const { isLoaded, isSignedIn, user: clerkUser } = useUser();
   const { signOut } = useClerk();
   const { getToken } = useAuth();
+
+  // Keep a ref so getLocalToken doesn't need getToken as a dep (Clerk recreates
+  // getToken on every JWT refresh ~60s, which would cascade re-fetches everywhere)
+  const getTokenRef = useRef(getToken);
+  useEffect(() => { getTokenRef.current = getToken; }, [getToken]);
   const [user, setUser] = useState(null);
   const [isAuthReady, setIsAuthReady] = useState(false);
   const [authError, setAuthError] = useState(null);
@@ -293,15 +298,28 @@ const ClerkAuthProvider = ({ children }) => {
         localStorage.setItem("notus:selectedRole", selectedRole);
       }
       setAuthError(null);
-      setUser({
-        id: backendUser.id,
-        email: backendUser.email,
-        role: backendUser.role.toLowerCase(),
-        name: backendUser.name,
-        index: backendUser.indexNumber || null,
-        photoURL: clerkUser.imageUrl || null,
-        clerkId: clerkUser.id,
-        isDev: false
+      setUser(prev => {
+        const next = {
+          id: backendUser.id,
+          email: backendUser.email,
+          role: backendUser.role.toLowerCase(),
+          name: backendUser.name,
+          index: backendUser.indexNumber || null,
+          photoURL: clerkUser.imageUrl || null,
+          clerkId: clerkUser.id,
+          isDev: false,
+        };
+        // Return the same reference if nothing meaningful changed — this
+        // prevents authValue from being recreated and cascading re-fetches
+        if (prev &&
+            prev.id === next.id &&
+            prev.email === next.email &&
+            prev.role === next.role &&
+            prev.name === next.name &&
+            prev.photoURL === next.photoURL) {
+          return prev;
+        }
+        return next;
       });
 
       if (pendingInviteToken && window.location.pathname !== "/invite/group") {
@@ -542,12 +560,12 @@ const ClerkAuthProvider = ({ children }) => {
     }
   };
 
-  const getLocalToken = async () => {
+  const getLocalToken = useCallback(async () => {
     if ((devAccountsEnabled && user?.isDev) || user?.isLocalAuth) {
       return localStorage.getItem("clerkToken");
     }
-    return await getToken();
-  };
+    return await getTokenRef.current();
+  }, [user?.isDev, user?.isLocalAuth]);
 
   const retryUserSync = async () => {
     try {
@@ -559,7 +577,12 @@ const ClerkAuthProvider = ({ children }) => {
     }
   };
 
-  const authValue = { user, login, logout, isLoaded, isSignedIn, isAuthReady, authError, retryUserSync, getToken: getLocalToken, teacherEmailLogin, teacherEmailRegister, studentEmailLogin, studentEmailRegister };
+  const authValue = useMemo(() => ({
+    user, login, logout, isLoaded, isSignedIn, isAuthReady, authError,
+    retryUserSync, getToken: getLocalToken,
+    teacherEmailLogin, teacherEmailRegister, studentEmailLogin, studentEmailRegister,
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }), [user, isLoaded, isSignedIn, isAuthReady, authError, getLocalToken]);
 
   // Don't render until Clerk is loaded to avoid flashes or context errors
   if (!isLoaded) {

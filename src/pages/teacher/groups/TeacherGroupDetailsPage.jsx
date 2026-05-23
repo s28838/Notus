@@ -21,7 +21,6 @@ const TeacherGroupDetailsPage = () => {
   const [studentSearchPending, setStudentSearchPending] = useState(false);
   const [invitationsRefreshing, setInvitationsRefreshing] = useState(false);
   const [pendingInvitationActions, setPendingInvitationActions] = useState({});
-  const [clockNow, setClockNow] = useState(Date.now());
   const [editingStudent, setEditingStudent] = useState(null);
   const [gradeForm, setGradeForm] = useState({
     value: "5",
@@ -56,10 +55,6 @@ const TeacherGroupDetailsPage = () => {
     load();
   }, [load]);
 
-  useEffect(() => {
-    const interval = window.setInterval(() => setClockNow(Date.now()), 60000);
-    return () => window.clearInterval(interval);
-  }, []);
 
   const refreshGroupFromRealtime = useCallback((data) => {
     const payloadGroupId = data?.payload?.groupId;
@@ -293,12 +288,12 @@ const TeacherGroupDetailsPage = () => {
   const isResendCoolingDown = (invitation) => {
     if (invitation.status === "FAILED" || invitation.status === "ACCEPTED") return false;
     const availableAt = invitation.resendAvailableAt ? new Date(invitation.resendAvailableAt).getTime() : 0;
-    return availableAt > clockNow;
+    return availableAt > Date.now();
   };
 
   const formatCooldown = (value) => {
     if (!value) return "24 godz.";
-    const diffMs = Math.max(0, new Date(value).getTime() - clockNow);
+    const diffMs = Math.max(0, new Date(value).getTime() - Date.now());
     const totalMinutes = Math.max(1, Math.ceil(diffMs / 60000));
     const hours = Math.floor(totalMinutes / 60);
     const minutes = totalMinutes % 60;
