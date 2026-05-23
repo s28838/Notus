@@ -25,6 +25,9 @@ const CreateLessonPage = () => {
   const [room, setRoom] = useState("");
   const [type, setType] = useState("Wykład");
   const [studentGroupId, setStudentGroupId] = useState("");
+  const [repeatWeekly, setRepeatWeekly] = useState(false);
+  const [repeatEveryWeeks, setRepeatEveryWeeks] = useState(1);
+  const [repeatUntil, setRepeatUntil] = useState("");
   const [groups, setGroups] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -42,10 +45,31 @@ const CreateLessonPage = () => {
     fetchGroups();
   }, [getToken]);
 
+  useEffect(() => {
+    if (!repeatWeekly || !date || repeatUntil) return;
+    const defaultEnd = new Date(`${date}T12:00:00`);
+    defaultEnd.setFullYear(defaultEnd.getFullYear() + 1);
+    setRepeatUntil(defaultEnd.toISOString().split("T")[0]);
+  }, [date, repeatUntil, repeatWeekly]);
+
   const handleSubmit = async () => {
     if (!subject || !date || !timeStart || !timeEnd || !room || !type || !studentGroupId) {
       setError("Wypełnij wszystkie wymagane pola.");
       return;
+    }
+    if (repeatWeekly) {
+      if (!repeatUntil) {
+        setError("Podaj datę końca powtarzania.");
+        return;
+      }
+      if (new Date(`${repeatUntil}T12:00:00`) < new Date(`${date}T12:00:00`)) {
+        setError("Data końca powtarzania nie może być wcześniejsza niż data pierwszych zajęć.");
+        return;
+      }
+      if (Number(repeatEveryWeeks) < 1) {
+        setError("Odstęp powtarzania musi wynosić minimum 1 tydzień.");
+        return;
+      }
     }
     setLoading(true);
     setError("");
@@ -58,7 +82,10 @@ const CreateLessonPage = () => {
         room,
         type,
         teacherGroupId: Number(studentGroupId),
-        color: "primary"
+        color: "primary",
+        repeatWeekly,
+        repeatEveryWeeks: repeatWeekly ? Number(repeatEveryWeeks) : null,
+        repeatUntil: repeatWeekly ? new Date(`${repeatUntil}T12:00:00`).toISOString() : null
       }, token);
       navigate("/teacher/schedule");
     } catch {
@@ -124,6 +151,43 @@ const CreateLessonPage = () => {
                 <option key={g.id} value={g.id}>{g.name} · {g.subject}</option>
               ))}
             </select>
+          </div>
+
+          <div style={{ borderTop: '1px solid var(--border-light)', paddingTop: '1rem' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', fontSize: '0.95rem', fontWeight: 800, color: 'var(--text-primary)' }}>
+              <input
+                type="checkbox"
+                checked={repeatWeekly}
+                onChange={e => setRepeatWeekly(e.target.checked)}
+              />
+              Powtarzaj zajęcia cyklicznie
+            </label>
+
+            {repeatWeekly && (
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '1rem' }}>
+                <div>
+                  <label style={labelStyle}>Co ile tygodni *</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="52"
+                    value={repeatEveryWeeks}
+                    onChange={e => setRepeatEveryWeeks(e.target.value)}
+                    style={inputStyle}
+                  />
+                </div>
+                <div>
+                  <label style={labelStyle}>Powtarzaj do *</label>
+                  <input
+                    type="date"
+                    value={repeatUntil}
+                    min={date || undefined}
+                    onChange={e => setRepeatUntil(e.target.value)}
+                    style={inputStyle}
+                  />
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

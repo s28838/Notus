@@ -3,6 +3,19 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
 import { apiGet, apiPost, apiPostMultipart } from "../../services/api";
 
+const inputStyle = {
+  width: "100%",
+  padding: "0.75rem",
+  boxSizing: "border-box"
+};
+
+const labelStyle = {
+  display: "block",
+  marginBottom: "0.5rem",
+  fontWeight: 700,
+  fontSize: "0.9rem"
+};
+
 const CreateQuizPage = () => {
   const { getToken } = useContext(AuthContext);
   const navigate = useNavigate();
@@ -22,6 +35,28 @@ const CreateQuizPage = () => {
   const [loading, setLoading] = useState(false);
   const [statusMsg, setStatusMsg] = useState("");
   const [contextLesson, setContextLesson] = useState(null);
+  const [groups, setGroups] = useState([]);
+  const [selectedGroupId, setSelectedGroupId] = useState("");
+  const [groupsLoading, setGroupsLoading] = useState(false);
+  const [groupsError, setGroupsError] = useState("");
+
+  useEffect(() => {
+    const loadGroups = async () => {
+      setGroupsLoading(true);
+      setGroupsError("");
+      try {
+        const token = await getToken();
+        const data = await apiGet("/api/teacher/groups", null, token);
+        setGroups(Array.isArray(data) ? data : []);
+      } catch {
+        setGroups([]);
+        setGroupsError("Nie udało się pobrać grup nauczyciela.");
+      } finally {
+        setGroupsLoading(false);
+      }
+    };
+    loadGroups();
+  }, [getToken]);
 
   useEffect(() => {
     if (!scheduleId) return;
@@ -30,6 +65,9 @@ const CreateQuizPage = () => {
         const token = await getToken();
         const lesson = await apiGet(`/api/schedule/${scheduleId}`, null, token);
         setContextLesson(lesson);
+        if (lesson?.teacherGroupId) {
+          setSelectedGroupId(String(lesson.teacherGroupId));
+        }
         setTitle((current) => current || `Quiz: ${lesson.subject || "zajęcia"}`);
       } catch {
         setContextLesson(null);
@@ -37,6 +75,12 @@ const CreateQuizPage = () => {
     };
     loadLesson();
   }, [getToken, scheduleId]);
+
+  const getSelectedGroupId = () => {
+    const rawGroupId = contextLesson?.teacherGroupId || selectedGroupId;
+    const parsedGroupId = Number(rawGroupId);
+    return Number.isFinite(parsedGroupId) && parsedGroupId > 0 ? parsedGroupId : null;
+  };
 
   const saveAndMaybeAssign = async (payload, token) => {
     const saved = await apiPost("/api/quiz/save", payload, token);
@@ -78,13 +122,18 @@ const CreateQuizPage = () => {
        alert("Podaj tytuł quizu.");
        return;
     }
+    const groupId = getSelectedGroupId();
+    if (!groupId) {
+      alert("Wybierz grupę dla quizu.");
+      return;
+    }
     try {
       setLoading(true);
       const token = await getToken();
       await saveAndMaybeAssign({
         title,
         questions,
-        groupId: contextLesson?.teacherGroupId || null,
+        groupId,
         countAsGrade,
         gradeWeight: countAsGrade ? Number(gradeWeight) : null,
         semester: countAsGrade ? semester : null,
@@ -101,6 +150,11 @@ const CreateQuizPage = () => {
       alert("Wybierz plik PDF.");
       return;
     }
+    const groupId = getSelectedGroupId();
+    if (!groupId) {
+      alert("Wybierz grupę dla quizu.");
+      return;
+    }
     try {
       setLoading(true);
       setStatusMsg("Analizuję PDF i generuję pytania...");
@@ -115,7 +169,7 @@ const CreateQuizPage = () => {
       // Let's save it and go back to list.
       await saveAndMaybeAssign({
         ...generated,
-        groupId: contextLesson?.teacherGroupId || null,
+        groupId,
         countAsGrade,
         gradeWeight: countAsGrade ? Number(gradeWeight) : null,
         semester: countAsGrade ? semester : null,
@@ -127,6 +181,9 @@ const CreateQuizPage = () => {
       setStatusMsg("");
     }
   };
+
+  const lessonGroupMissingFromList = Boolean(contextLesson?.teacherGroupId) &&
+    !groups.some((group) => String(group.id) === String(contextLesson.teacherGroupId));
 
   return (
     <div className="app-container" style={{ paddingBottom: "2rem" }}>
@@ -150,6 +207,38 @@ const CreateQuizPage = () => {
             </p>
           </div>
         )}
+        <div className="glass-card" style={{ padding: "1.25rem", marginBottom: "1rem" }}>
+          <label style={labelStyle}>Grupa quizu *</label>
+          <select
+            className="form-input"
+            value={selectedGroupId}
+            onChange={(e) => setSelectedGroupId(e.target.value)}
+            disabled={groupsLoading || Boolean(contextLesson?.teacherGroupId)}
+            style={inputStyle}
+          >
+            <option value="">{groupsLoading ? "Ładowanie grup..." : "Wybierz grupę"}</option>
+            {lessonGroupMissingFromList && (
+              <option value={String(contextLesson.teacherGroupId)}>
+                {contextLesson.studentGroupName || "Grupa z wybranych zajęć"}
+              </option>
+            )}
+            {groups.map((group) => (
+              <option key={group.id} value={group.id}>
+                {group.name}{group.subject ? ` · ${group.subject}` : ""}
+              </option>
+            ))}
+          </select>
+          {contextLesson?.teacherGroupId && (
+            <p style={{ margin: "0.6rem 0 0", color: "var(--text-secondary)", fontSize: "0.8rem", fontWeight: 700 }}>
+              Grupa wynika z wybranych zajęć.
+            </p>
+          )}
+          {!contextLesson && groupsError && (
+            <p style={{ margin: "0.6rem 0 0", color: "#f87171", fontSize: "0.8rem", fontWeight: 700 }}>
+              {groupsError}
+            </p>
+          )}
+        </div>
         <div className="glass-card" style={{ display: "flex", padding: "0.5rem", marginBottom: "1.5rem" }}>
           <button
             onClick={() => setActiveTab("manual")}

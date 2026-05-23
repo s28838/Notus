@@ -1,5 +1,6 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useContext, useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { AuthContext } from "../../context/AuthContext";
 import { apiGet } from "../../services/api";
 
 const READ_NOTIFICATIONS_KEY = "notus_student_read_notifications";
@@ -15,6 +16,7 @@ const loadReadNotificationIds = () => {
 const StudentBottomNav = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { logout } = useContext(AuthContext);
   const [unreadCount, setUnreadCount] = useState(0);
 
   const loadUnread = useCallback(async () => {
@@ -58,20 +60,26 @@ const StudentBottomNav = () => {
 
   return (
     <nav className="bottom-nav-stitch">
-      {navItems.map((item) => {
-        const isActive = location.pathname === item.path;
-        return (
-          <button key={item.path} className={`nav-item ${isActive ? "active" : ""}`} onClick={() => navigate(item.path)}>
-            <span className="nav-icon-wrap">
-              <span className={`material-symbols-outlined ${isActive ? "fill" : ""}`}>{item.icon}</span>
-              {item.path === "/student/activity" && unreadCount > 0 && (
-                <span className="nav-notification-badge">{unreadCount > 9 ? "9+" : unreadCount}</span>
-              )}
-            </span>
-            {item.label}
-          </button>
-        );
-      })}
+      <div className="nav-main-items">
+        {navItems.map((item) => {
+          const isActive = location.pathname === item.path;
+          return (
+            <button key={item.path} className={`nav-item ${isActive ? "active" : ""}`} onClick={() => navigate(item.path)}>
+              <span className="nav-icon-wrap">
+                <span className={`material-symbols-outlined ${isActive ? "fill" : ""}`}>{item.icon}</span>
+                {item.path === "/student/activity" && unreadCount > 0 && (
+                  <span className="nav-notification-badge">{unreadCount > 9 ? "9+" : unreadCount}</span>
+                )}
+              </span>
+              {item.label}
+            </button>
+          );
+        })}
+      </div>
+      <button className="nav-item nav-logout" onClick={logout}>
+        <span className="material-symbols-outlined">logout</span>
+        Wyloguj
+      </button>
     </nav>
   );
 };

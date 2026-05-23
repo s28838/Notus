@@ -1,5 +1,6 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useContext, useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { AuthContext } from "../../context/AuthContext";
 import { apiGet } from "../../services/api";
 import { TEACHER_REALTIME_EVENTS, useTeacherRealtime } from "../../hooks/useTeacherRealtime";
 
@@ -16,6 +17,7 @@ const loadReadNotificationIds = () => {
 const TeacherBottomNav = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { logout } = useContext(AuthContext);
   const [unreadCount, setUnreadCount] = useState(0);
 
   const loadUnread = useCallback(async () => {
@@ -53,28 +55,34 @@ const TeacherBottomNav = () => {
 
   return (
     <nav className="bottom-nav-stitch">
-      {navItems.map((item) => {
-        const isActive = location.pathname === item.path;
-        return (
-          <button
-            key={item.path}
-            className={`nav-item ${isActive ? "active" : ""}`}
-            onClick={() => navigate(item.path)}
-          >
-            <span className="nav-icon-wrap">
-              <span className={`material-symbols-outlined ${isActive ? "fill" : ""}`}>
-                {item.icon}
-              </span>
-              {item.path === "/teacher/activity" && unreadCount > 0 && (
-                <span className="nav-notification-badge">
-                  {unreadCount > 9 ? "9+" : unreadCount}
+      <div className="nav-main-items">
+        {navItems.map((item) => {
+          const isActive = location.pathname === item.path;
+          return (
+            <button
+              key={item.path}
+              className={`nav-item ${isActive ? "active" : ""}`}
+              onClick={() => navigate(item.path)}
+            >
+              <span className="nav-icon-wrap">
+                <span className={`material-symbols-outlined ${isActive ? "fill" : ""}`}>
+                  {item.icon}
                 </span>
-              )}
-            </span>
-            {item.label}
-          </button>
-        );
-      })}
+                {item.path === "/teacher/activity" && unreadCount > 0 && (
+                  <span className="nav-notification-badge">
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
+                )}
+              </span>
+              {item.label}
+            </button>
+          );
+        })}
+      </div>
+      <button className="nav-item nav-logout" onClick={logout}>
+        <span className="material-symbols-outlined">logout</span>
+        Wyloguj
+      </button>
     </nav>
   );
 };
