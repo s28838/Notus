@@ -367,7 +367,7 @@ const AboutSection = () => (
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 const SettingsPage = () => {
-  const { user } = useContext(AuthContext);
+  const { user, logout } = useContext(AuthContext);
   const navigate  = useNavigate();
   const [toast, setToast] = useState({ message:"", type:"success" });
   const [backendSettings, setBackendSettings] = useState(null);
@@ -396,6 +396,16 @@ const SettingsPage = () => {
         <ThemeSection/>
         <AccountManagementSection showToast={showToast} deactivatedStatus={backendSettings?.deactivated} />
         <AboutSection/>
+        <button onClick={logout} style={{
+          width: "100%", display: "flex", alignItems: "center", justifyContent: "center",
+          gap: "0.5rem", padding: "1rem", borderRadius: "0.75rem", border: "none",
+          background: "var(--color-primary)", color: "white", fontWeight: 700,
+          fontSize: "1rem", cursor: "pointer",
+          boxShadow: "0 10px 15px -3px rgba(244, 89, 37, 0.2)"
+        }}>
+          <span className="material-symbols-outlined">logout</span>
+          Wyloguj się
+        </button>
       </div>
 
       {user?.role === "teacher" ? (
