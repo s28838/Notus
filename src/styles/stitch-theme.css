@@ -847,6 +847,14 @@ body.dark .interactive-card:active {
         box-sizing: border-box;
     }
 
+    .quiz-view-summary-content {
+        width: min(100%, 1240px);
+        max-width: 1240px;
+        margin-left: auto !important;
+        margin-right: auto !important;
+        box-sizing: border-box;
+    }
+
     .list-container {
         padding: 0;
         display: grid;

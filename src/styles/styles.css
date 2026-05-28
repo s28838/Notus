@@ -1001,17 +1001,6 @@ html, body {
   min-width: 900px;
 }
 
-.invite-link-cell {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  white-space: nowrap;
-}
-
-.invite-link-cell .material-symbols-outlined {
-  font-size: 16px;
-}
-
 .activity-page {
   display: flex;
   flex-direction: column;
@@ -1651,6 +1640,187 @@ html, body {
 .invite-auth-form input:read-only {
   color: #cbd5e1;
   background: rgba(30, 41, 59, 0.72);
+}
+
+.custom-picker {
+  position: relative;
+  width: 100%;
+}
+
+.custom-picker-trigger {
+  width: 100%;
+  min-height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 14px;
+  border: 1px solid var(--border-light);
+  border-radius: 0.5rem;
+  background: var(--surface-light);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 1rem;
+  text-align: left;
+  cursor: pointer;
+  box-sizing: border-box;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+}
+
+.custom-picker-trigger:hover,
+.custom-picker-trigger.is-open {
+  border-color: rgba(244, 89, 37, 0.55);
+  box-shadow: 0 0 0 3px rgba(244, 89, 37, 0.1);
+}
+
+.custom-picker-trigger.is-placeholder {
+  color: var(--text-tertiary);
+}
+
+.custom-picker-trigger .material-symbols-outlined {
+  color: var(--text-secondary);
+  font-size: 1.25rem;
+}
+
+.custom-picker-popover {
+  position: absolute;
+  z-index: 80;
+  top: calc(100% + 8px);
+  left: 0;
+  width: min(360px, calc(100vw - 32px));
+  padding: 14px;
+  border: 1px solid var(--border-light);
+  border-radius: 0.875rem;
+  background: var(--surface-light);
+  box-shadow: 0 22px 55px rgba(15, 23, 42, 0.18);
+  color: var(--text-primary);
+}
+
+.custom-picker-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.custom-picker-header strong {
+  font-size: 0.95rem;
+  text-transform: capitalize;
+}
+
+.custom-picker-icon-btn {
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border-light);
+  border-radius: 0.625rem;
+  background: var(--bg-light);
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.custom-picker-icon-btn:hover {
+  border-color: rgba(244, 89, 37, 0.4);
+  color: var(--color-primary);
+}
+
+.custom-date-weekdays,
+.custom-date-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.custom-date-weekdays {
+  margin-bottom: 6px;
+  color: var(--text-tertiary);
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.custom-date-day {
+  aspect-ratio: 1;
+  border: 1px solid transparent;
+  border-radius: 0.625rem;
+  background: transparent;
+  color: var(--text-primary);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.custom-date-day:hover:not(:disabled),
+.custom-date-day.is-today:not(.is-selected) {
+  border-color: rgba(244, 89, 37, 0.35);
+  background: rgba(244, 89, 37, 0.08);
+  color: var(--color-primary);
+}
+
+.custom-date-day.is-selected {
+  background: var(--color-primary);
+  color: #fff;
+  box-shadow: 0 8px 18px rgba(244, 89, 37, 0.28);
+}
+
+.custom-date-day:disabled {
+  color: var(--text-tertiary);
+  cursor: not-allowed;
+  opacity: 0.35;
+}
+
+.time-picker-popover {
+  width: min(300px, calc(100vw - 32px));
+}
+
+.time-picker-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.time-picker-column > span {
+  display: block;
+  margin: 0 0 8px;
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.time-picker-column > div {
+  max-height: 220px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+.time-picker-column button {
+  min-height: 38px;
+  border: 1px solid var(--border-light);
+  border-radius: 0.625rem;
+  background: var(--bg-light);
+  color: var(--text-primary);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.time-picker-column button:hover,
+.time-picker-column button.is-selected {
+  border-color: rgba(244, 89, 37, 0.5);
+  background: rgba(244, 89, 37, 0.1);
+  color: var(--color-primary);
+}
+
+@media (max-width: 520px) {
+  .custom-picker-popover {
+    width: min(320px, calc(100vw - 40px));
+  }
 }
 
 .password-field {

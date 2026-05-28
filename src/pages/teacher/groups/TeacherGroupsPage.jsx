@@ -134,10 +134,12 @@ const TeacherGroupsPage = () => {
                     <td>{group.schoolYear || "-"}</td>
                     <td>{group.semester || "-"}</td>
                     <td>{group.studentsCount}</td>
-                    <td className="table-actions">
+                    <td>
+                      <div className="table-actions">
                       <button onClick={() => navigate(`/teacher/groups/${group.id}`)}>Otwórz</button>
                       <button onClick={() => openEdit(group)}>Edytuj</button>
                       <button className="danger-link" onClick={() => deleteGroup(group)}>Usuń</button>
+                      </div>
                     </td>
                   </tr>
                 ))}

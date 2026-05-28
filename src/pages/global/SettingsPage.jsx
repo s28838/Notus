@@ -10,6 +10,7 @@ import Toast from "../../components/shared/Toast";
 import SectionCard from "../../components/settings/SectionCard";
 import SettingRow from "../../components/settings/SettingRow";
 import { SETTINGS_STRINGS as S, VALIDATION, MOCK_SESSIONS } from "../../config/settings";
+import notusLogo from "../../assets/notus-logo2.png";
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
@@ -53,15 +54,12 @@ const PersonalSection = ({ user }) => (
 // ─── [SCRUM-216] Contact form ─────────────────────────────────────────────────
 const ContactSection = ({ showToast, user }) => {
   const [email, setEmail] = useState(user?.email || "");
-  const [phone, setPhone] = useState("");
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
-  const [phoneLocked, setPhoneLocked] = useState(false);
 
   const validate = () => {
     const e = {};
     if (email && !VALIDATION.email.test(email)) e.email = "Podaj poprawny adres e-mail.";
-    if (phone && !VALIDATION.phone.test(phone.replace(/\s/g, ""))) e.phone = "Podaj poprawny numer (np. +48 123 456 789).";
     return e;
   };
 
@@ -72,7 +70,6 @@ const ContactSection = ({ showToast, user }) => {
     setSaving(true);
     try {
       showToast("Dane kontaktowe zostały zapisane.", "success");
-      if (phone.trim()) setPhoneLocked(true);
     } catch (err) {
       showToast("Nie udało się zapisać danych.", "error");
     } finally {
@@ -85,18 +82,10 @@ const ContactSection = ({ showToast, user }) => {
       <FormInput id="contact-email" label={S.contact.email} type="email" value={email}
         onChange={e => setEmail(e.target.value)} placeholder={S.contact.emailPlaceholder}
         error={errors.email} autoComplete="email" />
-      <FormInput id="contact-phone" label={S.contact.phone} type="tel" value={phone}
-        onChange={e => setPhone(e.target.value)} placeholder={S.contact.phonePlaceholder}
-        error={errors.phone} autoComplete="tel" disabled={phoneLocked} />
       <div style={{ display:"flex", gap:"0.625rem", marginTop:"0.25rem" }}>
-        <button id="btn-save-contact" className="btn-primary" onClick={handleSave} disabled={saving || phoneLocked} style={{ flex:1 }}>
+        <button id="btn-save-contact" className="btn-primary" onClick={handleSave} disabled={saving} style={{ flex:1 }}>
           {saving ? S.contact.saving : S.contact.save}
         </button>
-        {phoneLocked && (
-          <button type="button" className="secondary-action-btn" onClick={() => setPhoneLocked(false)}>
-            Edytuj
-          </button>
-        )}
       </div>
     </SectionCard>
   );
@@ -332,9 +321,6 @@ const ThemeSection = () => {
           </button>
         ))}
       </div>
-      <p style={{ margin:"0.75rem 0 0", fontSize:"0.75rem", color:"var(--text-tertiary)", textAlign:"center" }}>
-        Motyw systemowy automatycznie dostosowuje się do ustawień Twojego urządzenia.
-      </p>
     </SectionCard>
   );
 };
@@ -343,8 +329,8 @@ const ThemeSection = () => {
 const AboutSection = () => (
   <SectionCard icon="info" title={S.sections.about} defaultOpen={false}>
     <div style={{ display:"flex", flexDirection:"column", alignItems:"center", padding:"1rem 0 0.5rem" }}>
-      <div style={{ width:"72px", height:"72px", borderRadius:"50%", background:"linear-gradient(135deg,#0059C9,#003d8f)", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:"0 4px 16px rgba(0,89,201,0.35)", marginBottom:"0.75rem" }}>
-        <span className="material-symbols-outlined" style={{ color:"white", fontSize:"2rem" }}>school</span>
+      <div style={{ width:"72px", height:"72px", borderRadius:"50%", background:"linear-gradient(135deg,#f45925,#ff7a4d)", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:"0 4px 16px rgba(244,89,37,0.35)", marginBottom:"0.75rem" }}>
+        <img src={notusLogo} alt="" style={{ width:"46px", height:"auto", filter:"brightness(0) invert(1)" }} />
       </div>
       <p style={{ margin:"0 0 0.25rem", fontWeight:800, fontSize:"1rem", color:"var(--text-primary)", textAlign:"center" }}>{S.about.appName}</p>
       <p style={{ margin:0, fontSize:"0.8rem", color:"var(--text-secondary)" }}>{S.about.version}</p>

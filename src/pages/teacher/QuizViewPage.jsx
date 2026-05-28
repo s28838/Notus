@@ -200,7 +200,7 @@ const QuizViewPage = () => {
             </div>
           )}
 
-          <div className="desktop-centered-content" style={{ padding: "1rem" }}>
+          <div className="quiz-view-summary-content" style={{ padding: "1rem" }}>
             <div className="glass-card" style={{ padding: "1.5rem" }}>
               {isEditing ? (
                 <input

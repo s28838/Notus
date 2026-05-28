@@ -12,7 +12,6 @@ const ScanQRPage = () => {
   const isProcessingRef = useRef(false);
 
   const [hasPermission, setHasPermission] = useState(null);
-  const [isFlashlightOn, setIsFlashlightOn] = useState(false);
   const [showScanEffect, setShowScanEffect] = useState(false);
 
   const [manualCode, setManualCode] = useState("");
@@ -318,33 +317,6 @@ const ScanQRPage = () => {
           zIndex: 10,
         }}
       >
-        <button
-          onClick={() => setIsFlashlightOn(!isFlashlightOn)}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: "0.5rem",
-            padding: "1rem",
-            borderRadius: "0.75rem",
-            border: "1px solid var(--border-light)",
-            background: isFlashlightOn
-              ? "rgba(244, 89, 37, 0.1)"
-              : "transparent",
-            color: isFlashlightOn
-              ? "var(--color-primary)"
-              : "var(--text-primary)",
-            fontWeight: 700,
-            cursor: "pointer",
-            transition: "all 0.2s",
-          }}
-        >
-          <span className="material-symbols-outlined">
-            {isFlashlightOn ? "flashlight_on" : "flashlight_off"}
-          </span>
-          <span>{isFlashlightOn ? "Wyłącz latarkę" : "Włącz latarkę"}</span>
-        </button>
-
         <input
           type="text"
           value={manualCode}

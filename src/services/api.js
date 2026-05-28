@@ -40,6 +40,7 @@ function extractErrorMessage(text, status) {
 
     if (status === 404) return "Kod jest niepoprawny.";
     if (status === 409) return "Jesteś już zapisany na tę sesję.";
+    if (status === 413) return "Plik jest za duży.";
     if (status === 400) return "Nie udało się wykonać operacji.";
     if (status === 401) return "Sesja wygasła. Zaloguj się ponownie.";
     if (status === 403) return "Nie masz uprawnień do wykonania tej akcji.";
@@ -49,6 +50,7 @@ function extractErrorMessage(text, status) {
   } catch {
     if (status === 404) return "Kod jest niepoprawny.";
     if (status === 409) return "Jesteś już zapisany na tę sesję.";
+    if (status === 413) return "Plik jest za duży.";
     if (status === 400) return "Nie udało się wykonać operacji.";
     if (status === 401) return "Sesja wygasła. Zaloguj się ponownie.";
     if (status === 403) return "Nie masz uprawnień do wykonania tej akcji.";

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
 import { apiGet, apiPost } from "../../services/api";
+import { CustomDatePicker, CustomTimePicker } from "../../components/shared/DateTimePickers";
 
 const inputStyle = {
   width: '100%', padding: '0.75rem', borderRadius: '0.5rem',
@@ -114,17 +115,17 @@ const CreateLessonPage = () => {
 
           <div>
             <label style={labelStyle}>Data *</label>
-            <input type="date" value={date} onChange={e => setDate(e.target.value)} style={inputStyle} />
+            <CustomDatePicker value={date} onChange={setDate} placeholder="Wybierz datÄ™" ariaLabel="Wybierz datÄ™ lekcji" />
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
             <div>
               <label style={labelStyle}>Godz. start *</label>
-              <input type="time" value={timeStart} onChange={e => setTimeStart(e.target.value)} style={inputStyle} />
+              <CustomTimePicker value={timeStart} onChange={setTimeStart} placeholder="Wybierz godzinÄ™" ariaLabel="Wybierz godzinÄ™ rozpoczÄ™cia" />
             </div>
             <div>
               <label style={labelStyle}>Godz. koniec *</label>
-              <input type="time" value={timeEnd} onChange={e => setTimeEnd(e.target.value)} style={inputStyle} />
+              <CustomTimePicker value={timeEnd} onChange={setTimeEnd} placeholder="Wybierz godzinÄ™" ariaLabel="Wybierz godzinÄ™ zakoÅ„czenia" />
             </div>
           </div>
 
@@ -178,12 +179,12 @@ const CreateLessonPage = () => {
                 </div>
                 <div>
                   <label style={labelStyle}>Powtarzaj do *</label>
-                  <input
-                    type="date"
+                  <CustomDatePicker
                     value={repeatUntil}
                     min={date || undefined}
-                    onChange={e => setRepeatUntil(e.target.value)}
-                    style={inputStyle}
+                    onChange={setRepeatUntil}
+                    placeholder="Wybierz datÄ™"
+                    ariaLabel="Wybierz datÄ™ koÅ„ca powtarzania"
                   />
                 </div>
               </div>

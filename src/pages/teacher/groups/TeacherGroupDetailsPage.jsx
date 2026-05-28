@@ -253,20 +253,6 @@ const TeacherGroupDetailsPage = () => {
     }
   };
 
-  const copyInvitationLink = async (invitation) => {
-    if (!invitation.invitationLink) {
-      setError("To zaproszenie nie ma zapisanego linku.");
-      return;
-    }
-
-    try {
-      await navigator.clipboard.writeText(invitation.invitationLink);
-      setNotice("Link zaproszenia zostal skopiowany.");
-    } catch {
-      setError("Nie udalo sie skopiowac linku.");
-    }
-  };
-
   const formatInvitationDate = (value) => {
     if (!value) return "-";
     return new Date(value).toLocaleString("pl-PL", {
@@ -400,9 +386,11 @@ const TeacherGroupDetailsPage = () => {
                         {Number(student.averageGrade).toFixed(2)}
                       </button>
                     </td>
-                    <td className="table-actions">
+                    <td>
+                      <div className="table-actions">
                       <button onClick={() => setEditingStudent({ ...student })}>Edytuj</button>
                       <button className="danger-link" onClick={() => removeStudent(student)}>Usuń</button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -436,7 +424,6 @@ const TeacherGroupDetailsPage = () => {
               <thead>
                 <tr>
                   <th>Email</th>
-                  <th>Link</th>
                   <th>Status</th>
                   <th>Wysłano</th>
                   <th>Wygasa</th>
@@ -454,28 +441,14 @@ const TeacherGroupDetailsPage = () => {
                     <tr key={invitation.id}>
                       <td>{invitation.email}</td>
                       <td>
-                        {invitation.invitationLink ? (
-                          <button
-                            type="button"
-                            className="table-link invite-link-cell"
-                            onClick={() => copyInvitationLink(invitation)}
-                            title={invitation.invitationLink}
-                          >
-                            <span className="material-symbols-outlined">content_copy</span>
-                            Skopiuj link
-                          </button>
-                        ) : (
-                          "-"
-                        )}
-                      </td>
-                      <td>
                         <span className={`status-pill ${String(invitation.status).toLowerCase()}`}>
                           {invitationStatusLabel(invitation.status)}
                         </span>
                       </td>
                       <td>{formatInvitationDate(invitation.createdAt)}</td>
                       <td>{formatInvitationDate(invitation.expiresAt)}</td>
-                      <td className="table-actions">
+                      <td>
+                        <div className="table-actions">
                         <button
                           className={resendPending ? "action-loading" : ""}
                           onClick={() => resendInvitation(invitation)}
@@ -490,6 +463,7 @@ const TeacherGroupDetailsPage = () => {
                             Anuluj
                           </button>
                         )}
+                        </div>
                       </td>
                     </tr>
                   );

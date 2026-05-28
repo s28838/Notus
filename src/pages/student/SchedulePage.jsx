@@ -686,15 +686,6 @@ const SchedulePage = () => {
                         Przypisz quiz
                       </button>
                     )
-                  ) : assignmentMap[lesson.id] ? (
-                    <button
-                      onClick={(e) => { e.stopPropagation(); navigate(`/student/quiz/${assignmentMap[lesson.id].assignmentId}`); }}
-                      style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', paddingTop: '0.5rem', borderTop: '1px solid var(--border-light)', background: 'none', border: 'none', cursor: 'pointer', width: '100%' }}
-                    >
-                      <span className="material-symbols-outlined" style={{ fontSize: '1rem', color: 'var(--color-primary)' }}>quiz</span>
-                      <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--color-primary)' }}>Quiz dostępny</span>
-                      <span className="material-symbols-outlined" style={{ fontSize: '1rem', color: 'var(--color-primary)', marginLeft: 'auto' }}>chevron_right</span>
-                    </button>
                   ) : null}
                 </div>
               </div>

@@ -27,9 +27,7 @@ export const SETTINGS_STRINGS = {
   // Contact form
   contact: {
     email: "Adres e-mail",
-    phone: "Numer telefonu",
     emailPlaceholder: "twoj@email.pl",
-    phonePlaceholder: "+48 123 456 789",
     save: "Zapisz dane kontaktowe",
     saving: "Zapisywanie...",
   },
@@ -107,7 +105,6 @@ export const SETTINGS_STRINGS = {
 // Validation rules
 export const VALIDATION = {
   email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-  phone: /^(\+?48)?[\s-]?(\d{3}[\s-]?){3}$/,
   passwordMin: 8,
 };
 
