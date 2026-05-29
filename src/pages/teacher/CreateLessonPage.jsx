@@ -1,8 +1,16 @@
-import React, { useState, useEffect, useContext } from "react";
+﻿import React, { useState, useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
 import { apiGet, apiPost } from "../../services/api";
 import { CustomDatePicker, CustomTimePicker } from "../../components/shared/DateTimePickers";
+import { CustomCheckbox, CustomSelect } from "../../components/shared/FormControls";
+
+const LESSON_TYPE_OPTIONS = [
+  { value: "Wykład", label: "Wykład", aliases: ["WykÅ‚ad"] },
+  { value: "Ćwiczenia", label: "Ćwiczenia", aliases: ["Ä†wiczenia"] },
+  { value: "Laboratorium", label: "Laboratorium" },
+  { value: "Seminarium", label: "Seminarium" },
+];
 
 const inputStyle = {
   width: '100%', padding: '0.75rem', borderRadius: '0.5rem',
@@ -40,7 +48,7 @@ const CreateLessonPage = () => {
         const data = await apiGet("/api/teacher/groups", null, token);
         setGroups(data || []);
       } catch {
-        // non-critical — groups dropdown just stays empty
+        // non-critical â€” groups dropdown just stays empty
       }
     };
     fetchGroups();
@@ -115,17 +123,17 @@ const CreateLessonPage = () => {
 
           <div>
             <label style={labelStyle}>Data *</label>
-            <CustomDatePicker value={date} onChange={setDate} placeholder="Wybierz datÄ™" ariaLabel="Wybierz datÄ™ lekcji" />
+            <CustomDatePicker value={date} onChange={setDate} placeholder="Wybierz datę" ariaLabel="Wybierz datę lekcji" />
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
             <div>
               <label style={labelStyle}>Godz. start *</label>
-              <CustomTimePicker value={timeStart} onChange={setTimeStart} placeholder="Wybierz godzinÄ™" ariaLabel="Wybierz godzinÄ™ rozpoczÄ™cia" />
+              <CustomTimePicker value={timeStart} onChange={setTimeStart} placeholder="Wybierz godzinę" ariaLabel="Wybierz godzinę rozpoczęcia" />
             </div>
             <div>
               <label style={labelStyle}>Godz. koniec *</label>
-              <CustomTimePicker value={timeEnd} onChange={setTimeEnd} placeholder="Wybierz godzinÄ™" ariaLabel="Wybierz godzinÄ™ zakoÅ„czenia" />
+              <CustomTimePicker value={timeEnd} onChange={setTimeEnd} placeholder="Wybierz godzinę" ariaLabel="Wybierz godzinę zakończenia" />
             </div>
           </div>
 
@@ -136,33 +144,26 @@ const CreateLessonPage = () => {
 
           <div>
             <label style={labelStyle}>Typ *</label>
-            <select value={type} onChange={e => setType(e.target.value)} style={inputStyle}>
-              <option value="Wykład">Wykład</option>
-              <option value="Ćwiczenia">Ćwiczenia</option>
-              <option value="Laboratorium">Laboratorium</option>
-              <option value="Seminarium">Seminarium</option>
-            </select>
+            <CustomSelect value={type} onChange={setType} options={LESSON_TYPE_OPTIONS} ariaLabel="Wybierz typ zajęć" />
           </div>
 
           <div>
             <label style={labelStyle}>Grupa *</label>
-            <select value={studentGroupId} onChange={e => setStudentGroupId(e.target.value)} style={inputStyle}>
-              <option value="">Wybierz grupę</option>
-              {groups.map(g => (
-                <option key={g.id} value={g.id}>{g.name} · {g.subject}</option>
-              ))}
-            </select>
+            <CustomSelect
+              value={studentGroupId}
+              onChange={setStudentGroupId}
+              placeholder="Wybierz grupę"
+              ariaLabel="Wybierz grupę"
+              options={groups.map(g => ({ value: String(g.id), label: `${g.name} - ${g.subject || "bez przedmiotu"}` }))}
+            />
           </div>
 
           <div style={{ borderTop: '1px solid var(--border-light)', paddingTop: '1rem' }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', fontSize: '0.95rem', fontWeight: 800, color: 'var(--text-primary)' }}>
-              <input
-                type="checkbox"
-                checked={repeatWeekly}
-                onChange={e => setRepeatWeekly(e.target.checked)}
-              />
-              Powtarzaj zajęcia cyklicznie
-            </label>
+            <CustomCheckbox
+              checked={repeatWeekly}
+              onChange={setRepeatWeekly}
+              label="Powtarzaj zajęcia cyklicznie"
+            />
 
             {repeatWeekly && (
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '1rem' }}>
@@ -183,8 +184,8 @@ const CreateLessonPage = () => {
                     value={repeatUntil}
                     min={date || undefined}
                     onChange={setRepeatUntil}
-                    placeholder="Wybierz datÄ™"
-                    ariaLabel="Wybierz datÄ™ koÅ„ca powtarzania"
+                    placeholder="Wybierz datę"
+                    ariaLabel="Wybierz datę końca powtarzania"
                   />
                 </div>
               </div>
@@ -209,3 +210,4 @@ const CreateLessonPage = () => {
 };
 
 export default CreateLessonPage;
+

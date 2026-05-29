@@ -1817,6 +1817,143 @@ html, body {
   color: var(--color-primary);
 }
 
+.custom-select {
+  position: relative;
+  width: 100%;
+}
+
+.custom-select-trigger {
+  width: 100%;
+  min-height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 14px;
+  border: 1px solid var(--border-light);
+  border-radius: 0.5rem;
+  background: var(--surface-light);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 1rem;
+  text-align: left;
+  cursor: pointer;
+  box-sizing: border-box;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+}
+
+.custom-select-trigger:hover,
+.custom-select-trigger.is-open {
+  border-color: rgba(244, 89, 37, 0.55);
+  box-shadow: 0 0 0 3px rgba(244, 89, 37, 0.1);
+}
+
+.custom-select-trigger.is-placeholder {
+  color: var(--text-tertiary);
+}
+
+.custom-select-trigger .material-symbols-outlined {
+  color: var(--text-secondary);
+  transition: transform 0.2s;
+}
+
+.custom-select-trigger.is-open .material-symbols-outlined {
+  transform: rotate(180deg);
+}
+
+.custom-select-menu {
+  position: absolute;
+  z-index: 90;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  max-height: 260px;
+  overflow-y: auto;
+  padding: 6px;
+  border: 1px solid var(--border-light);
+  border-radius: 0.875rem;
+  background: var(--surface-light);
+  box-shadow: 0 22px 55px rgba(15, 23, 42, 0.18);
+}
+
+.custom-select-menu button {
+  width: 100%;
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border: 0;
+  border-radius: 0.625rem;
+  background: transparent;
+  color: var(--text-primary);
+  font: inherit;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+  padding: 0 10px;
+}
+
+.custom-select-menu button:hover,
+.custom-select-menu button.is-selected {
+  background: rgba(244, 89, 37, 0.1);
+  color: var(--color-primary);
+}
+
+.custom-select-menu button:disabled {
+  color: var(--text-tertiary);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.custom-select-menu .material-symbols-outlined {
+  font-size: 1.1rem;
+}
+
+.custom-checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  border: 0;
+  background: transparent;
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 800;
+  cursor: pointer;
+  padding: 0;
+  text-align: left;
+}
+
+.custom-checkbox-box {
+  width: 22px;
+  height: 22px;
+  flex: 0 0 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--border-light);
+  border-radius: 0.45rem;
+  background: var(--surface-light);
+  color: #fff;
+  transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
+}
+
+.custom-checkbox:hover .custom-checkbox-box {
+  border-color: rgba(244, 89, 37, 0.55);
+  box-shadow: 0 0 0 3px rgba(244, 89, 37, 0.1);
+}
+
+.custom-checkbox.is-checked .custom-checkbox-box {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+}
+
+.custom-checkbox-box .material-symbols-outlined {
+  font-size: 1rem;
+  font-weight: 900;
+}
+
 @media (max-width: 520px) {
   .custom-picker-popover {
     width: min(320px, calc(100vw - 40px));

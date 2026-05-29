@@ -81,8 +81,8 @@ export const CustomDatePicker = ({
   value,
   onChange,
   min,
-  placeholder = "Wybierz date",
-  ariaLabel = "Wybierz date",
+  placeholder = "Wybierz datę",
+  ariaLabel = "Wybierz datę",
 }) => {
   const [open, setOpen] = useState(false);
   const selectedDate = parseInputDate(value);
@@ -143,7 +143,7 @@ export const CustomDatePicker = ({
           </div>
 
           <div className="custom-date-weekdays" aria-hidden="true">
-            {["Pn", "Wt", "Sr", "Cz", "Pt", "So", "Nd"].map((day) => (
+            {["Pn", "Wt", "Śr", "Cz", "Pt", "So", "Nd"].map((day) => (
               <span key={day}>{day}</span>
             ))}
           </div>
@@ -179,8 +179,8 @@ export const CustomDatePicker = ({
 export const CustomTimePicker = ({
   value,
   onChange,
-  placeholder = "Wybierz godzine",
-  ariaLabel = "Wybierz godzine",
+  placeholder = "Wybierz godzinę",
+  ariaLabel = "Wybierz godzinę",
 }) => {
   const [open, setOpen] = useState(false);
   const rootRef = useRef(null);

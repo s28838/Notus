@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useContext, useEffect, useRef, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
 import TeacherBottomNav from "../../components/teacher/TeacherBottomNav";
@@ -382,7 +383,7 @@ const SchedulePage = () => {
   return (
     <div className="app-container">
       {/* === DATE PICKER MODAL === */}
-      {isPickerOpen && (
+      {isPickerOpen && createPortal(
         <div style={styles.datepickerOverlay} onClick={handlePickerCancel}>
           <div style={styles.datepickerModal} onClick={e => e.stopPropagation()}>
             <div style={styles.pickerHeader}>
@@ -445,7 +446,8 @@ const SchedulePage = () => {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* === HEADER === */}

@@ -1,9 +1,21 @@
-import React, { useState, useEffect, useContext } from "react";
+﻿import React, { useState, useEffect, useContext } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
 import { apiGet, apiPut } from "../../services/api";
 import LoadingState from "../../components/shared/LoadingState";
 import { CustomDatePicker, CustomTimePicker } from "../../components/shared/DateTimePickers";
+import { CustomSelect } from "../../components/shared/FormControls";
+
+const LESSON_TYPE_OPTIONS = [
+  { value: "Wykład", label: "Wykład", aliases: ["WykÅ‚ad"] },
+  { value: "Ćwiczenia", label: "Ćwiczenia", aliases: ["Ä†wiczenia"] },
+  { value: "Laboratorium", label: "Laboratorium" },
+  { value: "Seminarium", label: "Seminarium" },
+];
+
+const normalizeLessonType = (value) => (
+  LESSON_TYPE_OPTIONS.find((option) => option.value === value || option.aliases?.includes(value))?.value || "Wykład"
+);
 
 const inputStyle = {
   width: '100%', padding: '0.75rem', borderRadius: '0.5rem',
@@ -45,7 +57,7 @@ const EditLessonPage = () => {
 
         setSubject(lesson.subject || "");
         setRoom(lesson.room || "");
-        setType(lesson.type || "Wykład");
+        setType(normalizeLessonType(lesson.type));
         setStudentGroupId(lesson.teacherGroupId ? String(lesson.teacherGroupId) : "");
 
         if (lesson.date) {
@@ -125,17 +137,17 @@ const EditLessonPage = () => {
 
           <div>
             <label style={labelStyle}>Data *</label>
-            <CustomDatePicker value={date} onChange={setDate} placeholder="Wybierz datÄ™" ariaLabel="Wybierz datÄ™ lekcji" />
+            <CustomDatePicker value={date} onChange={setDate} placeholder="Wybierz datę" ariaLabel="Wybierz datę lekcji" />
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
             <div>
               <label style={labelStyle}>Godz. start *</label>
-              <CustomTimePicker value={timeStart} onChange={setTimeStart} placeholder="Wybierz godzinÄ™" ariaLabel="Wybierz godzinÄ™ rozpoczÄ™cia" />
+              <CustomTimePicker value={timeStart} onChange={setTimeStart} placeholder="Wybierz godzinę" ariaLabel="Wybierz godzinę rozpoczęcia" />
             </div>
             <div>
               <label style={labelStyle}>Godz. koniec *</label>
-              <CustomTimePicker value={timeEnd} onChange={setTimeEnd} placeholder="Wybierz godzinÄ™" ariaLabel="Wybierz godzinÄ™ zakoÅ„czenia" />
+              <CustomTimePicker value={timeEnd} onChange={setTimeEnd} placeholder="Wybierz godzinę" ariaLabel="Wybierz godzinę zakończenia" />
             </div>
           </div>
 
@@ -146,22 +158,18 @@ const EditLessonPage = () => {
 
           <div>
             <label style={labelStyle}>Typ *</label>
-            <select value={type} onChange={e => setType(e.target.value)} style={inputStyle}>
-              <option value="Wykład">Wykład</option>
-              <option value="Ćwiczenia">Ćwiczenia</option>
-              <option value="Laboratorium">Laboratorium</option>
-              <option value="Seminarium">Seminarium</option>
-            </select>
+            <CustomSelect value={type} onChange={setType} options={LESSON_TYPE_OPTIONS} ariaLabel="Wybierz typ zajęć" />
           </div>
 
           <div>
             <label style={labelStyle}>Grupa *</label>
-            <select value={studentGroupId} onChange={e => setStudentGroupId(e.target.value)} style={inputStyle}>
-              <option value="">Wybierz grupę</option>
-              {groups.map(g => (
-                <option key={g.id} value={g.id}>{g.name} · {g.subject}</option>
-              ))}
-            </select>
+            <CustomSelect
+              value={studentGroupId}
+              onChange={setStudentGroupId}
+              placeholder="Wybierz grupę"
+              ariaLabel="Wybierz grupę"
+              options={groups.map(g => ({ value: String(g.id), label: `${g.name} - ${g.subject || "bez przedmiotu"}` }))}
+            />
           </div>
         </div>
 
@@ -182,3 +190,4 @@ const EditLessonPage = () => {
 };
 
 export default EditLessonPage;
+
