@@ -212,13 +212,42 @@ const CreateQuizPage = () => {
 
   const updateOption = (qIdx, oIdx, value) => {
     const newQs = [...questions];
+    const previousValue = newQs[qIdx].options[oIdx];
     newQs[qIdx].options[oIdx] = value;
+    if (newQs[qIdx].correctAnswer === previousValue) {
+      newQs[qIdx].correctAnswer = value;
+    }
     setQuestions(newQs);
+  };
+
+  const validateManualQuestions = () => {
+    for (let index = 0; index < questions.length; index += 1) {
+      const question = questions[index];
+      if (question.type !== "CLOSED") continue;
+
+      const options = (question.options || []).map((option) => option.trim()).filter(Boolean);
+      const correctAnswer = (question.correctAnswer || "").trim();
+
+      if (!correctAnswer) {
+        return `Zaznacz poprawną odpowiedź w pytaniu #${index + 1}.`;
+      }
+
+      if (!options.includes(correctAnswer)) {
+        return `Poprawna odpowiedź w pytaniu #${index + 1} musi być jedną z wpisanych opcji.`;
+      }
+    }
+
+    return "";
   };
 
   const handleManualSave = async () => {
     if (!title) {
        alert("Podaj tytuł quizu.");
+       return;
+    }
+    const validationError = validateManualQuestions();
+    if (validationError) {
+       alert(validationError);
        return;
     }
     try {

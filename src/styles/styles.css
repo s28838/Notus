@@ -1298,6 +1298,150 @@ html, body {
   white-space: nowrap;
 }
 
+.session-participants-scroll {
+  max-height: min(58vh, 560px);
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.session-participants-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.session-participant-row {
+  display: grid;
+  grid-template-columns: minmax(12rem, 1fr) auto auto;
+  align-items: center;
+  gap: 12px;
+  min-height: 58px;
+  padding: 12px;
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  background: var(--bg-light);
+}
+
+.session-participant-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.attendance-result-chip,
+.quiz-result-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 36px;
+  padding: 0 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 900;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.attendance-result-chip .material-symbols-outlined,
+.quiz-result-chip .material-symbols-outlined,
+.pdf-download-btn .material-symbols-outlined {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.attendance-result-chip.present {
+  border: 1px solid rgba(34, 197, 94, 0.28);
+  background: rgba(34, 197, 94, 0.12);
+  color: #16a34a;
+}
+
+.attendance-result-chip.absent {
+  border: 1px solid rgba(239, 68, 68, 0.28);
+  background: rgba(239, 68, 68, 0.12);
+  color: #dc2626;
+}
+
+.quiz-result-chip {
+  border: 1px solid rgba(14, 165, 233, 0.28);
+  background: rgba(14, 165, 233, 0.12);
+  color: #0284c7;
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color 0.2s, color 0.2s, background 0.2s, transform 0.1s;
+}
+
+.quiz-result-chip:hover:not(:disabled) {
+  border-color: rgba(14, 165, 233, 0.52);
+  background: rgba(14, 165, 233, 0.18);
+  transform: translateY(-1px);
+}
+
+.quiz-result-chip:disabled {
+  cursor: default;
+  opacity: 0.7;
+}
+
+.quiz-result-chip.pending-review {
+  border-color: rgba(244, 89, 37, 0.34);
+  background: rgba(244, 89, 37, 0.14);
+  color: var(--color-primary);
+}
+
+.quiz-result-chip.empty {
+  cursor: default;
+  border-color: var(--border-light);
+  background: rgba(148, 163, 184, 0.1);
+  color: var(--text-tertiary);
+}
+
+.pdf-download-btn {
+  width: 100%;
+  min-height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid rgba(244, 89, 37, 0.32);
+  border-radius: 8px;
+  background: rgba(244, 89, 37, 0.08);
+  color: var(--color-primary);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 12px 28px rgba(244, 89, 37, 0.14);
+  transition: background 0.2s, border-color 0.2s, transform 0.1s, box-shadow 0.2s;
+}
+
+.pdf-download-btn:hover {
+  border-color: rgba(244, 89, 37, 0.58);
+  background: rgba(244, 89, 37, 0.14);
+  box-shadow: 0 16px 34px rgba(244, 89, 37, 0.2);
+  transform: translateY(-1px);
+}
+
+.pdf-download-btn:active,
+.quiz-result-chip:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+@media (max-width: 640px) {
+  .session-participant-row {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+
+  .attendance-result-chip,
+  .quiz-result-chip {
+    width: 100%;
+  }
+}
+
 .sticky-actions {
   position: sticky;
   bottom: 0;

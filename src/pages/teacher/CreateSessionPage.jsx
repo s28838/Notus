@@ -13,6 +13,7 @@ const CreateSessionPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [qr, setQr] = useState(null);
+  const [sessionSummary, setSessionSummary] = useState(null);
   
   const [lessons, setLessons] = useState([]);
   const [currentLesson, setCurrentLesson] = useState(null);
@@ -85,12 +86,15 @@ const CreateSessionPage = () => {
     setError("");
     setLoading(true);
     setQr(null);
+    setSessionSummary(null);
 
     try {
       const token = await getToken();
       const created = await apiPost("/api/attendance/sessions", { scheduleId: currentLesson.id }, token);
       const qrResp = await apiGet(`/api/attendance/sessions/${created.sessionId}/qr`, null, token);
+      const summary = await apiGet(`/api/attendance/sessions/${created.sessionId}/summary`, null, token).catch(() => null);
       setQr(qrResp);
+      setSessionSummary(summary);
     } catch (e) {
       setError(e.message || String(e));
     } finally {
@@ -107,7 +111,9 @@ const CreateSessionPage = () => {
     try {
       const token = await getToken();
       const qrResp = await apiGet(`/api/attendance/sessions/${qr.sessionId}/qr`, null, token);
+      const summary = await apiGet(`/api/attendance/sessions/${qr.sessionId}/summary`, null, token).catch(() => null);
       setQr(qrResp);
+      setSessionSummary(summary);
     } catch (e) {
       setError(e.message || String(e));
     } finally {
@@ -190,7 +196,7 @@ const CreateSessionPage = () => {
           <div className="glass-card" style={{ marginTop: '1.5rem', padding: '1.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <h2 style={{ fontSize: '1.125rem', fontWeight: 700, margin: '0 0 1rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <span className="material-symbols-outlined text-primary">check_circle</span>
-              Sesja #{qr.sessionId}
+              Sesja #{sessionSummary?.groupSessionNumber || qr.sessionId}
             </h2>
 
             <div style={{ background: 'var(--surface-light)', padding: '1rem', borderRadius: '1rem', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}>

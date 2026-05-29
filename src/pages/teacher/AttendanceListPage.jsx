@@ -13,6 +13,7 @@ const AttendanceListPage = () => {
     const navigate = useNavigate();
 
     const [attendanceList, setAttendanceList] = useState([]);
+    const [sessionSummary, setSessionSummary] = useState(null);
     const [quizResults, setQuizResults] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
@@ -21,7 +22,9 @@ const AttendanceListPage = () => {
         try {
             setError("");
             const token = await getToken();
+            const summary = await apiGet(`/api/attendance/sessions/${sessionId}/summary`, null, token).catch(() => null);
             const data = await apiGet(`/api/attendance/sessions/${sessionId}/records`, null, token);
+            setSessionSummary(summary);
             setAttendanceList(Array.isArray(data) ? data : []);
             try {
                 const results = await apiGet(`/api/quiz-assignments/session/${sessionId}/results`, null, token);
@@ -49,6 +52,7 @@ const AttendanceListPage = () => {
     useTeacherRealtime(["attendance.checked_in"], handleAttendanceRealtime, Boolean(sessionId));
     const quizSubmissions = Array.isArray(quizResults?.submissions) ? quizResults.submissions : [];
     const pendingReviews = quizSubmissions.filter((item) => item.pendingOpenReview);
+    const displaySessionNumber = sessionSummary?.groupSessionNumber || sessionId;
 
     return (
         <AppPageLayout
@@ -66,8 +70,14 @@ const AttendanceListPage = () => {
                     style={{ padding: "1rem", marginBottom: "1rem" }}
                 >
                     <div style={{ fontWeight: 700, fontSize: "1rem", marginBottom: "0.25rem" }}>
-                        Sesja #{sessionId}
+                        Sesja #{displaySessionNumber}
                     </div>
+                    {sessionSummary?.sessionTitle && (
+                        <div style={{ color: "var(--text-primary)", fontSize: "0.9rem", fontWeight: 700, marginBottom: "0.15rem" }}>
+                            {sessionSummary.sessionTitle}
+                            {sessionSummary.groupName ? ` · ${sessionSummary.groupName}` : ""}
+                        </div>
+                    )}
                     <div style={{ color: "var(--text-secondary)", fontSize: "0.9rem" }}>
                         Liczba obecnych: {attendanceList.length}
                     </div>

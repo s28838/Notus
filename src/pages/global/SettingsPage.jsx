@@ -45,7 +45,6 @@ const PersonalSection = ({ user }) => (
   <SectionCard icon="person" title={S.sections.personal}>
     <Field icon="badge"        label={S.personal.name}  value={user?.name} />
     <Field icon="school"       label={S.personal.role}  value={user?.role === "student" ? "Student" : "Wykładowca"} />
-    {user?.role === "student" && <Field icon="tag" label={S.personal.index} value={user?.index} />}
     <Field icon="alternate_email" label={S.personal.email}   value={user?.email} />
     <Field icon="fingerprint"  label={S.personal.clerkId} value={user?.clerkId ? `…${user.clerkId.slice(-8)}` : "—"} />
   </SectionCard>

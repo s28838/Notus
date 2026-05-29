@@ -146,7 +146,7 @@ const TeacherStatsPage = () => {
       </div>
 
       <button
-        className="btn-secondary"
+        className="secondary-action-btn"
         onClick={(event) => {
           event.stopPropagation();
           openSessionDetails(session);
@@ -215,8 +215,8 @@ const TeacherStatsPage = () => {
                 Nikogo nie było na tych zajęciach, nikt też nie jest przypisany do tej grupy.
               </p>
             ) : (
-              <div style={{ maxHeight: "min(58vh, 560px)", overflowY: "auto", paddingRight: "0.25rem" }}>
-                <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+              <div className="session-participants-scroll">
+                <div className="session-participants-list">
                   {sessionDetails.map((student) => {
                     const hasQuiz = student.quizScore != null;
                     const pendingReview = Boolean(student.pendingOpenReview);
@@ -228,22 +228,12 @@ const TeacherStatsPage = () => {
                     return (
                       <div
                         key={student.studentId}
-                        style={{
-                          display: "flex",
-                          flexWrap: "wrap",
-                          gap: "0.75rem",
-                          alignItems: "center",
-                          justifyContent: "space-between",
-                          background: "rgba(255,255,255,0.05)",
-                          padding: "0.75rem",
-                          borderRadius: "0.5rem",
-                          border: "1px solid rgba(255,255,255,0.08)"
-                        }}
+                        className="session-participant-row"
                       >
-                        <span style={{ fontSize: "0.9rem", fontWeight: 700, minWidth: "12rem", flex: "1 1 12rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        <span className="session-participant-name">
                           {student.studentName}
                         </span>
-                        <span style={{ ...pillStyle, padding: "0.3rem 0.55rem", background: student.attended ? "rgba(34,197,94,0.1)" : "rgba(239,68,68,0.1)", color: student.attended ? "#16a34a" : "#ef4444" }}>
+                        <span className={`attendance-result-chip ${student.attended ? "present" : "absent"}`}>
                           <span className="material-symbols-outlined" style={{ fontSize: "1rem" }}>
                             {student.attended ? "check_circle" : "cancel"}
                           </span>
@@ -253,15 +243,17 @@ const TeacherStatsPage = () => {
                           hasQuiz ? (
                             <button
                               type="button"
-                              className={pendingReview ? "btn-primary" : "btn-secondary"}
+                              className={`quiz-result-chip ${pendingReview ? "pending-review" : ""}`}
                               onClick={() => canReview && openReview(student.submissionId)}
                               disabled={!canReview}
-                              style={{ padding: "0.4rem 0.65rem", fontSize: "0.8rem", whiteSpace: "nowrap" }}
                             >
+                              <span className="material-symbols-outlined">
+                                {pendingReview ? "rate_review" : "fact_check"}
+                              </span>
                               {pendingReview ? "Oceń odpowiedź" : `${student.quizScore}/${student.quizTotal} (${quizPercent}%)`}
                             </button>
                           ) : (
-                            <span style={{ ...pillStyle, padding: "0.3rem 0.55rem", background: "rgba(255,255,255,0.05)", color: "var(--text-tertiary)" }}>
+                            <span className="quiz-result-chip empty">
                               -/-
                             </span>
                           )
@@ -276,11 +268,10 @@ const TeacherStatsPage = () => {
 
           {selectedSession.quizId && (
             <button
-              className="btn-secondary"
-              style={{ padding: "0.65rem", fontSize: "0.85rem", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}
+              className="pdf-download-btn"
               onClick={() => handleDownloadPdf(selectedSession.scheduleId)}
             >
-              <span className="material-symbols-outlined" style={{ fontSize: "1.1rem" }}>picture_as_pdf</span>
+              <span className="material-symbols-outlined">picture_as_pdf</span>
               Pobierz podsumowanie PDF
             </button>
           )}
