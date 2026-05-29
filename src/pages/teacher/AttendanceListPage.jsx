@@ -13,6 +13,7 @@ const AttendanceListPage = () => {
     const navigate = useNavigate();
 
     const [attendanceList, setAttendanceList] = useState([]);
+    const [quizResults, setQuizResults] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
@@ -22,6 +23,12 @@ const AttendanceListPage = () => {
             const token = await getToken();
             const data = await apiGet(`/api/attendance/sessions/${sessionId}/records`, null, token);
             setAttendanceList(Array.isArray(data) ? data : []);
+            try {
+                const results = await apiGet(`/api/quiz-assignments/session/${sessionId}/results`, null, token);
+                setQuizResults(results?.assignmentId ? results : null);
+            } catch {
+                setQuizResults(null);
+            }
         } catch {
             setError("Nie udało się pobrać listy obecności.");
         } finally {
@@ -40,6 +47,8 @@ const AttendanceListPage = () => {
     }, [fetchAttendance, sessionId]);
 
     useTeacherRealtime(["attendance.checked_in"], handleAttendanceRealtime, Boolean(sessionId));
+    const quizSubmissions = Array.isArray(quizResults?.submissions) ? quizResults.submissions : [];
+    const pendingReviews = quizSubmissions.filter((item) => item.pendingOpenReview);
 
     return (
         <AppPageLayout
@@ -63,6 +72,61 @@ const AttendanceListPage = () => {
                         Liczba obecnych: {attendanceList.length}
                     </div>
                 </div>
+
+                {quizResults && quizSubmissions.length > 0 && (
+                    <div className="glass-card" style={{ padding: "1rem", marginBottom: "1rem" }}>
+                        <div style={{ fontWeight: 800, fontSize: "1rem", color: "var(--text-primary)" }}>
+                            {quizResults.quizTitle}
+                        </div>
+                        <div style={{ color: "var(--text-secondary)", fontSize: "0.85rem", marginTop: "0.25rem", marginBottom: "0.75rem" }}>
+                            {pendingReviews.length > 0
+                                ? `${pendingReviews.length} odpowiedzi otwartych do oceny`
+                                : "Brak odpowiedzi oczekujących na ocenę"}
+                        </div>
+
+                        <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                            {(pendingReviews.length > 0 ? pendingReviews : quizSubmissions).map((item) => (
+                                <div
+                                    key={item.submissionId}
+                                    style={{
+                                        display: "flex",
+                                        flexWrap: "wrap",
+                                        alignItems: "center",
+                                        justifyContent: "space-between",
+                                        gap: "0.75rem",
+                                        padding: "0.75rem",
+                                        borderRadius: "0.5rem",
+                                        background: "rgba(255,255,255,0.05)",
+                                        border: "1px solid var(--border-light)"
+                                    }}
+                                >
+                                    <div style={{ minWidth: 0 }}>
+                                        <div style={{ fontWeight: 700, color: "var(--text-primary)", wordBreak: "break-word" }}>
+                                            {item.studentName}
+                                        </div>
+                                        <div style={{ color: "var(--text-secondary)", fontSize: "0.8rem" }}>
+                                            {item.pendingOpenReview ? "Czeka na ocenę pytań otwartych" : `${item.score}/${item.total} pkt`}
+                                        </div>
+                                    </div>
+                                    {item.pendingOpenReview ? (
+                                        <button
+                                            className="btn-primary"
+                                            type="button"
+                                            onClick={() => navigate(`/teacher/review/${item.submissionId}`)}
+                                            style={{ width: "auto", padding: "0.55rem 0.85rem", fontSize: "0.85rem" }}
+                                        >
+                                            Oceń
+                                        </button>
+                                    ) : (
+                                        <span style={{ color: "var(--text-secondary)", fontWeight: 700, fontSize: "0.85rem" }}>
+                                            Oceniono
+                                        </span>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
 
                 {error ? (
                     <ErrorState icon={null}>{error}</ErrorState>

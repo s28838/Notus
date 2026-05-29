@@ -219,7 +219,8 @@ const TeacherStatsPage = () => {
                 <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
                   {sessionDetails.map((student) => {
                     const hasQuiz = student.quizScore != null;
-                    const canReview = hasQuiz && student.submissionId;
+                    const pendingReview = Boolean(student.pendingOpenReview);
+                    const canReview = Boolean(student.submissionId);
                     const quizPercent = hasQuiz && student.quizTotal > 0
                       ? Math.round((student.quizScore / student.quizTotal) * 100)
                       : 0;
@@ -252,12 +253,12 @@ const TeacherStatsPage = () => {
                           hasQuiz ? (
                             <button
                               type="button"
-                              className="btn-secondary"
+                              className={pendingReview ? "btn-primary" : "btn-secondary"}
                               onClick={() => canReview && openReview(student.submissionId)}
                               disabled={!canReview}
                               style={{ padding: "0.4rem 0.65rem", fontSize: "0.8rem", whiteSpace: "nowrap" }}
                             >
-                              {student.quizScore}/{student.quizTotal} ({quizPercent}%)
+                              {pendingReview ? "Oceń odpowiedź" : `${student.quizScore}/${student.quizTotal} (${quizPercent}%)`}
                             </button>
                           ) : (
                             <span style={{ ...pillStyle, padding: "0.3rem 0.55rem", background: "rgba(255,255,255,0.05)", color: "var(--text-tertiary)" }}>

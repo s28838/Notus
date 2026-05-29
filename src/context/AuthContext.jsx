@@ -263,7 +263,7 @@ const ClerkAuthProvider = ({ children }) => {
       return;
     }
 
-    const token = await getToken();
+    const token = await getTokenRef.current();
     const name = clerkUser.fullName ||
                  (clerkUser.firstName && clerkUser.lastName ? `${clerkUser.firstName} ${clerkUser.lastName}` : null) ||
                  clerkUser.firstName ||
@@ -420,7 +420,7 @@ const ClerkAuthProvider = ({ children }) => {
     return () => {
       cancelled = true;
     };
-  }, [isLoaded, isSignedIn, clerkUser, getToken]);
+  }, [isLoaded, isSignedIn, clerkUser]);
 
   const logout = async () => {
     try {

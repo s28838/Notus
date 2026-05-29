@@ -13,7 +13,7 @@ const LESSON_TYPE_OPTIONS = [
 ];
 
 const inputStyle = {
-  width: '100%', padding: '0.75rem', borderRadius: '0.5rem',
+  width: '100%', height: '54px', padding: '0 14px', borderRadius: '0.5rem',
   border: '1px solid var(--border-light)', background: 'var(--surface-light)',
   color: 'var(--text-primary)', fontSize: '1rem', boxSizing: 'border-box'
 };
@@ -21,6 +21,13 @@ const inputStyle = {
 const labelStyle = {
   display: 'block', fontSize: '0.8rem', fontWeight: 700,
   color: 'var(--text-secondary)', marginBottom: '0.5rem', textTransform: 'uppercase'
+};
+
+const toMinutes = (value) => {
+  if (!value || !value.includes(":")) return null;
+  const [hour, minute] = value.split(":").map(Number);
+  if (!Number.isInteger(hour) || !Number.isInteger(minute)) return null;
+  return hour * 60 + minute;
 };
 
 const CreateLessonPage = () => {
@@ -61,9 +68,23 @@ const CreateLessonPage = () => {
     setRepeatUntil(defaultEnd.toISOString().split("T")[0]);
   }, [date, repeatUntil, repeatWeekly]);
 
+  useEffect(() => {
+    const start = toMinutes(timeStart);
+    const end = toMinutes(timeEnd);
+    if (start != null && end != null && end <= start) {
+      setTimeEnd("");
+    }
+  }, [timeStart, timeEnd]);
+
   const handleSubmit = async () => {
     if (!subject || !date || !timeStart || !timeEnd || !room || !type || !studentGroupId) {
       setError("Wypełnij wszystkie wymagane pola.");
+      return;
+    }
+    const startMinutes = toMinutes(timeStart);
+    const endMinutes = toMinutes(timeEnd);
+    if (startMinutes == null || endMinutes == null || endMinutes <= startMinutes) {
+      setError("Godzina zakończenia musi być późniejsza niż godzina rozpoczęcia.");
       return;
     }
     if (repeatWeekly) {
@@ -133,7 +154,7 @@ const CreateLessonPage = () => {
             </div>
             <div>
               <label style={labelStyle}>Godz. koniec *</label>
-              <CustomTimePicker value={timeEnd} onChange={setTimeEnd} placeholder="Wybierz godzinę" ariaLabel="Wybierz godzinę zakończenia" />
+              <CustomTimePicker value={timeEnd} onChange={setTimeEnd} minTime={timeStart} minExclusive placeholder="Wybierz godzinę" ariaLabel="Wybierz godzinę zakończenia" />
             </div>
           </div>
 
@@ -166,7 +187,7 @@ const CreateLessonPage = () => {
             />
 
             {repeatWeekly && (
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '1rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '1rem', marginTop: '1rem', alignItems: 'end' }}>
                 <div>
                   <label style={labelStyle}>Co ile tygodni *</label>
                   <input

@@ -216,6 +216,8 @@ const StudentDashboard = () => {
   const goToStats = () => navigate("/student/stats");
   const freshGrade = latestGrades.find(isFreshGrade);
   const freshGradeCount = latestGrades.filter(isFreshGrade).length;
+  const reviewedAssignmentIds = new Set(reviewNotifications.map((n) => n.assignmentId));
+  const visibleActiveQuiz = activeQuiz && !reviewedAssignmentIds.has(activeQuiz.assignmentId) ? activeQuiz : null;
 
   const renderScheduleSection = () => {
     if (loadingSchedule) {
@@ -258,7 +260,7 @@ const StudentDashboard = () => {
   };
 
   const renderActivitySection = () => {
-    const hasActivity = activeQuiz || freshGrade || reviewNotifications.length > 0;
+    const hasActivity = visibleActiveQuiz || freshGrade || reviewNotifications.length > 0;
     if (!hasActivity) return null;
 
     return (
@@ -273,22 +275,24 @@ const StudentDashboard = () => {
             </DashboardListItem>
           )}
 
-          {activeQuiz && (
+          {visibleActiveQuiz && (
             <DashboardListItem
-              className={`dashboard-status-card ${activeQuiz.alreadySubmitted ? "success" : "primary"}`}
-              onClick={() => !activeQuiz.alreadySubmitted && navigate(`/student/quiz/${activeQuiz.assignmentId}`)}
-              style={{ cursor: activeQuiz.alreadySubmitted ? "default" : "pointer" }}
-              showAction={!activeQuiz.alreadySubmitted}
+              className={`dashboard-status-card ${visibleActiveQuiz.alreadySubmitted ? "success" : "primary"}`}
+              onClick={() => !visibleActiveQuiz.alreadySubmitted && navigate(`/student/quiz/${visibleActiveQuiz.assignmentId}`)}
+              style={{ cursor: visibleActiveQuiz.alreadySubmitted ? "default" : "pointer" }}
+              showAction={!visibleActiveQuiz.alreadySubmitted}
             >
               <span className="material-symbols-outlined dashboard-status-icon">
-                {activeQuiz.alreadySubmitted ? "check_circle" : "quiz"}
+                {visibleActiveQuiz.pendingOpenReview ? "hourglass_top" : visibleActiveQuiz.alreadySubmitted ? "check_circle" : "quiz"}
               </span>
               <DashboardItemContent
-                title={activeQuiz.quizTitle}
+                title={visibleActiveQuiz.quizTitle}
                 details={[{
-                  icon: activeQuiz.alreadySubmitted ? "done" : "bolt",
-                  label: activeQuiz.alreadySubmitted
-                    ? `Ukończono · ${activeQuiz.myScore}/${activeQuiz.myTotal} pkt`
+                  icon: visibleActiveQuiz.pendingOpenReview ? "pending_actions" : visibleActiveQuiz.alreadySubmitted ? "done" : "bolt",
+                  label: visibleActiveQuiz.pendingOpenReview
+                    ? "Czeka na ocenę nauczyciela"
+                    : visibleActiveQuiz.alreadySubmitted
+                    ? `Ukończono · ${visibleActiveQuiz.myScore}/${visibleActiveQuiz.myTotal} pkt`
                     : "Quiz aktywny",
                 }]}
               />
@@ -299,7 +303,7 @@ const StudentDashboard = () => {
             <DashboardListItem
               key={n.submissionId}
               className="dashboard-status-card success"
-              onClick={() => { navigate(`/student/quiz/${n.assignmentId}`); dismissReview(n.submissionId); }}
+              onClick={() => { navigate(`/student/quiz-review/${n.assignmentId}`); dismissReview(n.submissionId); }}
               style={{ cursor: "pointer" }}
               showAction={false}
             >

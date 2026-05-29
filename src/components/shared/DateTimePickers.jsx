@@ -27,6 +27,13 @@ const formatDateLabel = (value) => {
 const formatMonthLabel = (date) =>
   date.toLocaleDateString("pl-PL", { month: "long", year: "numeric" });
 
+const timeToMinutes = (value) => {
+  if (!value || !value.includes(":")) return null;
+  const [hour, minute] = value.split(":").map(Number);
+  if (!Number.isInteger(hour) || !Number.isInteger(minute)) return null;
+  return hour * 60 + minute;
+};
+
 const getCalendarDays = (monthDate) => {
   const year = monthDate.getFullYear();
   const month = monthDate.getMonth();
@@ -181,19 +188,39 @@ export const CustomTimePicker = ({
   onChange,
   placeholder = "Wybierz godzinę",
   ariaLabel = "Wybierz godzinę",
+  minTime,
+  minExclusive = false,
 }) => {
   const [open, setOpen] = useState(false);
   const rootRef = useRef(null);
   const [selectedHour = "", selectedMinute = ""] = value ? value.split(":") : [];
+  const minMinutes = timeToMinutes(minTime);
 
   useClosePicker(open, setOpen, rootRef);
 
   const hours = useMemo(() => Array.from({ length: 24 }, (_, index) => pad(index)), []);
   const minutes = useMemo(() => Array.from({ length: 12 }, (_, index) => pad(index * 5)), []);
 
+  const isTimeDisabled = (hour, minute) => {
+    if (minMinutes == null) return false;
+    const candidate = Number(hour) * 60 + Number(minute);
+    return minExclusive ? candidate <= minMinutes : candidate < minMinutes;
+  };
+
+  const firstAvailableMinute = (hour) => (
+    minutes.find((minute) => !isTimeDisabled(hour, minute))
+  );
+  const firstAvailableHour = () => hours.find((hour) => firstAvailableMinute(hour));
+  const activeHour = selectedHour || firstAvailableHour() || "00";
+
   const setPart = (hour, minute) => {
     const nextHour = hour || selectedHour || "08";
-    const nextMinute = minute || selectedMinute || "00";
+    let nextMinute = minute || selectedMinute || firstAvailableMinute(nextHour) || "00";
+    if (isTimeDisabled(nextHour, nextMinute)) {
+      nextMinute = firstAvailableMinute(nextHour);
+    }
+    if (!nextMinute) return;
+    if (isTimeDisabled(nextHour, nextMinute)) return;
     onChange(`${nextHour}:${nextMinute}`);
   };
 
@@ -218,6 +245,7 @@ export const CustomTimePicker = ({
                     key={hour}
                     type="button"
                     className={hour === selectedHour ? "is-selected" : ""}
+                    disabled={!firstAvailableMinute(hour)}
                     onClick={() => setPart(hour, selectedMinute)}
                   >
                     {hour}
@@ -233,8 +261,9 @@ export const CustomTimePicker = ({
                     key={minute}
                     type="button"
                     className={minute === selectedMinute ? "is-selected" : ""}
+                    disabled={isTimeDisabled(activeHour, minute)}
                     onClick={() => {
-                      setPart(selectedHour, minute);
+                      setPart(activeHour, minute);
                       setOpen(false);
                     }}
                   >

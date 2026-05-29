@@ -1649,6 +1649,7 @@ html, body {
 
 .custom-picker-trigger {
   width: 100%;
+  height: 54px;
   min-height: 54px;
   display: flex;
   align-items: center;
@@ -1817,6 +1818,13 @@ html, body {
   color: var(--color-primary);
 }
 
+.time-picker-column button:disabled {
+  cursor: not-allowed;
+  opacity: 0.35;
+  background: var(--surface-light);
+  color: var(--text-tertiary);
+}
+
 .custom-select {
   position: relative;
   width: 100%;
@@ -1824,6 +1832,7 @@ html, body {
 
 .custom-select-trigger {
   width: 100%;
+  height: 54px;
   min-height: 54px;
   display: flex;
   align-items: center;

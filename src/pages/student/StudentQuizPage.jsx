@@ -23,7 +23,7 @@ const StudentQuizPage = () => {
         const data = await apiGet(`/api/quiz-assignments/${assignmentId}/take`, null, token);
         setQuiz(data);
         if (data.alreadySubmitted) {
-          setResult({ score: data.myScore, total: data.myTotal });
+          setResult({ score: data.myScore, total: data.myTotal, pendingOpenReview: data.pendingOpenReview });
         }
       } catch {
         setError("Nie udało się pobrać quizu.");
@@ -107,8 +107,7 @@ const StudentQuizPage = () => {
         {/* Result state */}
         {result ? (
           (() => {
-            const hasPending = quiz?.pendingOpenReview ||
-              quiz?.questions?.some(q => q.type === "OPEN");
+            const hasPending = Boolean(result?.pendingOpenReview ?? quiz?.pendingOpenReview);
             return hasPending ? (
               <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "1rem", padding: "2rem", textAlign: "center", borderRadius: "1rem", background: "var(--surface-light)", border: "1px solid rgba(234,179,8,0.3)" }}>
                 <span className="material-symbols-outlined" style={{ fontSize: "3rem", color: "#b45309" }}>hourglass_top</span>
@@ -118,11 +117,6 @@ const StudentQuizPage = () => {
                 <p style={{ margin: 0, color: "var(--text-secondary)", fontWeight: 500, fontSize: "0.9rem" }}>
                   Twoje odpowiedzi otwarte zostaną sprawdzone przez nauczyciela. Otrzymasz powiadomienie po ocenie.
                 </p>
-                {result.score > 0 && (
-                  <p style={{ margin: 0, fontSize: "0.85rem", color: "var(--text-secondary)" }}>
-                    Pytania zamknięte: {result.score}/{result.total}
-                  </p>
-                )}
                 <button className="btn-primary" onClick={() => navigate(-1)} style={{ width: "auto", padding: "0.75rem 2rem" }}>
                   Wróć do planu
                 </button>
