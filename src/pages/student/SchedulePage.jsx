@@ -226,7 +226,11 @@ const SchedulePage = () => {
             token
           );
           const map = {};
-          (assignments || []).forEach(a => { map[a.scheduleId] = a; });
+          (assignments || []).forEach(a => {
+            if (!map[a.scheduleId]) {
+              map[a.scheduleId] = a;
+            }
+          });
           setAssignmentMap(map);
         } catch {
           // non-critical
@@ -672,12 +676,14 @@ const SchedulePage = () => {
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', paddingTop: '0.25rem', borderTop: '1px solid var(--border-light)' }}>
                         <span className="material-symbols-outlined" style={{ fontSize: '1rem', color: 'var(--color-primary)' }}>quiz</span>
                         <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--color-primary)', flex: 1 }}>{assignmentMap[lesson.id].quizTitle}</span>
-                        <button
-                          onClick={(e) => { e.stopPropagation(); navigate(`/teacher/assign-quiz/${lesson.id}`); }}
-                          style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', background: 'none', border: 'none', cursor: 'pointer', padding: '0.25rem' }}
-                        >
-                          Zmień
-                        </button>
+                        {!assignmentMap[lesson.id].locked && (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); navigate(`/teacher/assign-quiz/${lesson.id}`); }}
+                            style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', background: 'none', border: 'none', cursor: 'pointer', padding: '0.25rem' }}
+                          >
+                            Zmień
+                          </button>
+                        )}
                       </div>
                     ) : (
                       <button

@@ -3,6 +3,12 @@ import { useNavigate, useParams } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
 import { apiGet, apiPut } from "../../services/api";
 import LoadingState from "../../components/shared/LoadingState";
+import { CustomCheckbox, CustomSelect } from "../../components/shared/FormControls";
+
+const questionTypeOptions = [
+  { value: "CLOSED", label: "Zamknięte (ABCD)" },
+  { value: "OPEN", label: "Otwarte (Opisowe)" }
+];
 
 const QuizViewPage = () => {
   const { getToken } = useContext(AuthContext);
@@ -19,7 +25,6 @@ const QuizViewPage = () => {
   const [editQuestions, setEditQuestions] = useState([]);
   const [editCountAsGrade, setEditCountAsGrade] = useState(false);
   const [editGradeWeight, setEditGradeWeight] = useState(1);
-  const [editSemester, setEditSemester] = useState("2");
   const [saving, setSaving] = useState(false);
   const [versionBanner, setVersionBanner] = useState("");
   const savingRef = useRef(false);
@@ -53,7 +58,6 @@ const QuizViewPage = () => {
     );
     setEditCountAsGrade(Boolean(quiz.countAsGrade));
     setEditGradeWeight(quiz.gradeWeight || 1);
-    setEditSemester(quiz.semester || "2");
     setVersionBanner("");
     setIsEditing(true);
   };
@@ -79,11 +83,11 @@ const QuizViewPage = () => {
         questions: editQuestions,
         countAsGrade: editCountAsGrade,
         gradeWeight: editCountAsGrade ? Number(editGradeWeight) : null,
-        semester: editCountAsGrade ? editSemester : null,
+        semester: editCountAsGrade ? (quiz.semester || "2") : null,
       }, token);
 
       if (response.id !== quiz.id) {
-        // Fork was created — navigate to new version
+        // Fork was created - navigate to new version
         setIsEditing(false);
         setVersionBanner(`Utworzono nową wersję quizu (v${response.version}) — poprzednia wersja zachowana w historii`);
         setQuiz(response);
@@ -237,23 +241,16 @@ const QuizViewPage = () => {
               </div>
               {isEditing ? (
                 <div style={{ marginTop: "1rem", paddingTop: "1rem", borderTop: "1px solid var(--border-light)" }}>
-                  <label style={{ display: "flex", alignItems: "center", gap: "0.6rem", fontWeight: 800 }}>
-                    <input
-                      type="checkbox"
-                      checked={editCountAsGrade}
-                      onChange={(e) => setEditCountAsGrade(e.target.checked)}
-                    />
-                    Dodaj wynik quizu jako ocenę
-                  </label>
+                  <CustomCheckbox
+                    checked={editCountAsGrade}
+                    onChange={setEditCountAsGrade}
+                    label="Dodaj wynik quizu jako ocenę"
+                  />
                   {editCountAsGrade && (
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem", marginTop: "0.75rem" }}>
+                    <div style={{ maxWidth: "32rem", marginTop: "0.75rem" }}>
                       <label style={{ display: "flex", flexDirection: "column", gap: "0.35rem", fontSize: "0.85rem", fontWeight: 700 }}>
                         Waga
                         <input className="form-input" type="number" min="1" value={editGradeWeight} onChange={(e) => setEditGradeWeight(e.target.value)} />
-                      </label>
-                      <label style={{ display: "flex", flexDirection: "column", gap: "0.35rem", fontSize: "0.85rem", fontWeight: 700 }}>
-                        Semestr
-                        <input className="form-input" value={editSemester} onChange={(e) => setEditSemester(e.target.value)} />
                       </label>
                     </div>
                   )}
@@ -261,7 +258,7 @@ const QuizViewPage = () => {
               ) : quiz.countAsGrade ? (
                 <div className="detail-pill" style={{ marginTop: "1rem", width: "fit-content" }}>
                   <span className="material-symbols-outlined" style={{ fontSize: "1rem" }}>grade</span>
-                  <p style={{ margin: 0 }}>Quiz liczony jako ocena, waga {quiz.gradeWeight}, semestr {quiz.semester}</p>
+                  <p style={{ margin: 0 }}>Quiz liczony jako ocena, waga {quiz.gradeWeight}</p>
                 </div>
               ) : null}
               {isEditing && quiz.hasSubmissions && (
@@ -297,15 +294,14 @@ const QuizViewPage = () => {
                     </button>
                   </div>
 
-                  <select
-                    className="form-input"
-                    value={q.type}
-                    onChange={e => updateQuestion(qIdx, "type", e.target.value)}
-                    style={{ marginBottom: "1rem", width: "100%" }}
-                  >
-                    <option value="CLOSED">Zamknięte (ABCD)</option>
-                    <option value="OPEN">Otwarte (Opisowe)</option>
-                  </select>
+                  <div style={{ marginBottom: "1rem" }}>
+                    <CustomSelect
+                      value={q.type}
+                      onChange={(value) => updateQuestion(qIdx, "type", value)}
+                      options={questionTypeOptions}
+                      ariaLabel={`Typ pytania ${qIdx + 1}`}
+                    />
+                  </div>
 
                   <textarea
                     className="form-input"

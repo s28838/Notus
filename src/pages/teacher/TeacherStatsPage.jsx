@@ -1,4 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
 import { API_BASE, apiGet } from "../../services/api";
@@ -7,6 +8,16 @@ import LoadingState from "../../components/shared/LoadingState";
 import AppPageLayout from "../../components/shared/AppPageLayout";
 import { EmptyState, ErrorState } from "../../components/shared/PageState";
 
+const pillStyle = {
+  display: "flex",
+  alignItems: "center",
+  gap: "0.4rem",
+  padding: "0.4rem 0.75rem",
+  borderRadius: "0.5rem",
+  fontSize: "0.8rem",
+  fontWeight: 600
+};
+
 const TeacherStatsPage = () => {
   const { getToken } = useContext(AuthContext);
   const navigate = useNavigate();
@@ -14,8 +25,7 @@ const TeacherStatsPage = () => {
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-
-  const [expandedSessionId, setExpandedSessionId] = useState(null);
+  const [selectedSession, setSelectedSession] = useState(null);
   const [sessionDetails, setSessionDetails] = useState(null);
   const [sessionLoading, setSessionLoading] = useState(false);
 
@@ -23,7 +33,6 @@ const TeacherStatsPage = () => {
     const fetchStats = async () => {
       try {
         const token = await getToken();
-        // Fetch teacher's combined session history
         const data = await apiGet("/api/history/teacher", null, token);
         setHistory(Array.isArray(data) ? data : []);
       } catch {
@@ -47,7 +56,7 @@ const TeacherStatsPage = () => {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `podsumowanie-zajec.pdf`;
+      a.download = "podsumowanie-zajec.pdf";
       a.click();
       URL.revokeObjectURL(url);
     } catch {
@@ -55,26 +64,229 @@ const TeacherStatsPage = () => {
     }
   };
 
-  const toggleSession = async (h) => {
-    if (expandedSessionId === h.scheduleId) {
-      setExpandedSessionId(null);
-      setSessionDetails(null);
-      return;
-    }
-
-    setExpandedSessionId(h.scheduleId);
+  const openSessionDetails = async (session) => {
+    setSelectedSession(session);
     setSessionLoading(true);
     setSessionDetails(null);
 
     try {
       const token = await getToken();
-      const data = await apiGet(`/api/history/teacher/session/${h.scheduleId}`, null, token);
-      setSessionDetails(data);
+      const data = await apiGet(`/api/history/teacher/session/${session.scheduleId}`, null, token);
+      setSessionDetails(Array.isArray(data) ? data : []);
     } catch {
       setSessionDetails({ error: true });
     } finally {
       setSessionLoading(false);
     }
+  };
+
+  const closeSessionDetails = () => {
+    setSelectedSession(null);
+    setSessionDetails(null);
+    setSessionLoading(false);
+  };
+
+  const openReview = (submissionId) => {
+    closeSessionDetails();
+    navigate(`/teacher/review/${submissionId}`);
+  };
+
+  const renderSessionCard = (session) => (
+    <div
+      key={session.scheduleId}
+      className="glass-card"
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: "0.75rem",
+        marginBottom: "1rem",
+        border: "1px solid var(--border-light)",
+        cursor: "pointer"
+      }}
+      onClick={() => openSessionDetails(session)}
+    >
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "1rem" }}>
+        <div style={{ minWidth: 0 }}>
+          <p style={{ margin: "0 0 0.25rem", fontWeight: 700, fontSize: "1.05rem", color: "var(--text-primary)" }}>
+            {session.scheduleSubject}
+          </p>
+          <p style={{ margin: 0, fontSize: "0.8rem", color: "var(--text-secondary)" }}>
+            {new Date(session.scheduleDate).toLocaleDateString()} · {session.scheduleTime}
+          </p>
+        </div>
+        <span className="material-symbols-outlined" style={{ color: "var(--text-tertiary)" }}>
+          open_in_full
+        </span>
+      </div>
+
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginTop: "0.5rem" }}>
+        {session.sessionId ? (
+          <span style={{ ...pillStyle, background: "rgba(34, 197, 94, 0.1)", color: "#16a34a" }}>
+            <span className="material-symbols-outlined" style={{ fontSize: "1rem" }}>group</span>
+            {session.attendanceCount} obecnych
+          </span>
+        ) : (
+          <span style={{ ...pillStyle, background: "rgba(255,255,255,0.05)", color: "var(--text-secondary)" }}>
+            <span className="material-symbols-outlined" style={{ fontSize: "1rem" }}>group_off</span>
+            Brak obecności
+          </span>
+        )}
+
+        {session.quizAssignmentId ? (
+          <span style={{ ...pillStyle, background: "rgba(56, 189, 248, 0.1)", color: "#0ea5e9" }}>
+            <span className="material-symbols-outlined" style={{ fontSize: "1rem" }}>quiz</span>
+            {session.quizSubmissionCount} odp. ({session.quizAvgScore}% śr)
+          </span>
+        ) : (
+          <span style={{ ...pillStyle, background: "rgba(255,255,255,0.05)", color: "var(--text-secondary)" }}>
+            <span className="material-symbols-outlined" style={{ fontSize: "1rem" }}>quiz</span>
+            Brak quizu
+          </span>
+        )}
+      </div>
+
+      <button
+        className="btn-secondary"
+        onClick={(event) => {
+          event.stopPropagation();
+          openSessionDetails(session);
+        }}
+        style={{ alignSelf: "flex-start", padding: "0.5rem 0.75rem", fontSize: "0.8rem" }}
+      >
+        Zobacz uczestników
+      </button>
+    </div>
+  );
+
+  const renderParticipantsModal = () => {
+    if (!selectedSession) return null;
+
+    return createPortal(
+      <div className="modal-backdrop" onClick={closeSessionDetails}>
+        <div
+          className="modal-card"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Lista uczestników sesji"
+          onClick={(event) => event.stopPropagation()}
+          style={{ width: "min(820px, 100%)", gap: "1rem" }}
+        >
+          <div style={{ display: "flex", justifyContent: "space-between", gap: "1rem", alignItems: "flex-start" }}>
+            <div>
+              <h2 style={{ margin: 0, fontSize: "1.35rem" }}>{selectedSession.scheduleSubject}</h2>
+              <p style={{ margin: "0.25rem 0 0", color: "var(--text-secondary)", fontSize: "0.9rem" }}>
+                {new Date(selectedSession.scheduleDate).toLocaleDateString()} · {selectedSession.scheduleTime}
+              </p>
+            </div>
+            <button className="icon-btn" type="button" onClick={closeSessionDetails} aria-label="Zamknij">
+              <span className="material-symbols-outlined">close</span>
+            </button>
+          </div>
+
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
+            <span style={{ ...pillStyle, background: "rgba(34, 197, 94, 0.1)", color: "#16a34a" }}>
+              <span className="material-symbols-outlined" style={{ fontSize: "1rem" }}>group</span>
+              {selectedSession.attendanceCount} obecnych
+            </span>
+            {selectedSession.quizAssignmentId ? (
+              <span style={{ ...pillStyle, background: "rgba(56, 189, 248, 0.1)", color: "#0ea5e9" }}>
+                <span className="material-symbols-outlined" style={{ fontSize: "1rem" }}>quiz</span>
+                {selectedSession.quizSubmissionCount} odp. ({selectedSession.quizAvgScore}% śr)
+              </span>
+            ) : (
+              <span style={{ ...pillStyle, background: "rgba(255,255,255,0.05)", color: "var(--text-secondary)" }}>
+                <span className="material-symbols-outlined" style={{ fontSize: "1rem" }}>quiz</span>
+                Brak quizu
+              </span>
+            )}
+          </div>
+
+          <div style={{ borderTop: "1px solid var(--border-light)", paddingTop: "0.75rem" }}>
+            <h3 style={{ margin: "0 0 0.75rem", fontSize: "0.85rem", color: "var(--text-secondary)", textTransform: "uppercase" }}>
+              Lista uczestników
+            </h3>
+
+            {sessionLoading ? (
+              <LoadingState label="Ładowanie uczniów..." compact />
+            ) : sessionDetails?.error ? (
+              <p style={{ margin: 0, fontSize: "0.85rem", color: "#ef4444" }}>Brak danych lub błąd.</p>
+            ) : sessionDetails?.length === 0 ? (
+              <p style={{ margin: 0, fontSize: "0.85rem", color: "var(--text-tertiary)" }}>
+                Nikogo nie było na tych zajęciach, nikt też nie jest przypisany do tej grupy.
+              </p>
+            ) : (
+              <div style={{ maxHeight: "min(58vh, 560px)", overflowY: "auto", paddingRight: "0.25rem" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                  {sessionDetails.map((student) => {
+                    const hasQuiz = student.quizScore != null;
+                    const canReview = hasQuiz && student.submissionId;
+                    const quizPercent = hasQuiz && student.quizTotal > 0
+                      ? Math.round((student.quizScore / student.quizTotal) * 100)
+                      : 0;
+
+                    return (
+                      <div
+                        key={student.studentId}
+                        style={{
+                          display: "flex",
+                          flexWrap: "wrap",
+                          gap: "0.75rem",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          background: "rgba(255,255,255,0.05)",
+                          padding: "0.75rem",
+                          borderRadius: "0.5rem",
+                          border: "1px solid rgba(255,255,255,0.08)"
+                        }}
+                      >
+                        <span style={{ fontSize: "0.9rem", fontWeight: 700, minWidth: "12rem", flex: "1 1 12rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          {student.studentName}
+                        </span>
+                        <span style={{ ...pillStyle, padding: "0.3rem 0.55rem", background: student.attended ? "rgba(34,197,94,0.1)" : "rgba(239,68,68,0.1)", color: student.attended ? "#16a34a" : "#ef4444" }}>
+                          <span className="material-symbols-outlined" style={{ fontSize: "1rem" }}>
+                            {student.attended ? "check_circle" : "cancel"}
+                          </span>
+                          {student.attended ? "Obecny" : "Nieobecny"}
+                        </span>
+                        {selectedSession.quizAssignmentId && (
+                          hasQuiz ? (
+                            <button
+                              type="button"
+                              className="btn-secondary"
+                              onClick={() => canReview && openReview(student.submissionId)}
+                              disabled={!canReview}
+                              style={{ padding: "0.4rem 0.65rem", fontSize: "0.8rem", whiteSpace: "nowrap" }}
+                            >
+                              {student.quizScore}/{student.quizTotal} ({quizPercent}%)
+                            </button>
+                          ) : (
+                            <span style={{ ...pillStyle, padding: "0.3rem 0.55rem", background: "rgba(255,255,255,0.05)", color: "var(--text-tertiary)" }}>
+                              -/-
+                            </span>
+                          )
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {selectedSession.quizId && (
+            <button
+              className="btn-secondary"
+              style={{ padding: "0.65rem", fontSize: "0.85rem", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}
+              onClick={() => handleDownloadPdf(selectedSession.scheduleId)}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: "1.1rem" }}>picture_as_pdf</span>
+              Pobierz podsumowanie PDF
+            </button>
+          )}
+        </div>
+      </div>,
+      document.body
+    );
   };
 
   return (
@@ -93,144 +305,17 @@ const TeacherStatsPage = () => {
       ) : history.length === 0 ? (
         <EmptyState icon="history" iconStyle={{ fontSize: "3rem", color: "var(--border-light)" }}>
           <p style={{ margin: 0, fontWeight: 600, color: "var(--text-primary)" }}>Brak historii</p>
-          <p style={{ margin: 0, fontSize: "0.875rem" }}>Otwórz listę obecności lub zadaj quiz w trakcie zajęć.</p>
+          <p style={{ margin: 0, fontSize: "0.875rem" }}>
+            Otwórz listę obecności lub zadaj quiz w trakcie zajęć.
+          </p>
         </EmptyState>
       ) : (
         <div className="list-container">
-          {history.map((h) => {
-            const isExpanded = expandedSessionId === h.scheduleId;
-
-            return (
-              <div 
-                key={h.scheduleId} 
-                className="glass-card" 
-                style={{ 
-                  display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1rem',
-                  border: isExpanded ? '1px solid var(--color-primary)' : '1px solid var(--border-light)',
-                  transition: 'all 0.2s', cursor: 'pointer'
-                }}
-                onClick={() => toggleSession(h)}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <div>
-                    <p style={{ margin: '0 0 0.25rem', fontWeight: 700, fontSize: '1.05rem', color: 'var(--text-primary)' }}>{h.scheduleSubject}</p>
-                    <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                      {new Date(h.scheduleDate).toLocaleDateString()} · {h.scheduleTime}
-                    </p>
-                  </div>
-                  <span className="material-symbols-outlined" style={{ transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s', color: 'var(--text-tertiary)' }}>
-                    expand_more
-                  </span>
-                </div>
-
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginTop: '0.5rem' }}>
-                  {h.sessionId ? (
-                    <span
-                      style={{
-                        display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(34, 197, 94, 0.1)', color: '#16a34a', padding: '0.4rem 0.75rem', borderRadius: '0.5rem', fontSize: '0.8rem', fontWeight: 600
-                      }}>
-                      <span className="material-symbols-outlined" style={{ fontSize: '1rem' }}>group</span>
-                      {h.attendanceCount} obecnych
-                    </span>
-                  ) : (
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(255,255,255,0.05)', color: 'var(--text-secondary)', padding: '0.4rem 0.75rem', borderRadius: '0.5rem', fontSize: '0.8rem', fontWeight: 600 }}>
-                      <span className="material-symbols-outlined" style={{ fontSize: '1rem' }}>group_off</span>
-                      Brak obecności
-                    </span>
-                  )}
-
-                  {h.quizAssignmentId ? (
-                    <span
-                      style={{
-                        display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(56, 189, 248, 0.1)', color: '#0ea5e9', padding: '0.4rem 0.75rem', borderRadius: '0.5rem', fontSize: '0.8rem', fontWeight: 600
-                      }}>
-                      <span className="material-symbols-outlined" style={{ fontSize: '1rem' }}>quiz</span>
-                      {h.quizSubmissionCount} odp. ({h.quizAvgScore}% śr)
-                    </span>
-                  ) : (
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(255,255,255,0.05)', color: 'var(--text-secondary)', padding: '0.4rem 0.75rem', borderRadius: '0.5rem', fontSize: '0.8rem', fontWeight: 600 }}>
-                      <span className="material-symbols-outlined" style={{ fontSize: '1rem' }}>quiz</span>
-                      Brak quizu
-                    </span>
-                  )}
-                </div>
-
-                {isExpanded && (
-                  <div style={{ marginTop: '0.5rem', paddingTop: '0.75rem', borderTop: '1px solid var(--border-light)' }} onClick={e => e.stopPropagation()}>
-                    <h4 style={{ margin: '0 0 0.75rem', fontSize: '0.9rem', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Lista uczestników</h4>
-                    
-                    {sessionLoading ? (
-                      <LoadingState label="Ładowanie uczniów..." compact />
-                    ) : sessionDetails?.error ? (
-                      <p style={{ margin: 0, fontSize: '0.8rem', color: '#ef4444' }}>Brak danych lub błąd.</p>
-                    ) : sessionDetails?.length === 0 ? (
-                      <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-tertiary)' }}>Nikogo nie było na tych zajęciach, nikt też nie jest przypisany do tej grupy.</p>
-                    ) : (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                        {sessionDetails?.map(student => {
-                          const hasQuiz = student.quizScore != null;
-                          const canReview = hasQuiz && student.submissionId;
-                          return (
-                            <div 
-                              key={student.studentId} 
-                              onClick={() => canReview ? navigate(`/teacher/review/${student.submissionId}`) : null}
-                              style={{ 
-                                display: 'flex', justifyContent: 'space-between', alignItems: 'center', 
-                                background: 'rgba(255,255,255,0.05)', 
-                                padding: '0.5rem 0.75rem', borderRadius: '0.5rem',
-                                cursor: canReview ? 'pointer' : 'default',
-                                border: canReview ? '1px solid rgba(255,255,255,0.1)' : 'none'
-                              }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>{student.studentName}</span>
-                                {canReview && (
-                                  <span className="material-symbols-outlined" style={{ fontSize: '1.2rem', color: 'var(--text-tertiary)' }}>chevron_right</span>
-                                )}
-                              </div>
-
-                              <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                                {/* Attendance Status */}
-                                {student.attended ? (
-                                  <span className="material-symbols-outlined" style={{ color: '#16a34a', fontSize: '1.2rem' }}>check_circle</span>
-                                ) : (
-                                  <span className="material-symbols-outlined" style={{ color: '#ef4444', fontSize: '1.2rem' }}>cancel</span>
-                                )}
-                                {/* Quiz Status */}
-                                {h.quizAssignmentId && (
-                                  <span style={{ 
-                                    background: hasQuiz ? 'var(--color-primary)' : 'rgba(255,255,255,0.05)', 
-                                    color: hasQuiz ? 'white' : 'var(--text-tertiary)',
-                                    padding: '0.1rem 0.4rem', borderRadius: '0.25rem', fontSize: '0.75rem', fontWeight: 700 
-                                  }}>
-                                    {hasQuiz 
-                                      ? `${student.quizScore}/${student.quizTotal} (${student.quizTotal > 0 ? Math.round((student.quizScore / student.quizTotal) * 100) : 0}%)` 
-                                      : '-/-'}
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                          );
-                        })}
-
-                        {h.quizId && (
-                          <button
-                            className="btn-secondary"
-                            style={{ marginTop: '0.5rem', padding: '0.5rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
-                            onClick={() => handleDownloadPdf(h.scheduleId)}
-                          >
-                            <span className="material-symbols-outlined" style={{ fontSize: '1.1rem' }}>picture_as_pdf</span>
-                            Pobierz podsumowanie PDF
-                          </button>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            );
-          })}
+          {history.map(renderSessionCard)}
         </div>
       )}
+
+      {renderParticipantsModal()}
     </AppPageLayout>
   );
 };

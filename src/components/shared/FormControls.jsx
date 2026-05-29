@@ -32,6 +32,7 @@ export const CustomSelect = ({
   options,
   placeholder = "Wybierz",
   ariaLabel = "Wybierz opcję",
+  disabled = false,
 }) => {
   const [open, setOpen] = useState(false);
   const rootRef = useRef(null);
@@ -63,6 +64,7 @@ export const CustomSelect = ({
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-label={ariaLabel}
+        disabled={disabled}
       >
         <span>{selected?.label || placeholder}</span>
         <span className="material-symbols-outlined" aria-hidden="true">expand_more</span>

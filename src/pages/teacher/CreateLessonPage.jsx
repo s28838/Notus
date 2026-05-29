@@ -6,8 +6,8 @@ import { CustomDatePicker, CustomTimePicker } from "../../components/shared/Date
 import { CustomCheckbox, CustomSelect } from "../../components/shared/FormControls";
 
 const LESSON_TYPE_OPTIONS = [
-  { value: "Wykład", label: "Wykład", aliases: ["WykÅ‚ad"] },
-  { value: "Ćwiczenia", label: "Ćwiczenia", aliases: ["Ä†wiczenia"] },
+  { value: "Wykład", label: "Wykład", aliases: ["Wyk\u00c5\u201aad"] },
+  { value: "Ćwiczenia", label: "Ćwiczenia", aliases: ["\u00c4\u2020wiczenia"] },
   { value: "Laboratorium", label: "Laboratorium" },
   { value: "Seminarium", label: "Seminarium" },
 ];
@@ -48,7 +48,7 @@ const CreateLessonPage = () => {
         const data = await apiGet("/api/teacher/groups", null, token);
         setGroups(data || []);
       } catch {
-        // non-critical â€” groups dropdown just stays empty
+        // non-critical - groups dropdown just stays empty
       }
     };
     fetchGroups();

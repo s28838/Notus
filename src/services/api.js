@@ -27,7 +27,7 @@ async function safeFetch(url, options) {
 function localizeErrorMessage(message) {
   return message
     .replace("To konto istnieje już jako student.", "To konto istnieje już jako uczeń.")
-    .replace("To konto istnieje juÅ¼ jako student.", "To konto istnieje już jako uczeń.");
+    .replace("To konto istnieje ju\u00c5\u00bc jako student.", "To konto istnieje już jako uczeń.");
 }
 
 function extractErrorMessage(text, status) {

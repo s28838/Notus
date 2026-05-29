@@ -211,7 +211,7 @@ const TeacherDashboard = () => {
         { sessionId: qr.sessionId },
         token
       );
-      setLessonAssignment(prev => ({ ...prev, active: true }));
+      setLessonAssignment(prev => ({ ...prev, active: true, locked: true }));
     } catch {
       // silent — button stays enabled
     } finally {
@@ -229,7 +229,7 @@ const TeacherDashboard = () => {
         {},
         token
       );
-      setLessonAssignment(prev => ({ ...prev, active: false }));
+      setLessonAssignment(prev => ({ ...prev, active: false, locked: true }));
     } catch {
       // silent
     } finally {
@@ -420,12 +420,14 @@ const TeacherDashboard = () => {
                         {activatingQuiz ? "..." : "Aktywuj quiz"}
                       </button>
                     )}
-                    <button
-                      className="hero-pill-btn"
-                      onClick={() => navigate(`/teacher/assign-quiz/${currentLesson?.id}`)}
-                    >
-                      Zmień quiz
-                    </button>
+                    {!lessonAssignment.locked && (
+                      <button
+                        className="hero-pill-btn"
+                        onClick={() => navigate(`/teacher/assign-quiz/${currentLesson?.id}`)}
+                      >
+                        Zmień quiz
+                      </button>
+                    )}
                   </>
                 ) : (
                   <button className="hero-pill-btn" onClick={() => navigate(`/teacher/assign-quiz/${currentLesson?.id}`)}>

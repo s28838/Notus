@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
 import { apiDelete, apiGet, apiPost, apiPostMultipart } from "../../services/api";
+import { CustomCheckbox, CustomSelect } from "../../components/shared/FormControls";
 
 const inputStyle = {
   width: "100%",
@@ -23,6 +24,11 @@ const providerLabels = {
 };
 
 const providerOptions = Object.entries(providerLabels).map(([value, label]) => ({ value, label }));
+
+const questionTypeOptions = [
+  { value: "CLOSED", label: "Zamknięte (ABCD)" },
+  { value: "OPEN", label: "Otwarte (Opisowe)" }
+];
 const MAX_PDF_FILE_SIZE_BYTES = 25 * 1024 * 1024;
 
 const CreateQuizPage = () => {
@@ -35,7 +41,6 @@ const CreateQuizPage = () => {
   const [title, setTitle] = useState("");
   const [countAsGrade, setCountAsGrade] = useState(false);
   const [gradeWeight, setGradeWeight] = useState(1);
-  const [semester, setSemester] = useState("2");
   const [questions, setQuestions] = useState([
     { question: "", type: "CLOSED", options: ["", "", "", ""], correctAnswer: "" }
   ]);
@@ -224,7 +229,7 @@ const CreateQuizPage = () => {
         questions,
         countAsGrade,
         gradeWeight: countAsGrade ? Number(gradeWeight) : null,
-        semester: countAsGrade ? semester : null,
+        semester: countAsGrade ? "2" : null,
       }, token);
     } catch (err) {
       alert("Błąd: " + err.message);
@@ -283,7 +288,7 @@ const CreateQuizPage = () => {
         description: aiQuizDescription.trim(),
         countAsGrade,
         gradeWeight: countAsGrade ? Number(gradeWeight) : null,
-        semester: countAsGrade ? semester : null,
+        semester: countAsGrade ? "2" : null,
       }, token);
     } catch (err) {
       alert("Błąd AI: " + err.message);
@@ -367,23 +372,16 @@ const CreateQuizPage = () => {
             </div>
 
             <div className="glass-card" style={{ padding: "1.25rem", display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-              <label style={{ display: "flex", alignItems: "center", gap: "0.6rem", fontWeight: 800 }}>
-                <input
-                  type="checkbox"
-                  checked={countAsGrade}
-                  onChange={(e) => setCountAsGrade(e.target.checked)}
-                />
-                Dodaj wynik quizu jako ocenę
-              </label>
+              <CustomCheckbox
+                checked={countAsGrade}
+                onChange={setCountAsGrade}
+                label="Dodaj wynik quizu jako ocenę"
+              />
               {countAsGrade && (
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
+                <div style={{ maxWidth: "32rem" }}>
                   <label style={{ display: "flex", flexDirection: "column", gap: "0.35rem", fontSize: "0.85rem", fontWeight: 700 }}>
                     Waga
                     <input className="form-input" type="number" min="1" value={gradeWeight} onChange={(e) => setGradeWeight(e.target.value)} />
-                  </label>
-                  <label style={{ display: "flex", flexDirection: "column", gap: "0.35rem", fontSize: "0.85rem", fontWeight: 700 }}>
-                    Semestr
-                    <input className="form-input" value={semester} onChange={(e) => setSemester(e.target.value)} />
                   </label>
                 </div>
               )}
@@ -401,16 +399,14 @@ const CreateQuizPage = () => {
                    </button>
                 </div>
 
-                <select 
-                  className="form-input" 
-                  value={q.type} 
-                  onChange={(e) => updateQuestion(qIdx, "type", e.target.value)}
-                  style={{ marginBottom: "1rem", width: "100%" }}
-                >
-                   <option value="CLOSED">Zamknięte (ABCD)</option>
-                   <option value="OPEN">Otwarte (Opisowe)</option>
-                </select>
-
+                <div style={{ marginBottom: "1rem" }}>
+                  <CustomSelect
+                    value={q.type}
+                    onChange={(value) => updateQuestion(qIdx, "type", value)}
+                    options={questionTypeOptions}
+                    ariaLabel={`Typ pytania ${qIdx + 1}`}
+                  />
+                </div>
                 <textarea
                   className="form-input"
                   placeholder="Treść pytania..."
@@ -486,16 +482,14 @@ const CreateQuizPage = () => {
               <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)", gap: "0.75rem", marginBottom: "0.75rem" }}>
                 <label style={{ ...labelStyle, marginBottom: 0 }}>
                   Dostawca
-                  <select
-                    className="form-input"
+                  <div style={{ marginTop: "0.35rem" }}>
+                    <CustomSelect
                     value={aiProvider}
-                    onChange={(e) => setAiProvider(e.target.value)}
-                    style={{ ...inputStyle, marginTop: "0.35rem" }}
-                  >
-                    {providerOptions.map((provider) => (
-                      <option key={provider.value} value={provider.value}>{provider.label}</option>
-                    ))}
-                  </select>
+                      onChange={setAiProvider}
+                      options={providerOptions}
+                      ariaLabel="Wybierz dostawcę AI"
+                    />
+                  </div>
                 </label>
                 <label style={{ ...labelStyle, marginBottom: 0 }}>
                   Nazwa klucza
@@ -623,34 +617,29 @@ const CreateQuizPage = () => {
               />
 
               <label style={labelStyle}>Aktywny klucz</label>
-              <select
-                className="form-input"
+              <div style={{ marginBottom: "0.75rem" }}>
+                <CustomSelect
                 value={selectedAiKeyId}
-                onChange={(e) => setSelectedAiKeyId(e.target.value)}
+                  onChange={setSelectedAiKeyId}
                 disabled={aiKeysLoading || aiKeys.length === 0}
-                style={{ ...inputStyle, marginBottom: "0.75rem" }}
-              >
-                <option value="">{aiKeysLoading ? "Ładowanie kluczy..." : "Wybierz klucz"}</option>
-                {aiKeys.map((key) => (
-                  <option key={key.id} value={key.id}>
-                    {key.label} · {providerLabels[key.provider] || key.provider} · {key.keyPreview}
-                  </option>
-                ))}
-              </select>
+                  placeholder={aiKeysLoading ? "Ładowanie kluczy..." : "Wybierz klucz"}
+                  ariaLabel="Wybierz aktywny klucz AI"
+                  options={aiKeys.map((key) => ({
+                    value: String(key.id),
+                    label: `${key.label} - ${providerLabels[key.provider] || key.provider} - ${key.keyPreview}`
+                  }))}
+                />
+              </div>
 
               <label style={labelStyle}>Model</label>
-              <select
-                className="form-input"
+              <CustomSelect
                 value={selectedAiModel}
-                onChange={(e) => setSelectedAiModel(e.target.value)}
+                onChange={setSelectedAiModel}
                 disabled={!selectedAiKey || aiModelsForSelectedKey.length === 0}
-                style={{ ...inputStyle }}
-              >
-                <option value="">{selectedAiKey ? "Wybierz model" : "Najpierw wybierz klucz"}</option>
-                {aiModelsForSelectedKey.map((model) => (
-                  <option key={model.model} value={model.model}>{model.label}</option>
-                ))}
-              </select>
+                placeholder={selectedAiKey ? "Wybierz model" : "Najpierw wybierz klucz"}
+                ariaLabel="Wybierz model AI"
+                options={aiModelsForSelectedKey.map((model) => ({ value: model.model, label: model.label }))}
+              />
             </div>
 
             <input

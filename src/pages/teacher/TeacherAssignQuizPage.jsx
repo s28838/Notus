@@ -16,13 +16,18 @@ const TeacherAssignQuizPage = () => {
   const [assigning, setAssigning] = useState(null);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  const [scheduleAssignment, setScheduleAssignment] = useState(null);
 
   useEffect(() => {
     const fetch = async () => {
       try {
         const token = await getToken();
-        const data = await apiGet("/api/quiz/my", null, token);
+        const [data, assignments] = await Promise.all([
+          apiGet("/api/quiz/my", null, token),
+          apiGet("/api/quiz-assignments/by-schedules", { scheduleIds: scheduleId }, token)
+        ]);
         setQuizzes(Array.isArray(data) ? data : []);
+        setScheduleAssignment(Array.isArray(assignments) && assignments.length > 0 ? assignments[0] : null);
       } catch {
         setError("Nie udało się pobrać quizów.");
       } finally {
@@ -30,9 +35,13 @@ const TeacherAssignQuizPage = () => {
       }
     };
     fetch();
-  }, [getToken]);
+  }, [getToken, scheduleId]);
 
   const handleAssign = async (quizId) => {
+    if (scheduleAssignment?.locked) {
+      setError("Po aktywacji quizu nie można zmienić go na inny dla tej lekcji.");
+      return;
+    }
     setAssigning(quizId);
     setError("");
     try {
@@ -67,6 +76,11 @@ const TeacherAssignQuizPage = () => {
           />
         ) : (
           <>
+            {scheduleAssignment?.locked && (
+              <ErrorState style={{ marginBottom: "1rem" }} iconStyle={{ fontSize: "1.5rem" }}>
+                Quiz dla tej lekcji został już aktywowany i nie można go zmienić.
+              </ErrorState>
+            )}
             {error && (
               <ErrorState style={{ marginBottom: "1rem" }} iconStyle={{ fontSize: "1.5rem" }}>
                 {error}
@@ -79,6 +93,7 @@ const TeacherAssignQuizPage = () => {
                 <button
                   className="btn-primary"
                   onClick={() => navigate(`/teacher/create-quiz?scheduleId=${encodeURIComponent(scheduleId)}`)}
+                  disabled={scheduleAssignment?.locked}
                   style={{ width: "auto", padding: "0.75rem 1.5rem" }}
                 >
                   Utwórz quiz dla tych zajęć
@@ -89,9 +104,10 @@ const TeacherAssignQuizPage = () => {
                 <button
                   className="btn-primary"
                   onClick={() => navigate(`/teacher/create-quiz?scheduleId=${encodeURIComponent(scheduleId)}`)}
-                  style={{ padding: "0.85rem 1rem" }}
+                  disabled={scheduleAssignment?.locked}
+                  style={{ padding: "0.85rem 1rem", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "0.4rem" }}
                 >
-                  <span className="material-symbols-outlined" style={{ fontSize: "1.1rem" }}>add</span>
+                  <span className="material-symbols-outlined" style={{ fontSize: "1.1rem", lineHeight: 1 }}>add</span>
                   Utwórz nowy quiz dla tych zajęć
                 </button>
                 <p style={{ margin: "0 0 0.5rem", color: "var(--text-secondary)", fontSize: "0.875rem" }}>
@@ -112,7 +128,7 @@ const TeacherAssignQuizPage = () => {
                     <button
                       className="btn-primary"
                       onClick={() => handleAssign(quiz.id)}
-                      disabled={assigning !== null}
+                      disabled={assigning !== null || scheduleAssignment?.locked}
                       style={{ width: "auto", padding: "0.6rem 1.25rem", fontSize: "0.875rem" }}
                     >
                       {assigning === quiz.id ? "..." : "Przypisz"}

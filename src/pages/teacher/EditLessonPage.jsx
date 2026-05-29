@@ -7,8 +7,8 @@ import { CustomDatePicker, CustomTimePicker } from "../../components/shared/Date
 import { CustomSelect } from "../../components/shared/FormControls";
 
 const LESSON_TYPE_OPTIONS = [
-  { value: "Wykład", label: "Wykład", aliases: ["WykÅ‚ad"] },
-  { value: "Ćwiczenia", label: "Ćwiczenia", aliases: ["Ä†wiczenia"] },
+  { value: "Wykład", label: "Wykład", aliases: ["Wyk\u00c5\u201aad"] },
+  { value: "Ćwiczenia", label: "Ćwiczenia", aliases: ["\u00c4\u2020wiczenia"] },
   { value: "Laboratorium", label: "Laboratorium" },
   { value: "Seminarium", label: "Seminarium" },
 ];

@@ -1852,6 +1852,11 @@ html, body {
   color: var(--text-tertiary);
 }
 
+.custom-select-trigger:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
 .custom-select-trigger .material-symbols-outlined {
   color: var(--text-secondary);
   transition: transform 0.2s;
