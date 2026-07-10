@@ -257,19 +257,45 @@ const ClerkAuthProvider = ({ children }) => {
   const [authError, setAuthError] = useState(null);
   const navigate = useNavigate();
   useSentryUser(user);
+  const syncedClerkUserIdRef = useRef(null);
 
-  const syncUserToBackend = async () => {
-    if (!(isLoaded && isSignedIn && clerkUser)) {
-      return;
+  const clerkProfile = useMemo(() => {
+    if (!clerkUser) {
+      return null;
     }
 
-    const token = await getTokenRef.current();
+    const email = clerkUser.primaryEmailAddress?.emailAddress || null;
     const name = clerkUser.fullName ||
                  (clerkUser.firstName && clerkUser.lastName ? `${clerkUser.firstName} ${clerkUser.lastName}` : null) ||
                  clerkUser.firstName ||
                  clerkUser.username ||
-                 clerkUser.primaryEmailAddress?.emailAddress ||
+                 email ||
                  "";
+
+    return {
+      id: clerkUser.id,
+      email,
+      name,
+      imageUrl: clerkUser.imageUrl || null,
+      emailVerified: clerkUser.primaryEmailAddress?.verification?.status === "verified",
+    };
+  }, [
+    clerkUser?.id,
+    clerkUser?.fullName,
+    clerkUser?.firstName,
+    clerkUser?.lastName,
+    clerkUser?.username,
+    clerkUser?.imageUrl,
+    clerkUser?.primaryEmailAddress?.emailAddress,
+    clerkUser?.primaryEmailAddress?.verification?.status,
+  ]);
+
+  const syncUserToBackend = async (profile = clerkProfile) => {
+    if (!(isLoaded && isSignedIn && profile)) {
+      return;
+    }
+
+    const token = await getTokenRef.current();
     const pendingInviteToken = localStorage.getItem("notus:pendingGroupInviteToken");
     const selectedRole = localStorage.getItem("notus:selectedRole") || (pendingInviteToken ? "student" : null);
     const registrationToken = localStorage.getItem("notus:teacherRegistrationToken");
@@ -277,18 +303,18 @@ const ClerkAuthProvider = ({ children }) => {
       ? await apiPost("/api/auth/teacher/google-register", {
           idToken: token,
           registrationToken: registrationToken || null,
-          email: clerkUser.primaryEmailAddress?.emailAddress || null,
-          name,
-          emailVerified: clerkUser.primaryEmailAddress?.verification?.status === "verified"
+          email: profile.email,
+          name: profile.name,
+          emailVerified: profile.emailVerified
         })
       : selectedRole
         ? await apiPost("/api/me", {
             role: selectedRole.toUpperCase(),
-            name,
-            email: clerkUser.primaryEmailAddress?.emailAddress || null,
+            name: profile.name,
+            email: profile.email,
             teacherAccessCode: null
           }, token)
-        : await apiGet("/api/me", { name }, token);
+        : await apiGet("/api/me", { name: profile.name }, token);
 
     const backendUser = backendPayload?.user || backendPayload;
     if (backendUser && backendUser.id) {
@@ -305,8 +331,8 @@ const ClerkAuthProvider = ({ children }) => {
           role: backendUser.role.toLowerCase(),
           name: backendUser.name,
           index: backendUser.indexNumber || null,
-          photoURL: clerkUser.imageUrl || null,
-          clerkId: clerkUser.id,
+          photoURL: profile.imageUrl,
+          clerkId: profile.id,
           isDev: false,
         };
         // Return the same reference if nothing meaningful changed — this
@@ -332,7 +358,7 @@ const ClerkAuthProvider = ({ children }) => {
     const syncToken = async () => {
       try {
         if (isLoaded && isSignedIn) {
-          const t = await getToken();
+          const t = await getTokenRef.current();
           if (t) {
             localStorage.setItem("clerkToken", t);
           }
@@ -349,11 +375,12 @@ const ClerkAuthProvider = ({ children }) => {
     };
 
     syncToken();
-    // Refresh token every 5 minutes to keep localStorage in sync
-    const interval = setInterval(syncToken, 5 * 60 * 1000);
+    // Keep the legacy localStorage token fresh for API helpers that still read
+    // it directly. This does not re-run backend identity sync or reset auth UI.
+    const interval = setInterval(syncToken, 55 * 1000);
 
     return () => clearInterval(interval);
-  }, [isLoaded, isSignedIn, getToken]);
+  }, [isLoaded, isSignedIn]);
 
   useEffect(() => {
     if (!isLoaded) {
@@ -367,16 +394,28 @@ const ClerkAuthProvider = ({ children }) => {
       }
     };
 
-    setIsAuthReady(false);
-
     try {
-      if (isLoaded && isSignedIn && clerkUser) {
-        syncUserToBackend().catch((err) => {
+      if (isLoaded && isSignedIn && clerkProfile?.id) {
+        if (syncedClerkUserIdRef.current === clerkProfile.id) {
+          finish();
+          return () => {
+            cancelled = true;
+          };
+        }
+
+        setIsAuthReady(false);
+        syncUserToBackend(clerkProfile).then(() => {
+          if (!cancelled) {
+            syncedClerkUserIdRef.current = clerkProfile.id;
+          }
+        }).catch((err) => {
           console.error("Backend user sync failed:", err);
           setAuthError(err.message || "Nie udało się zsynchronizować konta");
           setUser(null);
         }).finally(finish);
       } else if (isLoaded && !isSignedIn) {
+        syncedClerkUserIdRef.current = null;
+        setIsAuthReady(false);
         const localToken = localStorage.getItem("clerkToken");
         if (devAccountsEnabled && localToken && localToken.startsWith("mock-dev-token:")) {
           const role = localStorage.getItem("notus:selectedRole");
@@ -420,13 +459,17 @@ const ClerkAuthProvider = ({ children }) => {
     return () => {
       cancelled = true;
     };
-  }, [isLoaded, isSignedIn, clerkUser]);
+  // Backend identity sync should happen once per Clerk login/app load. Clerk
+  // rotates session/token objects frequently, so do not depend on clerkUser.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoaded, isSignedIn, clerkProfile?.id]);
 
   const logout = async () => {
     try {
       await signOut();
       localStorage.removeItem("clerkToken");
       localStorage.removeItem("notus:authProvider");
+      syncedClerkUserIdRef.current = null;
       setUser(null);
       navigate("/login");
     } catch (err) {
@@ -570,6 +613,9 @@ const ClerkAuthProvider = ({ children }) => {
   const retryUserSync = async () => {
     try {
       await syncUserToBackend();
+      if (clerkProfile?.id) {
+        syncedClerkUserIdRef.current = clerkProfile.id;
+      }
     } catch (err) {
       console.error("Backend user sync failed:", err);
       setAuthError(err.message || "Nie udało się zsynchronizować konta");
